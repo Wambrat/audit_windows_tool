@@ -1,4 +1,4 @@
-﻿function Get-HostContext {
+function Get-HostContext {
     <#
     .SYNOPSIS
         Récupère le contexte de l'hôte (Type de machine, Environnement, OS).
@@ -17,6 +17,11 @@
             $isVirtual = $modelStr -match "VMware|Virtual|Hyper-V|KVM|Xen|Bochs|QEMU"
             $hardwareType = if ($isVirtual) { "Virtual Machine" } else { "Physical" }
 
+            $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+            $principal = [System.Security.Principal.WindowsPrincipal]$identity
+            
+            $isAdmin = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+
             return [PSCustomObject]@{
                 Hostname       = $compInfo.Name
                 OSRole         = $osRole
@@ -25,6 +30,10 @@
                 Model          = $compInfo.Model
                 IsDomainJoined = $compInfo.PartOfDomain
                 Timestamp      = (Get-Date)
+
+                CurrentUser    = $identity.Name
+                IsRunAsAdmin   = $isAdmin
+
             }
         }
         catch {
