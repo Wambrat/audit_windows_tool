@@ -2,7 +2,7 @@
     [CmdletBinding()]
     param()
 
-    # Identifier les interfaces de type VPN (approximation via InterfaceDescription/Name)[web:347][web:358][web:356]
+    # Interfaces type VPN/TAP/TUN actives
     $adapters = Get-NetAdapter -ErrorAction SilentlyContinue |
                 Where-Object {
                     $_.Status -eq 'Up' -and
@@ -13,16 +13,43 @@
                 } |
                 Select-Object Name, InterfaceDescription, Status, MacAddress
 
-    $hasVPN = $adapters.Count -gt 0
+    $hasVpnAdapters = $adapters.Count -gt 0
 
-    $desc = if ($hasVPN) {
-        "$($adapters.Count) VPN interface(s) detected"
+    # Profils VPN natifs Windows
+    $vpnProfiles = Get-VpnConnection -AllUserConnection -ErrorAction SilentlyContinue
+    $activeProfiles = $vpnProfiles | Where-Object { $_.ConnectionStatus -eq 'Connected' }
+
+    $hasVpnProfiles       = $vpnProfiles.Count   -gt 0
+    $hasActiveVpnProfiles = $activeProfiles.Count -gt 0
+
+    # Description globale
+    $parts = @()
+
+    if ($hasVpnAdapters) {
+        $parts += "$($adapters.Count) VPN/TAP/TUN interface(s) detected (Status = Up)"
     } else {
-        "0 VPN interface detected"
+        $parts += "0 VPN/TAP/TUN interface detected"
     }
 
-    [pscustomobject]@{
-        HasVPN      = $hasVPN
-        Description = $desc
+    if ($hasVpnProfiles) {
+        $parts += "$($vpnProfiles.Count) VPN profile(s) configured via Windows VPN client"
+    } else {
+        $parts += "0 VPN profile configured via Windows VPN client"
     }
+
+    if ($hasActiveVpnProfiles) {
+        $parts += "$($activeProfiles.Count) VPN profile(s) currently connected"
+    }
+
+    $VPNStatus = [pscustomobject]@{
+        HasVpnAdapters        = $hasVpnAdapters
+        HasVpnProfiles        = $hasVpnProfiles
+        HasActiveVpnProfiles  = $hasActiveVpnProfiles
+        Description           = ($parts -join ' | ')
+        Adapters              = $adapters
+        VpnProfiles           = $vpnProfiles
+        ActiveVpnProfiles     = $activeProfiles
+    }
+
+    Return $VPNStatus
 }

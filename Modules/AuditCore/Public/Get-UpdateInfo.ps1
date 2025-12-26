@@ -17,61 +17,52 @@ function Get-OSVersionInfo {
     [CmdletBinding()]
     param()
 
+    process {
+        $os   = Get-CimInstance -ClassName Win32_OperatingSystem
+        $ubr  = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion').UBR
 
-    process{
-
-        $os = Get-CimInstance -ClassName Win32_OperatingSystem
-        $osinfo = [pscustomobject]@{
-            Caption       = $os.Caption          
-            Version       = $os.Version          
+        [pscustomobject]@{
+            Caption       = $os.Caption
+            Version       = $os.Version
+            FullVersion   = "$($os.Version).$ubr"
             BuildNumber   = $os.BuildNumber
             InstallDate   = $os.InstallDate
         }
-
-        return $osinfo
     }
-
-
 }
+
 
 
 function Get-UpdateSource {
     [CmdletBinding()]
     param()
 
-    process{
+    process {
+        $basePath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+        $auPath   = Join-Path $basePath 'AU'
 
-        $regPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+        if (-not (Test-Path $auPath)) {
+            return 'No policy key found: using default Windows Update behavior'
+        }
 
-    
-        $result = "Windows Update (Microsoft Update)"
+        $auValues  = Get-ItemProperty -Path $auPath -ErrorAction SilentlyContinue
+        $wuValues  = Get-ItemProperty -Path $basePath -ErrorAction SilentlyContinue
 
-        if (Test-Path $regPath) {
+        if ($auValues.UseWUServer -eq 1) {
 
-            $values = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
+            $wsusServer = $wuValues.WUServer
 
-        
-            if ($values.UseWUServer -eq 1) {
-            
-                $wsusServer = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -ErrorAction SilentlyContinue).WUServer
-
-
-                if ($wsusServer) {
-
-                    if ($wsusServer -like "https://*") {
-                        $result = "WSUS sécurisé (HTTPS) : $wsusServer"
-                    } else {
-                        $result = "WSUS NON sécurisé (HTTP détecté) : $wsusServer"
-                    }
-
+            if ($wsusServer) {
+                if ($wsusServer -like 'https://*') {
+                    return "WSUS secured (HTTPS): $wsusServer"
                 } else {
-                    $result = "WSUS (Serveur non défini)"
+                    return "WSUS NOT secured (HTTP detected): $wsusServer"
                 }
+            } else {
+                return 'WSUS configured (UseWUServer=1) but WUServer is not defined'
             }
         }
 
-        return $result
-
+        return 'Windows Update (Microsoft Update)'
     }
-
 }

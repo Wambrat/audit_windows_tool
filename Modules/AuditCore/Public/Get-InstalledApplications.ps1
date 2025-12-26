@@ -2,43 +2,38 @@
     [CmdletBinding()]
     param()
 
-    process{
+    $Paths = @(
+        'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+        'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+    )
 
-        $Paths = @(
-            "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
-            "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
-        )
-
-        $Applist = foreach ($path in $paths) {
-            Get-ItemProperty -Path $path -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName } |
-            Select-Object @{n='Name';e={$_.DisplayName}},
-                          @{n='Version';e={$_.DisplayVersion}},
-                          @{n='Publisher';e={$_.Publisher}},
-                          @{n='InstallLocation';e={$_.InstallLocation}}
-        }
-
-        Return $Applist | Sort-Object Name, Version
-
+    $AppList = foreach ($path in $Paths) {
+        Get-ItemProperty -Path $path -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName } |
+            Select-Object @{n = 'Name'           ; e = { $_.DisplayName     }},
+                          @{n = 'Version'        ; e = { $_.DisplayVersion   }},
+                          @{n = 'Publisher'      ; e = { $_.Publisher        }},
+                          @{n = 'InstallLocation'; e = { $_.InstallLocation  }}
     }
 
+    $AppList | Sort-Object Name, Version
 }
 
+
 function Get-AppUpgrade {
+    [CmdletBinding()]
     param()
 
-    process{
-
-        $Winget = Get-Package -Name Microsoft.Winget.client
-        if(-not $winget){
-    
-            Install-Package Microsoft.WinGet.Client -Confirm
-
-        }
-
-        $Upgradable = Get-WinGetPackage | Where-Object IsUpdateAvailable -Match True  | Select-Object Name, InstalledVersion, AvailableVersions
-
-        Return $Upgradable
-
+    # Ensure WinGet client is available (basic check)
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+    if (-not $winget) {
+        Write-Warning 'WinGet CLI is not available on this system. Install App Installer / WinGet before using this function.'
+        return
     }
 
+    $upgradable = Get-WinGetPackage -ErrorAction SilentlyContinue |
+        Where-Object { $_.IsUpdateAvailable -eq $true } |
+        Select-Object Name, InstalledVersion, AvailableVersions
+
+    return $upgradable
 }

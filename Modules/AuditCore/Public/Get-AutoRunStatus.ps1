@@ -2,8 +2,6 @@
     [CmdletBinding()]
     param()
 
-    
-
     $paths = @(
         'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer',
         'HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer'
@@ -11,50 +9,67 @@
 
     $Print = [System.Collections.ArrayList]@()
 
-    foreach($path in $paths){
-        
+    foreach ($path in $paths) {
+
         $keys = Get-ItemProperty -Path $path -ErrorAction SilentlyContinue
+        $scope = if ($path -like 'HKLM:*') { 'Machine' } else { 'User' }
 
-        $scope = if ($path -like 'HKLM:*') { 'Machine' } else { 'User' } 
+        if ($keys -and $keys.PSObject.Properties.Name -contains 'NoDriveTypeAutorun') {
 
-        if($keys.PSObject.Properties.Name -contains "NoDriveTypeAutorun"){
-            
+            $value = [int]$keys.NoDriveTypeAutorun
+
             $AutoRun = [pscustomobject]@{
-                Scope = $scope
-                AutoRunEnabled = $false          
-                Value = $null         
+                Scope          = $scope
+                AutoRunEnabled = $null
+                Value          = $null
+                Comment        = $null
+                Recommendation = $null
             }
 
-            switch($keys.NoDriveTypeAutorun){
-                
-                "FF"{$AutoRun.Value = "Disable on all drives"}
-                "20"{$AutoRun.Value = "Disable on DC-ROM drives"}
-                "4" {$AutoRun.Value = "Disable on removable drives"}
-                "8" {$AutoRun.Value = "Disable on fixed drives"}
-                "10"{$AutoRun.Value = "Disable on network drives"}
-                "40"{$AutoRun.Value = "Disable on RAM disks"}
-                "1" {$AutoRun.Value = "Disable on unknown drives"}
-                Default { $AutoRun.AutoRunEnabled = "Unknown state (potentially activated)"
-                          $AutoRun.Value = "Invalid value"
+            switch ($value) {
+                0xFF {
+                    $AutoRun.AutoRunEnabled = $false
+                    $AutoRun.Value          = 'Disabled on all drives (0xFF)'
+                    $AutoRun.Comment        = 'Autorun is disabled for all drive types.'
+                    $AutoRun.Recommendation = 'Keep Autorun disabled on all drive types to reduce malware propagation risks via removable media.'
                 }
-
-
+                default {
+                    $AutoRun.AutoRunEnabled = $true
+                    $AutoRun.Value          = ("Current NoDriveTypeAutorun raw value: 0x{0:X2}" -f $value)
+                    $AutoRun.Comment        = 'Autorun is not fully disabled for all drive types.'
+                    $AutoRun.Recommendation = 'Set NoDriveTypeAutorun to 0xFF via Group Policy or registry to disable Autorun for all drive types.'
+                    $Xml = [pscustomobject]@{
+                        Category    = 'AutoRun'
+                        Description = 'Disable AutoRun in registry for LocalMachine and CurrentUser'
+                        Command     = 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF | Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF'
+                    }
+                }
             }
 
-        }else{
+        } else {
 
             $AutoRun = [pscustomobject]@{
-                Scope = $scope
+                Scope          = $scope
                 AutoRunEnabled = $true
-                Value = "Key not found"             
+                Value          = 'NoDriveTypeAutorun value not found'
+                Comment        = 'No explicit NoDriveTypeAutorun value configured; default Autorun behavior may be partially enabled.'
+                Recommendation = 'Explicitly configure NoDriveTypeAutorun (0xFF) to ensure Autorun is disabled for all drive types.'
             }
 
+            $Xml = [pscustomobject]@{
+                        Category    = 'AutoRun'
+                        Description = 'Disable AutoRun in registry for LocalMachine and CurrentUser'
+                        Command     = 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF | Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF'
+            }
         }
 
         [void]$Print.Add($AutoRun)
-
     }
 
-    return $Print
-
+    $Output = [PSCustomObject]@{
+        Value = $Print
+        Xml = $Xml
+    }
+    
+    return $Output
 }
