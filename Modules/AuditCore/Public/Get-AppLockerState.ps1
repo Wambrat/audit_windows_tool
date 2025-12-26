@@ -9,7 +9,8 @@
         return [pscustomobject]@{
             AppLockerPresent = $false
             AnyRuleEnabled   = $false
-            Comment          = 'Aucune politique AppLocker effective détectée.'
+            Comment          = 'No effective AppLocker policy detected on this system.'
+            Recommendation   = 'Consider deploying an AppLocker policy (at least in Audit mode) to control application execution.'
         }
     }
 
@@ -24,16 +25,18 @@
         }
     }
 
-    $ALS = [pscustomobject]@{
+    [pscustomobject]@{
         AppLockerPresent = $true
         AnyRuleEnabled   = $anyEnabled
         Comment          = if ($anyEnabled) {
-                               'AppLocker present and at least one collection in Enabled mode'
+                               'AppLocker is present and at least one rule collection is in Enforced mode.'
                            } else {
-                               'AppLocker present but no collection in Enabled mode'
+                               'AppLocker is present but no rule collection is in Enforced mode.'
+                           }
+        Recommendation   = if ($anyEnabled) {
+                               'Review AppLocker rules regularly to ensure they properly cover sensitive applications and are kept up to date.'
+                           } else {
+                               'Enable AppLocker in Audit mode first, then gradually switch required rule collections to Enforced mode to block unauthorized applications.'
                            }
     }
-
-    Return $ALS
-
 }
