@@ -2,7 +2,7 @@
 $publicFunctionsPath = Join-Path -Path $PSScriptRoot -ChildPath "Public"
 
 # Charge tous les fichiers .ps1 situés dans le dossier Public
-Get-ChildItem -Path $publicFunctionsPath -Filter "*.ps1" | ForEach-Object {
+Get-ChildItem -Path $publicFunctionsPath -Filter "*.ps1" -Recurse -File | ForEach-Object {
     try {
         . $_.FullName
         Write-Verbose "Fonction chargée : $($_.BaseName)"

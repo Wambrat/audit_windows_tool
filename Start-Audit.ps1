@@ -169,6 +169,117 @@ if ($context.Domainjoined -eq $true){
 }
 
 
+########## Authentication Level Audit ##########
+Write-Host "`n[+] Audit du niveau d'authentification :" -Foregroundcolor Gray
+$authLevelAudit = Get-AuthenticationLevelAudit
+
+if ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $true) {
+    if ($authLevelAudit.GPO -eq $true) {
+        Write-Host "   [OK] Windows Hello for Business est activé via : GPO" -ForegroundColor Green
+    }
+    if ($authLevelAudit.CSP -eq $true) {
+        Write-Host "   [OK] Windows Hello for Business est activé via : CSP" -ForegroundColor Green
+    }
+    if (($authLevelAudit.GPO -eq $false) -and ($authLevelAudit.CSP -eq $false)) {
+        Write-Host "   [ALERTE] Windows Hello for Business n'est pas activé." -ForegroundColor Red
+    }
+} elseif ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $false) {
+    if ($authLevelAudit.Consumer -eq $true) {
+        Write-Host "   [OK] Windows Hello (Consumer/Local) est activé." -ForegroundColor Green
+    } else {
+        Write-Host "   [ALERTE] Windows Hello (Consumer/Local) n'est pas activé." -ForegroundColor Red
+    }
+} elseif ($context.osRole -eq "Server" -and $context.Domainjoined -eq $true) {
+    if ($authLevelAudit.GPO -eq $true) {
+        Write-Host "   [OK] Windows Hello for Business est activé via : GPO" -ForegroundColor Green
+    }
+    if ($authLevelAudit.CSP -eq $true) {
+        Write-Host "   [OK] Windows Hello for Business est activé via : CSP" -ForegroundColor Green
+    }
+    if (($authLevelAudit.GPO -eq $false) -and ($authLevelAudit.CSP -eq $false)) {
+        Write-Host "   [ALERTE] Windows Hello for Business n'est pas activé." -ForegroundColor Red
+    }
+} elseif ($context.osRole -eq "Server" -and $context.Domainjoined -eq $false) {
+    if ($authLevelAudit.Consumer -eq $true) {
+        Write-Host "   [ALERTE] Windows Hello (Consumer/Local) est activé. Il est plutôt recommandé de désactiver cette fonctionnalité sur les serveurs." -ForegroundColor Red
+    } else {
+        Write-Host "   [OK] Windows Hello (Consumer/Local) n'est pas activé." -ForegroundColor Green
+    }
+} else {
+    Write-Host "   [INFORMATION] Le niveau d'authentification n'a pas pu être audité dans ce contexte." -ForegroundColor Yellow
+}
+
+########## UAC Audit ##########
+Write-Host "`n[+] Audit de la configuration de l'UAC :" -Foregroundcolor Gray
+$uacAudit = Get-UACAudit
+
+try {
+    if ($uacAudit.UACEnabled -eq 1) {
+        Write-Host "   [OK] L'UAC est activé." -ForegroundColor Green
+    } else {
+        Write-Host "   [ALERTE] L'UAC est désactivé." -ForegroundColor Red
+    }
+
+    if ($uacAudit.FilterAdministratorToken -eq 1) {
+        Write-Host "   [OK] Le filtrage du token administrateur est activé." -ForegroundColor Green
+    } else {
+        Write-Host "   [ALERTE] Le filtrage du token administrateur est désactivé." -ForegroundColor Red
+    }
+
+    if ($uacAudit.LocalAccountTokenFilterPolicy -eq 1) {
+        Write-Host "   [OK] La politique de filtrage des tokens pour les comptes locaux est activée." -ForegroundColor Green
+    } else {
+        Write-Host "   [ALERTE] La politique de filtrage des tokens pour les comptes locaux est désactivée (risque d'accès non administrateur via le réseau)." -ForegroundColor Red
+    }
+}
+catch {
+    Write-Host "Erreur lors de l'affichage des résultats de l'audit UAC"
+}
+
+########## JEA Audit ##########
+Write-Host "`n[+] Audit de la configuration JEA :" -Foregroundcolor Gray
+$JEAAudit = Get-JEAAudit
+try {
+    if ($JEAAudit.WinRmState -eq 'NotInstalled'){
+        Write-Host "   [INFORMATION] WinRM n'est pas installé. JEA ne peut pas être configuré." -ForegroundColor Red
+    } elseif ($JEAAudit.WinRmState -eq 'Stopped') {
+        Write-Host "   [ALERTE] WinRM est installé mais arrêté. JEA ne peut pas être utilisé tant que WinRM n'est pas démarré." -ForegroundColor Red
+    } elseif ($JEAAudit.HasJEASessionConfig -eq $true){
+        Write-Host "   [OK] Des endpoints JEA sont configurés sur cette machine." -ForegroundColor Green
+        Write-Host "       $($JEAAudit.Recommandation)" -ForegroundColor Gray
+    } elseif ($JEAAudit.HasJEASessionConfig -eq $false){
+        Write-Host "   [ALERTE] WinRM est fonctionnel mais aucun endpoint JEA n'est configuré." -ForegroundColor Red
+    } else {
+        Write-Error "   [ERREUR] Impossible d'auditer la configuration JEA." -ForegroundColor Red
+    }
+} catch {
+    Write-Host "Erreur lors de l'affichage des résultats de l'audit JEA"
+}
+
+########## Local Groups Audit ##########
+Write-Host "`n[+] Audit des groupes locaux :" -Foregroundcolor Gray
+$groupsAudit = Get-GroupsAudit
+
+if ($groupsAudit) {
+    foreach ($group in $groupsAudit) {
+        Write-Host "`nGroupe : $($group.GroupName)" -ForegroundColor Cyan
+        if ($group.Members -eq 0) {
+            Write-Host "   Aucun membre dans ce groupe." -ForegroundColor Yellow
+        } else {
+            Write-Host "   Membres : $($group.Members -join ', ')" -ForegroundColor Yellow
+            if ($group.MembersCount -gt 1) {
+                Write-Host "   [ALERTE] Ce groupe contient un grand nombre de membres ($($group.MembersCount)). Vérifiez qu'il n'y a pas d'utilisateurs non autorisés." -ForegroundColor Red
+            } else {
+                Write-Host "   [OK] Nombre de membres dans ce groupe : $($group.MembersCount)" -ForegroundColor Green
+            }
+        }
+    }
+} else {
+    Write-Error "Impossible d'auditer les groupes locaux"
+}
+
+
+########## 
 # Start-Sleep -Seconds 30
 # --- Fin ---
 Write-Host "`nAudit terminé." -ForegroundColor Cyan
