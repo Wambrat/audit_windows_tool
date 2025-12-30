@@ -101,6 +101,9 @@ function Get-AutomatisableBadge {
     return "<span class='badge' style='background-color: $bgColor; color: $color;'>$text</span>"
 }
 
+$style = Get-Content -Path "$(Split-Path -Parent $PSCommandPath)\stylesAudit.css" -Raw
+$script = Get-Content -Path "$(Split-Path -Parent $PSCommandPath)\scriptAudit.js" -Raw
+
 # Generation du Rapport HTML
 $scoreInfo = Get-VulnerabilityScore -Results $AuditResults
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -126,7 +129,6 @@ $htmlContent = @"
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Windows Security Audit Report - $computerName</title>
-    <link rel="stylesheet" href="..\stylesAudit.css">
 </head>
 <body>
     <div class="container">
@@ -253,7 +255,12 @@ $htmlContent += @"
             <p>This audit provides an overview of security configurations. For more details, consult the system logs.</p>
         </footer>
     </div>
-    <script src="..\scriptAudit.js"></script>
+    <style>
+        $style
+    </style>
+    <script>
+        $script
+    </script>
 </body>
 </html>
 "@
