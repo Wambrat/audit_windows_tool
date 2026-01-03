@@ -1,4 +1,4 @@
-﻿function Get-IPv6Status2 {
+﻿function Get-IPv6Status {
     [CmdletBinding()]
     param()
 

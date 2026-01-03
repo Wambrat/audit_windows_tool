@@ -19,7 +19,7 @@
     $vpnProfiles = Get-VpnConnection -AllUserConnection -ErrorAction SilentlyContinue
     $activeProfiles = $vpnProfiles | Where-Object { $_.ConnectionStatus -eq 'Connected' }
 
-    $hasVpnProfiles       = $vpnProfiles.Count   -gt 0
+    $hasVpnProfiles       = $vpnProfiles.Count -gt 0
     $hasActiveVpnProfiles = $activeProfiles.Count -gt 0
 
     # Description globale
@@ -51,5 +51,5 @@
         ActiveVpnProfiles     = $activeProfiles
     }
 
-    Return $VPNStatus
+    return $VPNStatus
 }

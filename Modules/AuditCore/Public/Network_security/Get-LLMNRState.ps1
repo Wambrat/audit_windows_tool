@@ -1,4 +1,4 @@
-﻿function Get-LLMNRState {
+﻿function Get-LLMNRState2 {
     [CmdletBinding()]
     param()
 
@@ -10,21 +10,21 @@
     }
 
     $llmnrStatus = switch ($llmnrValue) {
-        0     { 'Enabled via policy (multicast name resolution allowed)' }
-        1     { 'Disabled via policy (LLMNR turned off)' }
+        1     { 'Enabled via policy (multicast name resolution allowed)' }
+        0     { 'Disabled via policy (LLMNR turned off)' }
         $null { 'Enabled by default (no explicit policy, multicast name resolution likely allowed)' }
         default { "Unknown value ($llmnrValue)" }
     }
 
     $recommendation = switch ($llmnrValue) {
         1 {
-            'LLMNR is disabled via policy; this is recommended to reduce spoofing and man-in-the-middle risks.'
+            'LLMNR is explicitly enabled via policy; consider disabling it (EnableMulticast = 0) to reduce name resolution spoofing attacks.'
         }
         0 {
-            'LLMNR is explicitly enabled via policy; consider disabling it (EnableMulticast = 1) to reduce name resolution spoofing attacks.'
+            'LLMNR is disabled via policy; this is recommended to reduce spoofing and man-in-the-middle risks.'
         }
         $null {
-            'No explicit LLMNR policy found; configure EnableMulticast = 1 (Turn off multicast name resolution) to disable LLMNR.'
+            'No explicit LLMNR policy found; configure EnableMulticast = 0 (Turn off multicast name resolution) to disable LLMNR.'
         }
         default {
             'Review LLMNR configuration and align it with the hardening baseline (typically disabled on corporate networks).'
@@ -43,7 +43,7 @@
 
     $LLMNR = [PSCustomObject]@{
         LLMNR_Status     = $llmnrStatus
-        EnableMulticast  = if ($llmnrValue -ne $null) { $llmnrValue } else { 'N/A' }
+        EnableMulticast  = if ($llmnrValue) { $llmnrValue } else { 'N/A' }
         Recommendation   = $recommendation
     }
 

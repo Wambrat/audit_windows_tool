@@ -45,7 +45,7 @@
         $fwReco += 'Firewall service appear to be enabled; regularly review inbound rules for unnecessary exposure (RDP, SMB, WinRM, etc.).'
     }
 
-    [pscustomobject]@{
+    return [pscustomobject]@{
         FirewallServiceStatus = if ($svc) { $svc.Status } else { 'NotFound' }
         FirewallServiceRunning= $svcRunning
         ActiveProfile         = $profile
