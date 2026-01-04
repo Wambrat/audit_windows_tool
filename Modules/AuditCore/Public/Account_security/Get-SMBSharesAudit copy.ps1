@@ -12,13 +12,12 @@ function Get-SMBSharesAudit {
         }
 
         $shares | ForEach-Object {
-            $share = $_
-            $sharesAccess = Get-SmbShareAccess -Name $share.Name
+            $sharesAccess = Get-SmbShareAccess -Name $_.Name
                 
-            $sharesAccess | Where-Object { $_.AccountName -eq 'Tout le monde' -and $_.AccessControlType -eq 'Allow' } | ForEach-Object {
-                Write-Host "`nAttention : Le partage SMB '"$($share.Name)"' est accessible par 'Tout le monde'. Chemin du partage : "$($share.Path) -ForegroundColor Red
+            $sharesAccess | Where-Object { $_.AccountName -eq 'Everyone','Tout le monde' -and $_.AccessControlType -eq 'Allow' } | ForEach-Object {
+                Write-Host 'Attention : Le partage SMB "'$($_.Name)'" est accessible par "Tout le monde".' -ForegroundColor Red
                 Write-Host "Vérification des droits NTFS du groupe 'Tout le monde' sur le répertoire partagé..." -ForegroundColor Yellow
-                $NTFSAudit = Get-NTFSAudit -Path $share.Path -User 'Tout le monde'
+                $NTFSAudit = Get-NTFSAudit -Path $_.Path -User 'Everyone'
                 if ($NTFSAudit.IsFullControl -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
                     Write-Host "Le groupe 'Tout le monde' dispose de droits Full Control sur le répertoire partagé." -ForegroundColor Red
                     Write-Host "Le compte invité est activé sur ce système, le partage est accessible sans mot de passe" -ForegroundColor Red
@@ -34,8 +33,6 @@ function Get-SMBSharesAudit {
                 } elseif ($NTFSAudit.RawRights -eq 0 -and $localUserAudit.GuestEnabled -eq $true) {
                     Write-Host "Le groupe 'Tout le monde' dispose de droits personnalisés sur le répertoire partagé." -ForegroundColor Yellow
                     Write-Host "Le compte invité est activé sur ce système, le partage est possiblement accessible sans mot de passe" -ForegroundColor Yellow
-                } elseif ($localUserAudit.GuestEnabled -eq $false) {
-                    Write-Host "Le compte invité est désactivé sur ce système, le partage n'est pas accessible sans mot de passe." -ForegroundColor Green
                 } else {
                     Write-Host "Le groupe 'Tout le monde' ne dispose pas de droits de lecture ou écriture sur le répertoire partagé." -ForegroundColor Green
                 }

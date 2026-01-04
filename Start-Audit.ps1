@@ -361,12 +361,12 @@ try {
     $winrmAudit = Get-WinRMAudit
 
     if (-not $winrmAudit.WinRmEnabled) {
-        Write-Host "   [INACTIF] WinRM n'est pas installé ou le service est arrêté." -ForegroundColor Red
+        Write-Host "   [INACTIF] WinRM n'est pas installé ou le service est arrêté." -ForegroundColor Purple
         Write-Host "   Recommandation :" -ForegroundColor Yellow
         foreach ($r in $winrmAudit.Recommendations) { Write-Host "      - $r" -ForegroundColor Yellow }
     }
     else {
-        Write-Host "   [ACTIF] WinRM est activé." -ForegroundColor Green
+        Write-Host "   [ACTIF] WinRM est activé." -ForegroundColor Yellow
         Write-Host "   [TRANSPORT] ListenerTransport : $($winrmAudit.ListenerTransport)" -ForegroundColor Gray
         Write-Host "   [ECOUTE] ListeningOn        : $($winrmAudit.ListeningOn)" -ForegroundColor Gray
         Write-Host "   [FILTRES IP] IPv4 : $($winrmAudit.IPv4Filter)    IPv6 : $($winrmAudit.IPv6Filter)" -ForegroundColor Gray
