@@ -84,7 +84,7 @@ function Get-PolPassAudit {
             switch ($currentLockout) {
                 0 { 
                     $statusLockout = "FAIL"
-                    $msgLockout = "/!\ RISQUE : Le verrouillage de compte est désactivé (Bruteforce possible illimité). `rConsidérer de l'activer."
+                    $msgLockout = "/!\ RISQUE : Le verrouillage de compte est désactivé (Bruteforce possible illimité). Considérer de l'activer."
                 }
                 { $_ -gt 0 -and $_ -le 3 } { 
                     # Ici $_ représente la valeur testée ($currentLockout)
@@ -93,12 +93,12 @@ function Get-PolPassAudit {
                 }
                 Default { 
                     $statusLockout = "WARNING"
-                    $msgLockout = "Seuil élevé ($currentLockout). Un attaquant a beaucoup d'essais avant blocage. `rConsidérer réduire à 3."
+                    $msgLockout = "Seuil élevé ($currentLockout). Un attaquant a beaucoup d'essais avant blocage. Considérer réduire à 3."
                 }
             }
 
             # 4. Nettoyage
-            # Remove-Item -Path $tempFile -ErrorAction SilentlyContinue
+            Remove-Item -Path $tempFile -ErrorAction SilentlyContinue
 
             # 5. Construction de l'objet résultat
             return [PSCustomObject]@{
