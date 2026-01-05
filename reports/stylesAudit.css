@@ -4,9 +4,23 @@
     box-sizing: border-box;
 }
 
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 0%;
+    }
+    50% {
+        background-position: 100% 100%;
+    }
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #000421 0%, #121531 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
     color: #333;
     min-height: 100vh;
     padding: 20px;
@@ -22,7 +36,9 @@ body {
 }
 
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ff346d 0%, #3483ff 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
     color: white;
     padding: 40px 30px;
     text-align: center;
@@ -43,7 +59,9 @@ header p {
 }
 
 .score-section {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #3483ff 0%, #ff346d 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
     color: white;
     padding: 30px;
     border-radius: 10px;
@@ -98,7 +116,7 @@ header p {
 
 .search-box:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #ff346d;
 }
 
 .vulnerabilities-list {
@@ -180,14 +198,14 @@ header p {
 
 .details-label {
     font-weight: bold;
-    color: #667eea;
+    color: #3483ff;
     margin-top: 10px;
 }
 
 .details-content {
     margin-top: 5px;
     padding-left: 20px;
-    background: rgba(102, 126, 234, 0.05);
+    background: rgba(52, 131, 255, 0.05);
     padding: 10px;
     border-radius: 4px;
 }
@@ -201,7 +219,7 @@ header p {
 }
 
 .system-info h2 {
-    color: #667eea;
+    color: #3483ff;
     margin-bottom: 15px;
     font-size: 18px;
 }
@@ -216,12 +234,12 @@ header p {
     background: white;
     padding: 15px;
     border-radius: 6px;
-    border-left: 3px solid #667eea;
+    border-left: 3px solid #3483ff;
 }
 
 .info-label {
     font-weight: bold;
-    color: #667eea;
+    color: #3483ff;
     font-size: 12px;
     text-transform: uppercase;
 }
@@ -239,7 +257,7 @@ header p {
 }
 
 .details-section h2 {
-    color: #667eea;
+    color: #3483ff;
     margin-bottom: 20px;
     font-size: 20px;
 }
@@ -315,7 +333,7 @@ footer {
 
 .filter-group label {
     font-weight: bold;
-    color: #667eea;
+    color: #3483ff;
     font-size: 14px;
 }
 
@@ -330,14 +348,14 @@ footer {
 }
 
 .filter-btn:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: #3483ff;
+    color: #3483ff;
 }
 
 .filter-btn.active {
-    background: #667eea;
+    background: #3483ff;
     color: white;
-    border-color: #667eea;
+    border-color: #3483ff;
 }
 
 .filter-btn.good-btn {

@@ -47,15 +47,79 @@
             Write-Host "Selected: AUDIT mode" -ForegroundColor Green
             $window.Close()
             & $(Join-Path $PSScriptRoot "Start-Audit.ps1")
+
+            Show-AskingWindow -Message "Do you want to have a html report with results exported ?" -scriptPath "reports\ReportAuditHTML.ps1"
+
+            Show-AskingWindow -Message "Do you want to change to REMEDIATION mode now ?" -scriptPath "Start-Remediation.ps1"
+
+            Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
+
         }
         elseif ($RbRemed.IsChecked) {
             Write-Host "Selected: REMEDIATION mode" -ForegroundColor Green
             $window.Close()
             & $(Join-Path $PSScriptRoot "Start-Remediation.ps1")
+
+            Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
         }
     })
 
     $BtnExit.Add_Click({ $window.Close() })
+
+    $window.ShowDialog() | Out-Null
+}
+
+function Show-AskingWindow {
+    param (
+        [string]$Message,
+        [string]$scriptPath
+    )
+
+    Add-Type -AssemblyName PresentationFramework
+    Add-Type -AssemblyName PresentationCore
+    Add-Type -AssemblyName WindowsBase
+
+     $xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    Title="Confirmation"
+    Height="320"
+    Width="420"
+    WindowStartupLocation="CenterScreen"
+    ResizeMode="NoResize"
+    Background="#F5F5F5">
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="$Message" FontWeight="Bold" FontSize="18" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <Button Name="BtnYes" Content="Yes" Width="100" Padding="10,8" FontSize="13" FontWeight="Bold" Foreground="White" Background="#27AE60" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"/>
+            <Button Name="BtnNo" Content="No" Width="100" Padding="10,8" FontSize="13" FontWeight="Bold" Foreground="White" Background="#E74C3C" BorderThickness="0" Cursor="Hand"/>
+        </StackPanel>
+    </Grid>
+</Window>
+"@
+    $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
+    $window = [Windows.Markup.XamlReader]::Load($reader)
+
+    $BtnYes  = $window.FindName("BtnYes")
+    $BtnNo   = $window.FindName("BtnNo")
+
+    $BtnYes.Add_Click({
+        Write-Host "User chose YES" -ForegroundColor Green
+        $window.Close()
+        & $(Join-Path $PSScriptRoot $scriptPath)
+    })
+
+    $BtnNo.Add_Click({
+        $window.Close()
+    })
 
     $window.ShowDialog() | Out-Null
 }
