@@ -53,10 +53,10 @@ function Get-VulnerabilityScore {
 function Get-StatusInfos {
     param([string]$status)
     switch ($status) {
-        "FAIL" { return "#dc3545", "NON COMPLIANT", "#f8d7da" }
-        "PASS" { return "#28a745", "COMPLIANT", "#d4edda" }
-        "WARNING" { return "#ffc107", "SEMI COMPLIANT", "#fff3cd" }
-        default { return "#6c757d", "UNKNOWN", "#e2e3e5" }
+        "FAIL" { return "#dc3545", "NON CONFORME", "#f8d7da" }
+        "PASS" { return "#28a745", "CONFORME", "#d4edda" }
+        "WARNING" { return "#ffc107", "PARTIELLEMENT CONFORME", "#fff3cd" }
+        default { return "#6c757d", "INCONNU", "#e2e3e5" }
     }
 }
 
@@ -72,13 +72,13 @@ function Get-AutomatisableBadge {
     $isAutomatable = if ($automatable -eq "True" -or $automatable -eq "true" -or $automatable -eq 1) { $true } else { $false }
     $bgColor = if ($isAutomatable) { "#d1ecf1" } else { "#fff3cd" }
     $color = if ($isAutomatable) { "#0c5460" } else { "#856404" }
-    $text = if ($isAutomatable) { "Automatable" } else { "Manual" }
+    $text = if ($isAutomatable) { "Automatique" } else { "Manuel" }
     
     return "<span class='badge' style='background-color: $bgColor; color: $color;'>$text</span>"
 }
 
-$style = Get-Content -Path "$(Split-Path -Parent $PSCommandPath)\stylesAudit.css" -Raw
-$script = Get-Content -Path "$(Split-Path -Parent $PSCommandPath)\scriptAudit.js" -Raw
+$style = Get-Content -Path "$(Split-Path -Parent $PSCommandPath)\stylesAudit.css" -Raw -Encoding UTF8
+$script = Get-Content -Path "$(Split-Path -Parent $PSCommandPath)\scriptAudit.js" -Raw -Encoding UTF8
 
 # Generation du Rapport HTML
 $scoreInfo = Get-VulnerabilityScore -Results $AuditResults
@@ -102,6 +102,7 @@ $htmlContent = @"
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Windows Security Audit Report - $computerName</title>
@@ -109,35 +110,41 @@ $htmlContent = @"
 <body>
     <div class="container">
         <header>
+            <div style="position: absolute; top: 20px; right: 30px;">
+                <select id="languageSelector" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #3483ff; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s;" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="fr" selected>Fran&ccedil;ais</option>
+                </select>
+            </div>
             <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: 300; opacity: 0.95;">JadusAudit</p>
-            <h1>Windows Security Audit Report - $computerName</h1>
-            <p>Complete System Security Audit</p>
+            <h1 data-en="Windows Security Audit Report - " data-fr="Rapport d&apos;Audit de S&eacute;curit&eacute; Windows - ">Rapport d&apos;Audit de S&eacute;curit&eacute; Windows - $computerName</h1>
+            <p data-en="Complete System Security Audit" data-fr="Audit Complet de la S&eacute;curit&eacute; du Syst&egrave;me">Audit Complet de la S&eacute;curit&eacute; du Syst&egrave;me</p>
         </header>
         
         <div class="content">
             <div class="score-section">
-                <h2 style="margin-bottom: 20px;">Security Score</h2>
+                <h2 style="margin-bottom: 20px;" data-en="Security Score" data-fr="Score de S&eacute;curit&eacute;">Score de S&eacute;curit&eacute;</h2>
                 <div class="score-circle">
                     <div class="score-number">$($scoreInfo.Score)</div>
                     <div class="score-total">/$($scoreInfo.Total)</div>
                 </div>
                 <div class="score-percentage">$($scoreInfo.Percentage)%</div>
-                <p style="margin-top: 15px;">Based on the number of valid security controls</p>
+                <p style="margin-top: 15px;" data-en="Based on the number of valid security controls" data-fr="En fonction du nombre de contr&ocirc;les de s&eacute;curit&eacute; valides">En fonction du nombre de contr&ocirc;les de s&eacute;curit&eacute; valides</p>
             </div>
             
             <div class="system-info">
-                <h2>System Information</h2>
+                <h2 data-en="System Information" data-fr="Informations Syst&egrave;me">Informations Syst&egrave;me</h2>
                 <div class="system-info-grid">
                     <div class="info-item">
-                        <div class="info-label">Computer Name</div>
+                        <div class="info-label" data-en="Computer Name" data-fr="Nom de l&apos;Ordinateur">Nom de l&apos;Ordinateur</div>
                         <div class="info-value">$(ConvertTo-HtmlSafe $computerName)</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Operating System</div>
+                        <div class="info-label" data-en="Operating System" data-fr="Syst&egrave;me d&apos;Exploitation">Syst&egrave;me d&apos;Exploitation</div>
                         <div class="info-value">$(ConvertTo-HtmlSafe $osInfo)</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Report Date</div>
+                        <div class="info-label" data-en="Report Date" data-fr="Date du Rapport">Date du Rapport</div>
                         <div class="info-value">$timestamp</div>
                     </div>
                 </div>
@@ -145,22 +152,22 @@ $htmlContent = @"
 
             
             <div class="search-section">
-                <h2 style="color: #3483ff; margin-bottom: 20px">Vulnerabilities Summary</h2>
-                <input type="text" class="search-box" id="searchInput" placeholder="Search for a vulnerability...">
+                <h2 style="color: #3483ff; margin-bottom: 20px" data-en="Vulnerabilities Summary" data-fr="R&eacute;sum&eacute; des Vuln&eacute;rabilit&eacute;s">R&eacute;sum&eacute; des Vuln&eacute;rabilit&eacute;s</h2>
+                <input type="text" class="search-box" id="searchInput" placeholder="Rechercher une vuln&eacute;rabilit&eacute;..." data-en-placeholder="Search for a vulnerability..." data-fr-placeholder="Rechercher une vuln&eacute;rabilit&eacute;...">
             </div>
             
             <div class="filter-section">
                 <div class="filter-group">
-                    <strong>Vulnerabilities:</strong>
-                    <button class="filter-btn unknown-btn" data-filter="status" data-value="unknown">Unknown</button>
-                    <button class="filter-btn bad-btn" data-filter="status" data-value="bad">Non Compliant</button>
-                    <button class="filter-btn warning-btn" data-filter="status" data-value="warning">Semi-Compliant</button>
-                    <button class="filter-btn good-btn" data-filter="status" data-value="good">Compliant</button>
+                    <strong data-en="Vulnerabilities:" data-fr="Vuln&eacute;rabilit&eacute;s:">Vuln&eacute;rabilit&eacute;s:</strong>
+                    <button class="filter-btn unknown-btn" data-filter="status" data-value="unknown" data-en="Unknown" data-fr="Inconnu">Inconnu</button>
+                    <button class="filter-btn bad-btn" data-filter="status" data-value="bad" data-en="Non Compliant" data-fr="Non Conforme">Non Conforme</button>
+                    <button class="filter-btn warning-btn" data-filter="status" data-value="warning" data-en="Semi-Compliant" data-fr="Partiellement Conforme">Partiellement Conforme</button>
+                    <button class="filter-btn good-btn" data-filter="status" data-value="good" data-en="Compliant" data-fr="Conforme">Conforme</button>
                 </div>
                 <div class="filter-group">
-                    <strong>Remediations:</strong>
-                    <button class="filter-btn auto-btn" data-filter="automation" data-value="auto">Automatic</button>
-                    <button class="filter-btn manual-btn" data-filter="automation" data-value="manual">Manual</button>
+                    <strong data-en="Remediations:" data-fr="R&eacute;m&eacute;diations:">R&eacute;m&eacute;diations:</strong>
+                    <button class="filter-btn auto-btn" data-filter="automation" data-value="auto" data-en="Automatic" data-fr="Automatique">Automatique</button>
+                    <button class="filter-btn manual-btn" data-filter="automation" data-value="manual" data-en="Manual" data-fr="Manuel">Manuel</button>
                 </div>
             </div>
             
@@ -251,9 +258,9 @@ $htmlContent += @"
         </div>
         
         <footer>
-            <p>You can find the detailed remediation informations in the repository : audit_windows_tool\xmls</p>
-            <p>This audit provides an overview of security configurations. For more details, consult the system logs.</p>
-            <p>Report generated by JadusAudit from ZakelElectonics | $timestamp</p>
+            <p data-en="You can find the detailed remediation informations in the repository : audit_windows_tool\xmls" data-fr="Vous pouvez trouver les informations de r&eacute;m&eacute;diation d&eacute;taill&eacute;es dans le r&eacute;pertoire : audit_windows_tool\xmls">Vous pouvez trouver les informations de r&eacute;m&eacute;diation d&eacute;taill&eacute;es dans le r&eacute;pertoire : audit_windows_tool\xmls</p>
+            <p data-en="This audit provides an overview of security configurations. For more details, consult the system logs." data-fr="Cet audit fournit un aper&ccedil;u des configurations de s&eacute;curit&eacute;. Pour plus de d&eacute;tails, consultez les journaux syst&egrave;me.">Cet audit fournit un aper&ccedil;u des configurations de s&eacute;curit&eacute;. Pour plus de d&eacute;tails, consultez les journaux syst&egrave;me.</p>
+            <p data-en="Report generated by JadusAudit from ZakelElectonics | " data-fr="Rapport g&eacute;n&eacute;r&eacute; par JadusAudit de ZakelElectonics | ">Rapport g&eacute;n&eacute;r&eacute; par JadusAudit de ZakelElectonics | $timestamp</p>
         </footer>
     </div>
     <style>
