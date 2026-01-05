@@ -116,14 +116,24 @@ header p {
     border-left: 4px solid;
 }
 
-.vulnerability-item.good {
+.vulnerability-item.pass {
     border-left-color: #28a745;
     background: #f0fff4;
 }
 
-.vulnerability-item.bad {
+.vulnerability-item.fail {
     border-left-color: #dc3545;
     background: #fff5f5;
+}
+
+.vulnerability-item.warning {
+    border-left-color: #ffc107;
+    background: #fffbf0;
+}
+
+.vulnerability-item.unknown {
+    border-left-color: #6c757d;
+    background: #f0f0f0;
 }
 
 .vulnerability-item:hover {
@@ -339,6 +349,15 @@ footer {
     border-color: #28a745;
 }
 
+.filter-btn.warning-btn {
+    border-left: 3px solid #ffc107;
+}
+
+.filter-btn.warning-btn.active {
+    background: #ffc107;
+    border-color: #ffc107;
+}
+
 .filter-btn.bad-btn {
     border-left: 3px solid #dc3545;
 }
@@ -346,6 +365,15 @@ footer {
 .filter-btn.bad-btn.active {
     background: #dc3545;
     border-color: #dc3545;
+}
+
+.filter-btn.unknown-btn {
+    border-left: 3px solid #6c757d;
+}
+
+.filter-btn.unknown-btn.active {
+    background: #6c757d;
+    border-color: #6c757d;
 }
 
 .filter-btn.auto-btn {
@@ -364,4 +392,73 @@ footer {
 .filter-btn.manual-btn.active {
     background: #856404;
     border-color: #856404;
+}
+/* Additional Details Section Styles */
+.additional-details-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.details-toggle {
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+    font-weight: 500;
+}
+
+.details-toggle:hover {
+    color: #495057;
+}
+
+.toggle-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    font-size: 10px;
+}
+
+.details-toggle[aria-expanded="true"] .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.additional-details-content {
+    margin-top: 10px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #dee2e6;
+}
+
+.additional-detail {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 4px 0;
+}
+
+.additional-detail:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    font-weight: 500;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.detail-value {
+    color: #6c757d;
+    word-break: break-word;
+    text-align: right;
 }

@@ -35,54 +35,34 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 // Fonction de filtrage
 function applyFilters() {
     const items = document.querySelectorAll('.vulnerability-item');
-    const details = document.querySelectorAll('.vulnerability-detail');
     
     items.forEach(item => {
         let show = true;
         
-        // Filtre par statut (good/bad)
+        // Filtre par statut (pass/fail/warning/unknown)
         if (activeFilters.status.length > 0) {
-            const isGood = item.classList.contains('good');
-            const isBad = item.classList.contains('bad');
+            const isPass = item.classList.contains('pass');
+            const isFail = item.classList.contains('fail');
+            const isWarning = item.classList.contains('warning');
+            const isUnknown = item.classList.contains('unknown');
             
-            const statusMatches = (activeFilters.status.includes('good') && isGood) ||
-                                (activeFilters.status.includes('bad') && isBad);
+            const statusMatches = (activeFilters.status.includes('good') && isPass) ||
+                                (activeFilters.status.includes('warning') && isWarning) ||
+                                (activeFilters.status.includes('bad') && isFail) ||
+                                (activeFilters.status.includes('unknown') && isUnknown);
             if (!statusMatches) show = false;
         }
         
         // Filtre par automatisation
         if (show && activeFilters.automation.length > 0) {
             const automationStatus = item.getAttribute('data-automation');
-            const automationMatches = (activeFilters.automation.includes('auto') && automationStatus === 'auto') ||
-                                    (activeFilters.automation.includes('manual') && automationStatus === 'manual');
+            const isAutoTrue = automationStatus === 'True' || automationStatus === 'true';
+            const automationMatches = (activeFilters.automation.includes('auto') && isAutoTrue) ||
+                                    (activeFilters.automation.includes('manual') && !isAutoTrue);
             if (!automationMatches) show = false;
         }
         
         item.style.display = show ? 'block' : 'none';
-    });
-    
-    details.forEach(detail => {
-        let show = true;
-        
-        // Filtre par statut (good/bad)
-        if (activeFilters.status.length > 0) {
-            const isGood = detail.classList.contains('good');
-            const isBad = detail.classList.contains('bad');
-            
-            const statusMatches = (activeFilters.status.includes('good') && isGood) ||
-                                (activeFilters.status.includes('bad') && isBad);
-            if (!statusMatches) show = false;
-        }
-        
-        // Filtre par automatisation
-        if (show && activeFilters.automation.length > 0) {
-            const automationStatus = detail.getAttribute('data-automation');
-            const automationMatches = (activeFilters.automation.includes('auto') && automationStatus === 'auto') ||
-                                    (activeFilters.automation.includes('manual') && automationStatus === 'manual');
-            if (!automationMatches) show = false;
-        }
-        
-        detail.style.display = show ? 'block' : 'none';
     });
 }
 
@@ -99,53 +79,42 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
         let show = matchesSearch;
         
         if (show && activeFilters.status.length > 0) {
-            const isGood = item.classList.contains('good');
-            const isBad = item.classList.contains('bad');
+            const isPass = item.classList.contains('pass');
+            const isFail = item.classList.contains('fail');
+            const isWarning = item.classList.contains('warning');
+            const isUnknown = item.classList.contains('unknown');
             
-            const statusMatches = (activeFilters.status.includes('good') && isGood) ||
-                                (activeFilters.status.includes('bad') && isBad);
+            const statusMatches = (activeFilters.status.includes('good') && (isPass || isWarning)) ||
+                                (activeFilters.status.includes('bad') && isFail) ||
+                                (activeFilters.status.includes('unknown') && isUnknown);
             if (!statusMatches) show = false;
         }
         
         if (show && activeFilters.automation.length > 0) {
             const automationStatus = item.getAttribute('data-automation');
-            const automationMatches = (activeFilters.automation.includes('auto') && automationStatus === 'auto') ||
-                                    (activeFilters.automation.includes('manual') && automationStatus === 'manual');
+            const isAutoTrue = automationStatus === 'True' || automationStatus === 'true';
+            const automationMatches = (activeFilters.automation.includes('auto') && isAutoTrue) ||
+                                    (activeFilters.automation.includes('manual') && !isAutoTrue);
             if (!automationMatches) show = false;
         }
         
         item.style.display = show ? 'block' : 'none';
     });
-    
-    // Search in the Vulnerabilities Details and Recommendations section
-    const details = document.querySelectorAll('.vulnerability-detail');
-    details.forEach(detail => {
-        const text = detail.textContent.toLowerCase();
-        const matchesSearch = text.includes(searchTerm);
-        
-        // Appliquer les filtres existants en plus de la recherche
-        let show = matchesSearch;
-        
-        if (show && activeFilters.status.length > 0) {
-            const isGood = detail.classList.contains('good');
-            const isBad = detail.classList.contains('bad');
-            
-            const statusMatches = (activeFilters.status.includes('good') && isGood) ||
-                                (activeFilters.status.includes('bad') && isBad);
-            if (!statusMatches) show = false;
-        }
-        
-        if (show && activeFilters.automation.length > 0) {
-            const automationStatus = detail.getAttribute('data-automation');
-            const automationMatches = (activeFilters.automation.includes('auto') && automationStatus === 'auto') ||
-                                    (activeFilters.automation.includes('manual') && automationStatus === 'manual');
-            if (!automationMatches) show = false;
-        }
-        
-        detail.style.display = show ? 'block' : 'none';
-    });
 });
 
 document.querySelectorAll('.vulnerability-item').forEach(item => {
     item.classList.add('collapsed');
+});
+// Fonction pour toggle les détails supplémentaires
+function toggleAdditionalDetails(button) {
+    const content = button.nextElementSibling;
+    const isHidden = content.style.display === 'none';
+    
+    content.style.display = isHidden ? 'block' : 'none';
+    button.setAttribute('aria-expanded', isHidden);
+}
+
+// Initialiser l'état des boutons
+document.querySelectorAll('.details-toggle').forEach(btn => {
+    btn.setAttribute('aria-expanded', 'false');
 });

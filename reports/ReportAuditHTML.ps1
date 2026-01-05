@@ -1,22 +1,15 @@
-param(
-    [Parameter(Mandatory=$true)]
-    [PSObject]$AuditResults,
-    
-    [Parameter(Mandatory=$false)]
-    [string]$OutputPath = ""
-)
-
-# Si pas de OutputPath fourni, utiliser le répertoire courant
-if ([string]::IsNullOrEmpty($OutputPath)) {
-    if (-not (Test-Path -Path "$(Get-Location)\reports")) {
-        New-Item -ItemType Directory -Path "$(Get-Location)\reports" | Out-Null
-    }
-
-    $OutputPath = "$(Get-Location)\reports\audits\Audit_Report_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').html"
+if (-not (Test-Path -Path "$(Get-Location)\reports")) {
+    New-Item -ItemType Directory -Path "$(Get-Location)\reports" | Out-Null
 }
+
+$OutputPath = "$(Get-Location)\reports\audits\Audit_Report_$(Get-Date -Format 'yyyy-MM-dd_HH-mm-ss').html"
 
 # Configuration
 $ErrorActionPreference = "Stop"
+
+$jsonFiles = Get-ChildItem -Path "$(Get-Location)\auditResults" -Filter "*.json"
+$latestJsonFile = $jsonFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+$AuditResults = Get-Content -Path $latestJsonFile.FullName -Raw | ConvertFrom-Json
 
 # Fonctions Utilitaires
 function ConvertTo-HtmlSafe {
@@ -38,7 +31,7 @@ function Get-VulnerabilityScore {
                     $totalChecks++
                     $itemValue = $itemProp.Value
                     
-                    if ($itemValue -eq $true -or $itemValue -eq "Enabled" -or $itemValue -eq "Configured" -or $itemValue -eq "OK") {
+                    if ($itemValue.status -eq "PASS") {
                         $passedChecks++
                     }
                 }
@@ -57,46 +50,29 @@ function Get-VulnerabilityScore {
     }
 }
 
-function Get-StatusColor {
-    param([bool]$IsGood)
-    if ($IsGood) { return "#28a745" } else { return "#dc3545" }
+function Get-StatusInfos {
+    param([string]$status)
+    switch ($status) {
+        "FAIL" { return "#dc3545", "NON COMPLIANT", "#f8d7da" }
+        "PASS" { return "#28a745", "COMPLIANT", "#d4edda" }
+        "WARNING" { return "#ffc107", "SEMI COMPLIANT", "#fff3cd" }
+        default { return "#6c757d", "UNKNOWN", "#e2e3e5" }
+    }
 }
 
 function Get-StatusBadge {
-    param([bool]$IsGood)
-    $color = Get-StatusColor $IsGood
-    $text = if ($IsGood) { "COMPLIANT" } else { "NON COMPLIANT" }
-    $bgColor = if ($IsGood) { "#d4edda" } else { "#f8d7da" }
+    param([string]$status)
+    $color, $text, $bgColor = Get-StatusInfos $status
     return "<span class='badge' style='background-color: $bgColor; color: $color;'>$text</span>"
 }
 
-function Get-AutomationStatus {
-    param([string]$ItemName)
-    
-    # Liste des éléments automatisables
-    $automatisableItems = @(
-        "BitLocker", "Firewall", "Updates", "UAC", "SMB", "Network",
-        "BitLockerEnabled", "FirewallStatus", "DomainProfile", "AutoUpdates",
-        "UACEnabled", "SMBSigning", "CredentialGuard", "DefenderStatus",
-        "WindowsUpdates", "LsassProtection", "AppLocker", "Exploit"
-    )
-    
-    foreach ($keyword in $automatisableItems) {
-        if ($ItemName -like "*$keyword*") {
-            return "auto"
-        }
-    }
-    return "manual"
-}
-
 function Get-AutomatisableBadge {
-    param([string]$ItemName)
+    param([string]$automatable)
     
-    $automationStatus = Get-AutomationStatus -ItemName $ItemName
-    
-    $bgColor = if ($automationStatus -eq "auto") { "#d1ecf1" } else { "#fff3cd" }
-    $color = if ($automationStatus -eq "auto") { "#0c5460" } else { "#856404" }
-    $text = if ($automationStatus -eq "auto") { "Automatable" } else { "Manual" }
+    $isAutomatable = if ($automatable -eq "True" -or $automatable -eq "true" -or $automatable -eq 1) { $true } else { $false }
+    $bgColor = if ($isAutomatable) { "#d1ecf1" } else { "#fff3cd" }
+    $color = if ($isAutomatable) { "#0c5460" } else { "#856404" }
+    $text = if ($isAutomatable) { "Automatable" } else { "Manual" }
     
     return "<span class='badge' style='background-color: $bgColor; color: $color;'>$text</span>"
 }
@@ -173,8 +149,10 @@ $htmlContent = @"
             <div class="filter-section">
                 <div class="filter-group">
                     <strong>Vulnerabilities:</strong>
-                    <button class="filter-btn good-btn" data-filter="status" data-value="good">Good</button>
-                    <button class="filter-btn bad-btn" data-filter="status" data-value="bad">Bad</button>
+                    <button class="filter-btn unknown-btn" data-filter="status" data-value="unknown">Unknown</button>
+                    <button class="filter-btn bad-btn" data-filter="status" data-value="bad">Non Compliant</button>
+                    <button class="filter-btn warning-btn" data-filter="status" data-value="warning">Semi-Compliant</button>
+                    <button class="filter-btn good-btn" data-filter="status" data-value="good">Compliant</button>
                 </div>
                 <div class="filter-group">
                     <strong>Remediations:</strong>
@@ -203,27 +181,13 @@ foreach ($categoryProp in $AuditResults.PSObject.Properties) {
             $vulnerabilityCount++
             $itemName = $itemProp.Name
             $itemValue = $itemProp.Value
-            
-            $isGood = $false
-            if ($itemValue -eq $true -or $itemValue -eq "Enabled" -or $itemValue -eq "Configured" -or $itemValue -eq "OK") {
-                $isGood = $true
-            }
-            
-            if ($isGood) { 
-                $statusClass = "good"
-                $recommendation = "None"
-            } else {
-                $statusClass = "bad"
-                # $recommendation = $itemProp.recommandations
-                $recommendation = "Please verify the configuration of $itemName and apply appropriate security recommendations."
-            }
-            $statusBadge = Get-StatusBadge -IsGood $isGood
-            $automatisableBadge = Get-AutomatisableBadge -ItemName $itemName
-            $automationStatus = Get-AutomationStatus -ItemName $itemName
-            $displayValue = ConvertTo-HtmlSafe $itemValue
+            # Value contains statut, automatisable, recommendations : list, commentaires et x autres infos a placer dans les détails
+			
+            $statusBadge = Get-StatusBadge -status $itemValue.status
+            $automatisableBadge = Get-AutomatisableBadge -Automatable $itemValue.automatable
             
             $htmlContent += @"
-                <div class="vulnerability-item $statusClass" data-automation="$automationStatus" onclick="toggleDetails(this)">
+                <div class="vulnerability-item $($itemValue.status.ToLower())" data-automation="$($itemValue.automatable)" onclick="toggleDetails(this)">
                     <h3>
                         <span>$itemName</span>
                         <span class="status">$statusBadge $automatisableBadge</span>
@@ -231,16 +195,50 @@ foreach ($categoryProp in $AuditResults.PSObject.Properties) {
                     <div class="details" style="display: none;">
                         <div class="details-label">Category:</div>
                         <div class="details-content">$categoryName</div>
-                        <div class="details-label">Status:</div>
-                        <div class="details-content">$displayValue</div>
-                        <div class="details-label">Automatable:</div>
-                        <div class="details-content">$(if ($automatisableBadge -like "*Automatable*") { "Yes - This remediation can be automated via PowerShell/GPO" } else { "No - This remediation requires manual intervention" })</div>
-                        <div class="recommendation" style="display: $(if ($recommendation -and $recommendation -ne "None") { "block" } else { "none" });">
-                            <strong>Recommandation:</strong><br>
-                            $recommendation
+                        <div class="details-label">Comments:</div>
+                        <div class="details-content">$($itemValue.comments)</div>
+"@
+            foreach ($recommendation in $itemValue.recommendations) {
+                $htmlContent += @"
+                            <div class="recommendation" style="display: $(if ($recommendation -and $recommendation -ne "None") { "block" } else { "none" });">
+                                <strong>Recommandation:</strong><br>
+                                $recommendation
+                            </div>
+"@
+            }
+
+            # rajouter les details supplementaires dans un dropdown discret
+            $additionalDetails = @()
+            foreach ($prop in $itemValue.PSObject.Properties) {
+                if ($prop.Name -notin @("status", "automatable", "comments", "recommendations")) {
+                    $detailLabel = ConvertTo-HtmlSafe $prop.Name
+                    $detailContent = ConvertTo-HtmlSafe $prop.Value
+                    $additionalDetails += @"
+                        <div class="additional-detail">
+                            <span class="detail-label">${detailLabel}:</span>
+                            <span class="detail-value">$detailContent</span>
+                        </div>
+"@
+                }
+            }
+            
+            if ($additionalDetails.Count -gt 0) {
+                $htmlContent += @"
+                        <div class="additional-details-section">
+                            <button class="details-toggle" onclick="event.stopPropagation(); toggleAdditionalDetails(this)">
+                                <span class="toggle-icon">></span> Additional Details
+                            </button>
+                            <div class="additional-details-content" style="display: none;">
+$($additionalDetails -join "`n")
+                            </div>
+                        </div>
+"@
+            }
+
+
+            $htmlContent += @"
                         </div>
                     </div>
-                </div>
 "@
         }
     }
