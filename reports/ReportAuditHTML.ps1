@@ -111,7 +111,7 @@ $htmlContent = @"
     <div class="container">
         <header>
             <div style="position: absolute; top: 20px; right: 30px;">
-                <select id="languageSelector" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #3483ff; background: white; color: #333; font-weight: 500; cursor: pointer; transition: all 0.3s;" onchange="changeLanguage(this.value)">
+                <select id="languageSelector" style="padding: 10px 16px; border-radius: 8px; border: 2px solid #3483ff; background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%); color: #333; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 14px; box-shadow: 0 4px 12px rgba(52, 131, 255, 0.2); min-width: 140px;" onchange="changeLanguage(this.value)">
                     <option value="en">English</option>
                     <option value="fr" selected>Fran&ccedil;ais</option>
                 </select>
@@ -273,7 +273,6 @@ $htmlContent += @"
 </html>
 "@
 
-# Export du Rapport
 try {
     $htmlContent | Out-File -FilePath $OutputPath -Encoding UTF8 -Force
     Write-Host "[OK] Rapport genere avec succes: $OutputPath" -ForegroundColor Green

@@ -1,0 +1,830 @@
+﻿{
+    "OSSecurity":  {
+                       "DeviceGuard_VBS":  {
+                                               "Comment":  "VBS status: 2; UMCI (WDAC) status: 0; CI: Enforced.",
+                                               "recommendations":  [
+                                                                       "VBS is enabled. Evaluate and deploy WDAC / code integrity policies (at least in Audit mode) to control which binaries and scripts can run."
+                                                                   ],
+                                               "UserModeCodeIntegrityPolicyEnforcementStatus":  0,
+                                               "WDAC_Active":  false,
+                                               "automatable":  false,
+                                               "VBS_Active":  true,
+                                               "VirtualizationBasedSecurityStatus":  2,
+                                               "SecurityServicesConfigured":  [
+                                                                                  2
+                                                                              ],
+                                               "comments":  "VBS and/or WDAC is active. ",
+                                               "status":  "PASS",
+                                               "SecurityServicesRunning":  [
+                                                                               2
+                                                                           ],
+                                               "CodeIntegrityPolicyEnforcementStatus":  "Enforced"
+                                           },
+                       "LSASSProtection":  {
+                                               "recommendations":  [
+                                                                       "Keep LSA protection enabled with Secure Boot to harden LSASS against credential dumping. | Create the WDigest UseLogonCredential DWORD and set it to 0 to explicitly disable clear-text password storage."
+                                                                   ],
+                                               "Xml":  [
+                                                           {
+                                                               "Category":  "LsassProtection",
+                                                               "Description":  "Disable WDigest by setting UseLogonCredential = 0 to prevent clear-text password storage in LSASS.",
+                                                               "Command":  "Set-ItemProperty -Path \u0027HKLM:\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest\u0027 -Name \u0027UseLogonCredential\u0027 -Value 0"
+                                                           }
+                                                       ],
+                                               "automatable":  true,
+                                               "Value":  {
+                                                             "LsaPath":  "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+                                                             "RunAsPPL":  2,
+                                                             "WDigestPath":  "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest",
+                                                             "UseLogonCredential":  "N/A",
+                                                             "Description":  "LSA: LSA protection (RunAsPPL) enabled with Secure Boot required. | WDigest: UseLogonCredential key does not exist; default behavior may be unsafe on older systems.",
+                                                             "Recommendation":  "Keep LSA protection enabled with Secure Boot to harden LSASS against credential dumping. | Create the WDigest UseLogonCredential DWORD and set it to 0 to explicitly disable clear-text password storage."
+                                                         },
+                                               "comments":  "LSA protection is enabled (RunAsPPL = 2, Secure Boot required). WDigest is disabled. ",
+                                               "status":  "PASS"
+                                           },
+                       "ControlledFolderAccess":  {
+                                                      "Mode":  "Off",
+                                                      "EnableControlledFolderAccess":  0,
+                                                      "automatable":  false,
+                                                      "comments":  "Controlled Folder Access is disabled. ",
+                                                      "recommendations":  [
+                                                                              "Consider enabling Controlled Folder Access in Audit mode first to evaluate impact, then move to Block for critical endpoints."
+                                                                          ],
+                                                      "status":  "FAIL"
+                                                  },
+                       "LMHash":  {
+                                      "comments":  "LM hashes are not stored (NoLMHash = 1). ",
+                                      "status":  "PASS",
+                                      "recommendations":  [
+                                                              "Keep NoLMHash = 1 and ensure password length and complexity are aligned with your security baseline."
+                                                          ],
+                                      "automatable":  false,
+                                      "Value":  {
+                                                    "Path":  "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+                                                    "NoLMHash":  1,
+                                                    "LMStored":  false,
+                                                    "Description":  "LM hashes are not stored (NoLMHash = 1).",
+                                                    "Recommendation":  "Keep NoLMHash = 1 and ensure password length and complexity are aligned with your security baseline."
+                                                }
+                                  },
+                       "AppLocker":  {
+                                         "Comment":  "AppLocker is present but no rule collection is in Enforced mode.",
+                                         "recommendations":  [
+                                                                 "Enable AppLocker in Audit mode first, then gradually switch required rule collections to Enforced mode to block unauthorized applications."
+                                                             ],
+                                         "automatable":  false,
+                                         "AppLockerPresent":  true,
+                                         "AnyRuleEnabled":  false,
+                                         "comments":  "AppLocker is present but no rule collection is in Enforced mode. AppLocker is present but no rule collection is in Enforced mode.. ",
+                                         "status":  "WARNING"
+                                     },
+                       "SmartAppControl":  {
+                                               "comments":  "Smart App Control is disabled. ",
+                                               "status":  "FAIL",
+                                               "recommendations":  [
+                                                                       "Test in Evaluation mode then enable (On) on compatible systems. | "
+                                                                   ],
+                                               "automatable":  false,
+                                               "SmartApp_State":  "Off"
+                                           },
+                       "CredentialGuard":  {
+                                               "HasTPM":  false,
+                                               "automatable":  false,
+                                               "Virtualization":  true,
+                                               "LsaCfgFlags":  0,
+                                               "CredentialGuard":  "Disabled",
+                                               "comments":  "Credential Guard is disabled or not configured (LsaCfgFlags = 0). TPM not available. ",
+                                               "SecureBoot":  true,
+                                               "recommendations":  [
+                                                                       "@{LsaPath=HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa; LsaCfgFlags=0; CredentialGuard=Disabled; HasTPM=False; SecureBoot=True; Virtualization=True; Recommendations=Deploy or enable a TPM chip (version 1.2 minimum, 2.0 recommended) to support Credential Guard.; Enable Credential Guard (LsaCfgFlags set to 1 or 2) once all prerequisites are met and tested in a pilot group.}.Recommendations"
+                                                                   ],
+                                               "status":  "WARNING",
+                                               "LsaPath":  "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa"
+                                           },
+                       "SRP":  {
+                                   "Comment":  [
+                                                   "SRP root key exists but no Path rules were found.",
+                                                   "No Software Restriction Policy (SRP) detected for this scope."
+                                               ],
+                                   "Scope":  [
+                                                 "Machine",
+                                                 "User"
+                                             ],
+                                   "SRPPresent":  [
+                                                      false,
+                                                      false
+                                                  ],
+                                   "recommendations":  [
+                                                           "If SRP is not actively used, consider cleaning up legacy keys and implementing AppLocker or WDAC instead.",
+                                                           "Prefer AppLocker or Windows Defender Application Control (WDAC) instead of legacy SRP for application control."
+                                                       ],
+                                   "automatable":  false,
+                                   "RegistryPath":  [
+                                                        "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Safer\\CodeIdentifiers",
+                                                        "HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Safer\\CodeIdentifiers"
+                                                    ],
+                                   "comments":  "No SRP for scope Machine. No SRP for scope User. ",
+                                   "status":  "FAIL"
+                               },
+                       "ServerAntivirusStatus":  {
+                                                     "OverallProtected":  [
+                                                                              true,
+                                                                              true,
+                                                                              true,
+                                                                              true,
+                                                                              true,
+                                                                              true,
+                                                                              false,
+                                                                              false
+                                                                          ],
+                                                     "Description":  [
+                                                                         "Built-in Microsoft antivirus service.",
+                                                                         "Third-party antivirus / EDR related service detected.",
+                                                                         "Third-party antivirus / EDR related service detected.",
+                                                                         "Third-party antivirus / EDR related service detected.",
+                                                                         "Third-party antivirus / EDR related service detected.",
+                                                                         "Third-party antivirus / EDR related service detected.",
+                                                                         "Third-party antivirus / EDR related service detected.",
+                                                                         "Third-party antivirus / EDR related service detected."
+                                                                     ],
+                                                     "recommendations":  "Defender real-time monitoring is enabled; ensure cloud-based protection and exclusions are configured according to your baseline. | Verify this AV/EDR agent is correctly configured and that only one primary real-time protection engine is active to avoid conflicts.",
+                                                     "Present":  [
+                                                                     true,
+                                                                     true,
+                                                                     true,
+                                                                     true,
+                                                                     true,
+                                                                     true,
+                                                                     true,
+                                                                     true
+                                                                 ],
+                                                     "ServiceRunning":  [
+                                                                            true,
+                                                                            true,
+                                                                            true,
+                                                                            true,
+                                                                            true,
+                                                                            true,
+                                                                            false,
+                                                                            false
+                                                                        ],
+                                                     "RealtimeMonitoring":  [
+                                                                                true,
+                                                                                null,
+                                                                                null,
+                                                                                null,
+                                                                                null,
+                                                                                null,
+                                                                                null,
+                                                                                null
+                                                                            ],
+                                                     "automatable":  false,
+                                                     "IsDomainController":  [
+                                                                                false,
+                                                                                false,
+                                                                                false,
+                                                                                false,
+                                                                                false,
+                                                                                false,
+                                                                                false,
+                                                                                false
+                                                                            ],
+                                                     "Name":  [
+                                                                  "Microsoft Defender Antivirus",
+                                                                  "ESET Forwarder",
+                                                                  "ESET Service",
+                                                                  "ESET Firewall Helper",
+                                                                  "Microsoft Defender Service de base",
+                                                                  "Pare-feu Windows Defender",
+                                                                  "Windows Defender Advanced Threat Protection Service",
+                                                                  "Service d’inspection réseau de l’antivirus Microsoft Defender"
+                                                              ],
+                                                     "comments":  "Antivirus service is running. Real-time monitoring is enabled. Antivirus service is running. Antivirus service is running. Antivirus service is running. Antivirus service is running. Antivirus service is running. Antivirus service is not running. Global protection is inactive or degraded. Antivirus service is not running. Global protection is inactive or degraded. ",
+                                                     "status":  "FAIL"
+                                                 },
+                       "ASR":  {
+                                   "Comment":  "No ASR rules are currently configured (ASR effectively disabled).",
+                                   "recommendations":  [
+                                                           "Enable Microsoft Defender Attack Surface Reduction rules like : \r\n                - Blocking malicious macros in Office.\r\n                - Preventing the execution of suspicious scripts (PowerShell, JavaScript, etc.).\r\n                - Blocking unauthorized processes from sensitive locations (e.g., %AppData% or %Temp%).\r\n                - Protection against malicious email attachments. "
+                                                       ],
+                                   "automatable":  false,
+                                   "comments":  "No ASR rules are currently configured (ASR effectively disabled).. ",
+                                   "status":  "FAIL",
+                                   "Enabled":  false
+                               },
+                       "OptionalFeatures":  {
+                                                "comments":  "Error auditing optional features: L’opération demandée nécessite une élévation.\r\n. ",
+                                                "status":  "WARNING",
+                                                "recommendations":  [
+
+                                                                    ],
+                                                "automatable":  false
+                                            },
+                       "NetworkProtection":  {
+                                                 "Mode":  "Off",
+                                                 "EnableNetworkProtection":  false,
+                                                 "recommendations":  [
+                                                                         "Network Protection is disabled; enable it in Audit mode first, then Block mode to prevent access to malicious domains and IPs."
+                                                                     ],
+                                                 "automatable":  false,
+                                                 "RawValue":  0,
+                                                 "comments":  "Network Protection is disabled. ",
+                                                 "status":  "FAIL"
+                                             },
+                       "ExploitProtection":  {
+                                                 "recommendations":  [
+                                                                         "Enable Data Execution Prevention (DEP) system-wide for improved memory protection. Enable Control Flow Guard (CFG) to mitigate control-flow hijacking attacks. Enable Structured Exception Handler Overwrite Protection (SEHOP) to prevent SEH overwrites. Enable bottom-up ASLR to randomize memory allocations. Enable high-entropy ASLR for stronger address space randomization on 64-bit systems. Enable mandatory image relocation (ForceRelocateImages) so binaries must be ASLR-compatible."
+                                                                     ],
+                                                 "Xml":  [
+                                                             {
+                                                                 "Category":  "DEP_Enable",
+                                                                 "Description":  "Enable Data Execution Prevention (DEP) system-wide for improved memory protection.",
+                                                                 "Command":  "Set-ProcessMitigation -System -Enable DEP"
+                                                             },
+                                                             {
+                                                                 "Category":  "CFG_Enable",
+                                                                 "Description":  "Enable Control Flow Guard (CFG) to mitigate control-flow hijacking attacks.",
+                                                                 "Command":  "Set-ProcessMitigation -System -Enable CFG"
+                                                             },
+                                                             {
+                                                                 "Category":  "SEHOP_Enable",
+                                                                 "Description":  "Enable Structured Exception Handler Overwrite Protection (SEHOP) to prevent SEH overwrites.",
+                                                                 "Command":  "Set-ProcessMitigation -System -Enable SEHOP"
+                                                             },
+                                                             {
+                                                                 "Category":  "ASLR_BottomUP",
+                                                                 "Description":  "Enable bottom-up ASLR to randomize memory allocations.",
+                                                                 "Command":  "Set-ProcessMitigation -System -Enable BottomUp"
+                                                             },
+                                                             {
+                                                                 "Category":  "ASLR_HighEntropy",
+                                                                 "Description":  "Enable high-entropy ASLR for stronger address space randomization on 64-bit systems.",
+                                                                 "Command":  "Set-ProcessMitigation -System -Enable HighEntropy"
+                                                             },
+                                                             {
+                                                                 "Category":  "ASLR_ForceRelocateImages",
+                                                                 "Description":  "Enable mandatory image relocation (ForceRelocateImages) so binaries must be ASLR-compatible.",
+                                                                 "Command":  "Set-ProcessMitigation -System -Enable ForceRelocateImages"
+                                                             }
+                                                         ],
+                                                 "automatable":  true,
+                                                 "Value":  {
+                                                               "DEP_Enable":  0,
+                                                               "CFG_Enable":  0,
+                                                               "SEHOP_Enable":  0,
+                                                               "ASLR_BottomUP":  0,
+                                                               "ASLR_HighEntropy":  0,
+                                                               "ASLR_ForceRelocateImages":  0,
+                                                               "Recommendation":  "Enable Data Execution Prevention (DEP) system-wide for improved memory protection. Enable Control Flow Guard (CFG) to mitigate control-flow hijacking attacks. Enable Structured Exception Handler Overwrite Protection (SEHOP) to prevent SEH overwrites. Enable bottom-up ASLR to randomize memory allocations. Enable high-entropy ASLR for stronger address space randomization on 64-bit systems. Enable mandatory image relocation (ForceRelocateImages) so binaries must be ASLR-compatible."
+                                                           },
+                                                 "comments":  "Missing or disabled settings: DEP, CFG, SEHOP, ASLR_BottomUP, ASLR_HighEntropy, ASLR_ForceRelocateImages. ",
+                                                 "status":  "FAIL"
+                                             },
+                       "PowershellLanguageMode":  {
+                                                      "recommendations":  [
+                                                                              "PowerShell is running in FullLanguage (or less restricted) mode; consider enforcing ConstrainedLanguage on standard users via AppLocker/WDAC for better abuse resistance."
+                                                                          ],
+                                                      "automatable":  false,
+                                                      "IsConstrained":  false,
+                                                      "comments":  "PowerShell is in FullLanguage or less restricted mode: FullLanguage. ",
+                                                      "status":  "FAIL",
+                                                      "LanguageMode":  0
+                                                  }
+                   },
+    "HostContext":  {
+                        "Hostname":  "PC_PERSO_RYAN_C",
+                        "OSRole":  "Workstation",
+                        "HardwareType":  "Physical",
+                        "Manufacturer":  "ASUSTeK COMPUTER INC.",
+                        "Model":  "ZenBook UX325EA_UX325EA",
+                        "IsDomainJoined":  false,
+                        "Timestamp":  {
+                                          "value":  "\/Date(1767613754149)\/",
+                                          "DisplayHint":  2,
+                                          "DateTime":  "lundi 5 janvier 2026 12:49:14"
+                                      },
+                        "CurrentUser":  "PC_PERSO_RYAN_C\\perso",
+                        "IsRunAsAdmin":  false
+                    },
+    "Logging":  {
+                    "EventForwardingStatus":  {
+                                                  "comments":  "Event forwarding is disabled for Windows Event Forwarding. Event forwarding is disabled for Sysmon. ",
+                                                  "status":  "FAIL",
+                                                  "recommendations":  "Configure Windows Event Forwarding (WEF) subscriptions to send critical security logs to a central collector/SIEM. | Consider deploying Sysmon with a hardened configuration on critical servers and workstations for advanced security logging.",
+                                                  "automatable":  false
+                                              },
+                    "LogStatus":  {
+                                      "MaximumSizeMB":  [
+                                                            null,
+                                                            20,
+                                                            20,
+                                                            15,
+                                                            15
+                                                        ],
+                                      "recommendations":  "Log is not available or not enabled; ensure this log is configured if required by your monitoring and audit policy. | Current maximum size (20 MB) is below recommended threshold (50 MB) for this log; increase log size to avoid early overwrites. | Current maximum size (15 MB) is below recommended threshold (50 MB) for this log; increase log size to avoid early overwrites. | Current maximum size (15 MB) is below recommended threshold (200 MB) for this log; increase log size to avoid early overwrites.",
+                                      "RecordCount":  [
+                                                          0,
+                                                          35492,
+                                                          37742,
+                                                          9116,
+                                                          483
+                                                      ],
+                                      "IsSizeOK":  [
+                                                       null,
+                                                       false,
+                                                       false,
+                                                       false,
+                                                       false
+                                                   ],
+                                      "automatable":  false,
+                                      "RecoSizeMB":  [
+                                                         400,
+                                                         50,
+                                                         50,
+                                                         50,
+                                                         200
+                                                     ],
+                                      "Retention":  [
+                                                        null,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0
+                                                    ],
+                                      "LogName":  [
+                                                      "Security",
+                                                      "System",
+                                                      "Application",
+                                                      "Windows PowerShell",
+                                                      "Microsoft-Windows-PowerShell/Operational"
+                                                  ],
+                                      "comments":  "Log Security is disabled. Log System size is insufficient. Log Application size is insufficient. Log Windows PowerShell size is insufficient. Log Microsoft-Windows-PowerShell/Operational size is insufficient. ",
+                                      "status":  "FAIL",
+                                      "IsEnabled":  [
+                                                        false,
+                                                        true,
+                                                        true,
+                                                        true,
+                                                        true
+                                                    ]
+                                  },
+                    "LogAgentStatus":  {
+                                           "comments":  "No log collection/SIEM agent detected. ",
+                                           "status":  "FAIL",
+                                           "recommendations":  [
+                                                                   "Install and configure a log collection agent to centralize logs. | "
+                                                               ],
+                                           "automatable":  false
+                                       }
+                },
+    "AccountSecurity":  {
+                            "LocalGuestAccount":  {
+                                                      "OtherAdminsList":  "PC_PERSO_RYAN_C\\perso",
+                                                      "GuestAccountName":  "Invité",
+                                                      "AdminRecommandation":  {
+                                                                                  "Disabled":  "\rLe compte Administrateur par dï¿½faut est dï¿½sactivï¿½ rï¿½duisant la surface d\u0027attaque.",
+                                                                                  "Enabled":  "\rLe compte Administrateur (SID-500) est activï¿½. C\u0027est une cible privilï¿½giï¿½e car son SID est connu de tous.\rRecommandation : Dï¿½sactivez-le et utilisez des comptes nominatifs ou LAPS."
+                                                                              },
+                                                      "GuestEnabled":  false,
+                                                      "OtherAdminsCount":  1,
+                                                      "comments":  "Guest default account is disabled.",
+                                                      "AdminAccountName":  "Administrateur",
+                                                      "GuestAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-501",
+                                                      "automatable":  false,
+                                                      "AdminAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-500",
+                                                      "GuestRecommandation":  {
+                                                                                  "Disabled":  "\rLe compte Invitï¿½ est bien dï¿½sactivï¿½.",
+                                                                                  "Enabled":  "\rLe compte Invitï¿½ est activï¿½. Cela peut permettre un accï¿½s anonyme ou non tracï¿½ au systï¿½me. Recommandation : Dï¿½sactivez ce compte immï¿½diatement."
+                                                                              },
+                                                      "status":  "PASS",
+                                                      "recommendations":  [
+                                                                              "\rLe compte Invitï¿½ est bien dï¿½sactivï¿½."
+                                                                          ],
+                                                      "AdminEnabled":  false,
+                                                      "Timestamp":  "\/Date(1767613754249)\/"
+                                                  },
+                            "LocalGroups":  {
+                                                "Members":  [
+                                                                "PC_PERSO_RYAN_C\\Administrateur",
+                                                                "PC_PERSO_RYAN_C\\perso"
+                                                            ],
+                                                "recommendations":  [
+                                                                        "A group should have at least one member. Verify local groups that have more than 3 members."
+                                                                    ],
+                                                "automatable":  false,
+                                                "MembersCount":  2,
+                                                "GroupName":  "Administrateurs",
+                                                "comments":  "The local group \u0027Administrateurs\u0027 has 2 members. Verify for unauthorized users.",
+                                                "status":  "FAIL"
+                                            },
+                            "LocalAdminAccount":  {
+                                                      "OtherAdminsList":  "PC_PERSO_RYAN_C\\perso",
+                                                      "GuestAccountName":  "Invité",
+                                                      "AdminRecommandation":  {
+                                                                                  "Disabled":  "\rLe compte Administrateur par dï¿½faut est dï¿½sactivï¿½ rï¿½duisant la surface d\u0027attaque.",
+                                                                                  "Enabled":  "\rLe compte Administrateur (SID-500) est activï¿½. C\u0027est une cible privilï¿½giï¿½e car son SID est connu de tous.\rRecommandation : Dï¿½sactivez-le et utilisez des comptes nominatifs ou LAPS."
+                                                                              },
+                                                      "GuestEnabled":  false,
+                                                      "OtherAdminsCount":  1,
+                                                      "comments":  "Administrator default account is disabled.",
+                                                      "AdminAccountName":  "Administrateur",
+                                                      "GuestAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-501",
+                                                      "automatable":  false,
+                                                      "AdminAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-500",
+                                                      "GuestRecommandation":  {
+                                                                                  "Disabled":  "\rLe compte Invitï¿½ est bien dï¿½sactivï¿½.",
+                                                                                  "Enabled":  "\rLe compte Invitï¿½ est activï¿½. Cela peut permettre un accï¿½s anonyme ou non tracï¿½ au systï¿½me. Recommandation : Dï¿½sactivez ce compte immï¿½diatement."
+                                                                              },
+                                                      "status":  "PASS",
+                                                      "recommendations":  [
+                                                                              "\rLe compte Administrateur par dï¿½faut est dï¿½sactivï¿½ rï¿½duisant la surface d\u0027attaque."
+                                                                          ],
+                                                      "AdminEnabled":  false,
+                                                      "Timestamp":  "\/Date(1767613754249)\/"
+                                                  },
+                            "ADPasswordPolicy":  {
+                                                     "comments":  "",
+                                                     "status":  "",
+                                                     "recommendations":  [
+
+                                                                         ],
+                                                     "automatable":  false
+                                                 },
+                            "UAC":  {
+                                        "comments":  "UAC is disabled.Administrator Token Filtering is disabled.Local Account Token Filter Policy is disabled.",
+                                        "status":  "FAIL",
+                                        "recommendations":  [
+                                                                "Enable UAC to enhance security.",
+                                                                "Enable Administrator Token Filtering to enhance security.",
+                                                                "Enable Local Account Token Filter Policy to prevent non-administrator network access."
+                                                            ],
+                                        "automatable":  false
+                                    },
+                            "LocalPasswordPolicy":  {
+                                                        "recommendations":  [
+                                                                                "Password Policy length must be at least ",
+                                                                                "Password Complexity must be ",
+                                                                                "Account Lockout Policy must be "
+                                                                            ],
+                                                        "Error":  "Impossible de gÃ©nÃ©rer le fichier d\u0027export SecEdit.",
+                                                        "automatable":  false,
+                                                        "comments":  "Password length requirement is met.Password complexity requirement is met.Account lockout requirement is met.",
+                                                        "status":  "Error",
+                                                        "Check":  "Password Policy"
+                                                    },
+                            "JEA":  {
+                                        "Comment":  "WinRM service is present but not running; JEA endpoints will not be usable.",
+                                        "recommendations":  [
+                                                                null
+                                                            ],
+                                        "WinRmState":  "Stopped",
+                                        "RoleCapabilityFiles":  [
+
+                                                                ],
+                                        "automatable":  false,
+                                        "HasJEASessionConfig":  false,
+                                        "PSModulePaths":  [
+
+                                                          ],
+                                        "comments":  "WinRM is stopped; JEA cannot be used.",
+                                        "status":  "FAIL",
+                                        "SessionConfigurations":  [
+
+                                                                  ]
+                                    },
+                            "SMBShares":  {
+                                              "comments":  "",
+                                              "status":  "",
+                                              "recommendations":  [
+
+                                                                  ],
+                                              "automatable":  false
+                                          },
+                            "LAPS":  {
+                                         "IsLegacy":  false,
+                                         "Details":  [
+
+                                                     ],
+                                         "recommendations":  [
+
+                                                             ],
+                                         "DetectedMethods":  "None",
+                                         "automatable":  false,
+                                         "IsModern":  false,
+                                         "comments":  "",
+                                         "status":  "FAIL",
+                                         "Check":  "LAPS Configuration",
+                                         "Timestamp":  "\/Date(1767613754348)\/"
+                                     },
+                            "AuthentificationLevel":  {
+                                                          "recommendations":  [
+
+                                                                              ],
+                                                          "CSP":  false,
+                                                          "automatable":  false,
+                                                          "GPO":  false,
+                                                          "status":  "",
+                                                          "comments":  "",
+                                                          "Consumer":  false
+                                                      }
+                        },
+    "NetworkSecurity":  {
+                            "Firewall":  {
+                                             "recommendations":  "No enabled RDP firewall rules detected; verify if RDP is required and how access is controlled (VPN, jump servers, etc.). | Firewall service appear to be enabled; regularly review inbound rules for unnecessary exposure (RDP, SMB, WinRM, etc.).",
+                                             "FirewallServiceStatus":  4,
+                                             "automatable":  false,
+                                             "FirewallServiceRunning":  true,
+                                             "comments":  "Windows Firewall service is running on active profile: Private, Public. ",
+                                             "status":  "PASS",
+                                             "ActiveProfile":  6
+                                         },
+                            "VPN":  {
+                                        "HasActiveVpnProfiles":  false,
+                                        "Adapters":  [
+                                                         {
+                                                             "Name":  "ProtonVPN",
+                                                             "InterfaceDescription":  "WireGuard Tunnel",
+                                                             "Status":  "Up",
+                                                             "MacAddress":  ""
+                                                         },
+                                                         {
+                                                             "Name":  "Tailscale",
+                                                             "InterfaceDescription":  "Tailscale Tunnel",
+                                                             "Status":  "Up",
+                                                             "MacAddress":  ""
+                                                         }
+                                                     ],
+                                        "recommendations":  [
+                                                                "Review VPN adapter configurations for security. | "
+                                                            ],
+                                        "HasVpnAdapters":  true,
+                                        "Description":  "2 VPN/TAP/TUN interface(s) detected (Status = Up) | 0 VPN profile configured via Windows VPN client",
+                                        "automatable":  false,
+                                        "HasVpnProfiles":  false,
+                                        "comments":  "VPN adapter detected: ProtonVPN (Up). VPN adapter detected: Tailscale (Up). No VPN profiles configured via Windows VPN client. ",
+                                        "status":  "WARNING"
+                                    },
+                            "NetBIOS":  {
+                                            "NetBIOS_Status":  [
+                                                                   "Default (typically enabled unless disabled by DHCP/server policy)",
+                                                                   "Default (typically enabled unless disabled by DHCP/server policy)",
+                                                                   "Default (typically enabled unless disabled by DHCP/server policy)",
+                                                                   "Disabled",
+                                                                   "Default (typically enabled unless disabled by DHCP/server policy)",
+                                                                   "Default (typically enabled unless disabled by DHCP/server policy)",
+                                                                   "Default (typically enabled unless disabled by DHCP/server policy)"
+                                                               ],
+                                            "recommendations":  "NetBIOS state follows default/DHCP configuration; explicitly set TcpipNetbiosOptions = 2 to disable NetBIOS over TCP/IP where possible. | NetBIOS over TCP/IP is disabled on this interface; this is recommended on modern networks using DNS only.",
+                                            "TcpipNetbiosOptions":  [
+                                                                        0,
+                                                                        0,
+                                                                        0,
+                                                                        2,
+                                                                        0,
+                                                                        0,
+                                                                        0
+                                                                    ],
+                                            "automatable":  false,
+                                            "Interface":  [
+                                                              "VMware Virtual Ethernet Adapter for VMnet1",
+                                                              "VMware Virtual Ethernet Adapter for VMnet8",
+                                                              "Intel(R) Wi-Fi 6 AX201 160MHz",
+                                                              "Tailscale Tunnel",
+                                                              "WireGuard Tunnel",
+                                                              "WireGuard Tunnel",
+                                                              "VirtualBox Host-Only Ethernet Adapter"
+                                                          ],
+                                            "comments":  "NetBIOS is enabled on adapter VMware Virtual Ethernet Adapter for VMnet1. NetBIOS is enabled on adapter VMware Virtual Ethernet Adapter for VMnet8. NetBIOS is enabled on adapter Intel(R) Wi-Fi 6 AX201 160MHz. NetBIOS is disabled on adapter Tailscale Tunnel. NetBIOS is enabled on adapter WireGuard Tunnel. NetBIOS is enabled on adapter WireGuard Tunnel. NetBIOS is enabled on adapter VirtualBox Host-Only Ethernet Adapter. ",
+                                            "status":  "FAIL"
+                                        },
+                            "LLMNR":  {
+                                          "comments":  "LLMNR is enabled (default). ",
+                                          "status":  "FAIL",
+                                          "recommendations":  [
+                                                                  "Aucune politique LLMNR explicite trouvée; configurez EnableMulticast = 0 (Désactiver la résolution de noms multicast) pour désactiver LLMNR."
+                                                              ],
+                                          "automatable":  false,
+                                          "LLMNR_Status":  "Activé par défaut (aucune politique explicite, la résolution de noms multicast est probablement autorisée)"
+                                      },
+                            "IPv6":  {
+                                         "recommendations":  "IPv6 est désactivé sur cet adaptateur ; cela est généralement sans danger si votre environnement ne dépend pas d\u0027IPv6. | IPv6 est activé sur cet adaptateur ; vérifiez qu\u0027IPv6 est correctement routé, filtré et surveillé, ou désactivez-le s\u0027il n\u0027est pas utilisé dans votre environnement.",
+                                         "automatable":  false,
+                                         "IPv6Enabled":  [
+                                                             false,
+                                                             true,
+                                                             false,
+                                                             false,
+                                                             false,
+                                                             false,
+                                                             false,
+                                                             true,
+                                                             false
+                                                         ],
+                                         "comments":  "IPv6 is disabled on adapter VMware Network Adapter VMnet1. IPv6 is enabled on adapter ProtonVPN. IPv6 is disabled on adapter Ethernet 5. IPv6 is disabled on adapter VMware Network Adapter VMnet8. IPv6 is disabled on adapter Ethernet 4. IPv6 is disabled on adapter Ethernet 6. IPv6 is disabled on adapter Connexion réseau Bluetooth. IPv6 is enabled on adapter Tailscale. IPv6 is disabled on adapter Wi-Fi. ",
+                                         "status":  "FAIL",
+                                         "Adapter":  [
+                                                         "VMware Network Adapter VMnet1",
+                                                         "ProtonVPN",
+                                                         "Ethernet 5",
+                                                         "VMware Network Adapter VMnet8",
+                                                         "Ethernet 4",
+                                                         "Ethernet 6",
+                                                         "Connexion réseau Bluetooth",
+                                                         "Tailscale",
+                                                         "Wi-Fi"
+                                                     ]
+                                     }
+                        },
+    "UpdateManagement":  {
+                             "LastReboot_Uptime":  {
+                                                       "recommendations":  [
+                                                                               "Workstation uptime is within the expected range; ensure regular reboots after patch cycles."
+                                                                           ],
+                                                       "ThresholdDays":  30,
+                                                       "LastBootTime":  "\/Date(1767611767500)\/",
+                                                       "automatable":  false,
+                                                       "Uptime":  "0 days 0 hours 33 minutes",
+                                                       "UptimeDays":  0,
+                                                       "comments":  "Last boot time: 01/05/2026 12:16:07. Uptime: 0 days. ",
+                                                       "status":  "PASS",
+                                                       "ComputerRole":  "Workstation"
+                                                   }
+                         },
+    "DeviceSecurity":  {
+                           "ThirdPartyEncryptionIndicators":  {
+                                                                  "IsVM":  [
+                                                                               false,
+                                                                               false,
+                                                                               false,
+                                                                               false
+                                                                           ],
+                                                                  "Description":  [
+                                                                                      "No specific third-party encryption indicators detected on this volume.",
+                                                                                      "No specific third-party encryption indicators detected on this volume.",
+                                                                                      "No specific third-party encryption indicators detected on this volume.",
+                                                                                      "No specific third-party encryption indicators detected on this volume."
+                                                                                  ],
+                                                                  "recommendations":  [
+
+                                                                                      ],
+                                                                  "FileSystem":  [
+                                                                                     "NTFS",
+                                                                                     "NTFS",
+                                                                                     "FAT32",
+                                                                                     "FAT32"
+                                                                                 ],
+                                                                  "Label":  [
+                                                                                "OS",
+                                                                                "RECOVERY",
+                                                                                "MYASUS",
+                                                                                "SYSTEM"
+                                                                            ],
+                                                                  "automatable":  false,
+                                                                  "DriveLetter":  [
+                                                                                      "C:",
+                                                                                      null,
+                                                                                      null,
+                                                                                      null
+                                                                                  ],
+                                                                  "DriveType":  [
+                                                                                    3,
+                                                                                    3,
+                                                                                    3,
+                                                                                    3
+                                                                                ],
+                                                                  "PossiblyEncryptedThirdParty":  [
+                                                                                                      false,
+                                                                                                      false,
+                                                                                                      false,
+                                                                                                      false
+                                                                                                  ],
+                                                                  "comments":  "",
+                                                                  "status":  "PASS",
+                                                                  "DeviceID":  [
+                                                                                   "\\\\?\\Volume{51410440-2ea9-4091-995d-53483461c628}\\",
+                                                                                   "\\\\?\\Volume{9fba0ab1-e595-4cd3-a382-7d9cbf5d63f8}\\",
+                                                                                   "\\\\?\\Volume{6a6df02e-63c9-4803-aedf-b9fba9f4be84}\\",
+                                                                                   "\\\\?\\Volume{34ce23e2-3ca1-4c9c-ba3a-6b2ac93a3342}\\"
+                                                                               ]
+                                                              },
+                           "BitLocker":  {
+                                             "comments":  "Error auditing BitLocker: Impossible d\u0027auditer BitLocker (Get-BitLockerAudit n\u0027a pas retourné de résultat). ",
+                                             "status":  "WARNING",
+                                             "recommendations":  [
+
+                                                                 ],
+                                             "automatable":  false
+                                         },
+                           "AutoRun":  {
+                                           "recommendations":  "Explicitly configure NoDriveTypeAutorun (0xFF) to ensure Autorun is disabled for all drive types.",
+                                           "Xml":  {
+                                                       "Category":  "AutoRun",
+                                                       "Description":  "Disable AutoRun in registry for LocalMachine and CurrentUser",
+                                                       "Command":  "Set-ItemProperty -Path \"HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" -Name NoDriveTypeAutorun -Value 0xFF | Set-ItemProperty -Path \"HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" -Name NoDriveTypeAutorun -Value 0xFF"
+                                                   },
+                                           "automatable":  true,
+                                           "Value":  [
+                                                         {
+                                                             "Scope":  "Machine",
+                                                             "AutoRunEnabled":  true,
+                                                             "Value":  "NoDriveTypeAutorun value not found",
+                                                             "Comment":  "No explicit NoDriveTypeAutorun value configured; default Autorun behavior may be partially enabled.",
+                                                             "Recommendation":  "Explicitly configure NoDriveTypeAutorun (0xFF) to ensure Autorun is disabled for all drive types."
+                                                         },
+                                                         {
+                                                             "Scope":  "User",
+                                                             "AutoRunEnabled":  true,
+                                                             "Value":  "NoDriveTypeAutorun value not found",
+                                                             "Comment":  "No explicit NoDriveTypeAutorun value configured; default Autorun behavior may be partially enabled.",
+                                                             "Recommendation":  "Explicitly configure NoDriveTypeAutorun (0xFF) to ensure Autorun is disabled for all drive types."
+                                                         }
+                                                     ],
+                                           "comments":  "AutoRun is potentially enabled for scope Machine. AutoRun is potentially enabled for scope User. ",
+                                           "status":  "FAIL"
+                                       }
+                       },
+    "ServicesAndApplications":  {
+                                    "InstalledApplications":  {
+                                                                  "comments":  "300 applications detected. Error auditing installed applications: Le terme « Get-WinGetPackage » n\u0027est pas reconnu comme nom d\u0027applet de commande, fonction, fichier de script ou programme exécutable. Vérifiez l\u0027orthographe du nom, ou si un chemin d\u0027accès existe, vérifiez que le chemin d\u0027accès est correct et réessayez.. ",
+                                                                  "status":  "WARNING",
+                                                                  "recommendations":  [
+
+                                                                                      ],
+                                                                  "automatable":  false
+                                                              },
+                                    "RDP":  {
+                                                "recommendations":  [
+                                                                        "RDP is disabled at the OS level (fDenyTSConnections != 0); keep it disabled if not strictly required. | "
+                                                                    ],
+                                                "Xml":  [
+
+                                                        ],
+                                                "automatable":  false,
+                                                "Value":  {
+                                                              "RDPEnabled":  false,
+                                                              "DisableRestrictedAdmin":  "Key not found / Disabled by default",
+                                                              "MinEncryptionLevel":  "2 / Client compatible",
+                                                              "SecurityLayer":  "2 / SSL/TLS only",
+                                                              "UserAuthentication":  "1 / NLA required",
+                                                              "fEncryptRPCTraffic":  false,
+                                                              "Recommendation":  "RDP is disabled at the OS level (fDenyTSConnections != 0); keep it disabled if not strictly required."
+                                                          },
+                                                "comments":  "RDP is disabled. RPC traffic encryption is disabled. ",
+                                                "status":  "WARNING"
+                                            },
+                                    "SMB":  {
+                                                "recommendations":  [
+                                                                        "Configure RequireSecuritySignature = $true on servers and align client settings to reduce NTLM relay and tampering risks. | "
+                                                                    ],
+                                                "Xml":  [
+                                                            {
+                                                                "Category":  "SMB Signing",
+                                                                "Description":  "Configure RequireSecuritySignature = True on servers and align client settings to reduce NTLM relay and tampering risks.",
+                                                                "Command":  "Set-SmbServerConfiguration -RequireSecuritySignature True -Force"
+                                                            }
+                                                        ],
+                                                "automatable":  true,
+                                                "Value":  {
+                                                              "SMBv1State":  false,
+                                                              "SMBv2State":  true,
+                                                              "EnableSecuritySignature":  false,
+                                                              "RequireSecuritySignature":  false,
+                                                              "LanManServer":  {
+                                                                                   "EnableSecuritySignature":  0,
+                                                                                   "RequireSecuritySignature":  0
+                                                                               },
+                                                              "LanManWorkStation":  {
+                                                                                        "EnableSecuritySignature":  1,
+                                                                                        "RequireSecuritySignature":  0
+                                                                                    },
+                                                              "Comment":  "SMBv1 is disabled on this server. | SMB signing is not required for server connections.",
+                                                              "Recommendation":  "Configure RequireSecuritySignature = $true on servers and align client settings to reduce NTLM relay and tampering risks."
+                                                          },
+                                                "comments":  "SMBv1 is disabled. SMBv2/3 is enabled. SMB signing is not required. SMBv1 is disabled on this server. | SMB signing is not required for server connections. ",
+                                                "status":  "FAIL"
+                                            },
+                                    "WinRM":  {
+                                                  "comments":  "WinRM is not enabled. ",
+                                                  "status":  "FAIL",
+                                                  "recommendations":  [
+                                                                          "WinRM service is stopped or not installed. If remote management is required, enable and configure it securely (HTTPS listener, restricted IP filters, hardened authentication). | "
+                                                                      ],
+                                                  "automatable":  false,
+                                                  "WinRmEnabled":  false
+                                              },
+                                    "Updates":  {
+                                                    "BuildNumber":  "26200",
+                                                    "Caption":  "Microsoft Windows 11 Professionnel",
+                                                    "recommendations":  [
+                                                                            "Keep the system updated with latest security patches. "
+                                                                        ],
+                                                    "InstallDate":  "\/Date(1741097916000)\/",
+                                                    "Version":  "10.0.26200",
+                                                    "automatable":  false,
+                                                    "comments":  "OS: Microsoft Windows 11 Professionnel, Version: 10.0.26200. Build: 26200, Installed: 2025-03-04 15:18. Update source: No policy key found: using default Windows Update behavior. 4 KB updates found. ",
+                                                    "status":  "PASS",
+                                                    "FullVersion":  "10.0.26200.7462"
+                                                }
+                                }
+}

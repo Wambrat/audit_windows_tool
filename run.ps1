@@ -46,21 +46,28 @@
         if ($RbAudit.IsChecked) {
             Write-Host "Selected: AUDIT mode" -ForegroundColor Green
             $window.Close()
-            & $(Join-Path $PSScriptRoot "Start-Audit.ps1")
-
-            Show-AskingWindow -Message "Do you want to have a html report with results exported ?" -scriptPath "reports\ReportAuditHTML.ps1"
-
-            Show-AskingWindow -Message "Do you want to change to REMEDIATION mode now ?" -scriptPath "Start-Remediation.ps1"
-
-            Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
-
+            
+            try {
+                & $(Join-Path $PSScriptRoot "Start-Audit.ps1") -ErrorAction Stop | Out-Null
+                Show-AskingWindow -Message "Do you want to have a html report with results exported ?" -scriptPath "reports\ReportAuditHTML.ps1"
+                Show-AskingWindow -Message "Do you want to change to REMEDIATION mode now ?" -scriptPath "Start-Remediation.ps1"
+                Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
+            }
+            catch {
+                Write-Host "Erreur lors de l'exécution de l'audit: $_" -ForegroundColor Red
+            }
         }
         elseif ($RbRemed.IsChecked) {
             Write-Host "Selected: REMEDIATION mode" -ForegroundColor Green
             $window.Close()
-            & $(Join-Path $PSScriptRoot "Start-Remediation.ps1")
-
-            Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
+            
+            try {
+                & $(Join-Path $PSScriptRoot "Start-Remediation.ps1") -ErrorAction Stop | Out-Null
+                Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
+            }
+            catch {
+                Write-Host "Erreur lors de l'exécution de la remédiation: $_" -ForegroundColor Red
+            }
         }
     })
 

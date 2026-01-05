@@ -480,3 +480,40 @@ footer {
     word-break: break-word;
     text-align: right;
 }
+
+/* Language Selector Styling */
+#languageSelector {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233483ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/csvg%3e");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 20px;
+    padding-right: 36px !important;
+}
+
+#languageSelector:hover {
+    border-color: #ff346d;
+    box-shadow: 0 6px 20px rgba(52, 131, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+#languageSelector:focus {
+    outline: none;
+    border-color: #ff346d;
+    box-shadow: 0 6px 20px rgba(255, 52, 109, 0.3);
+}
+
+#languageSelector option {
+    background: white;
+    color: #333;
+    padding: 8px 12px;
+    border: none;
+    margin: 4px 0;
+}
+
+#languageSelector option:checked {
+    background: linear-gradient(135deg, #3483ff 0%, #ff346d 100%);
+    color: white;
+}

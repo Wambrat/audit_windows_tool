@@ -1,7 +1,10 @@
-# --- Configuration ---
+﻿# --- Configuration ---
 $ErrorActionPreference = "Stop"
 $ScriptPath = $PSScriptRoot
 $ModulePath = Join-Path -Path $ScriptPath -ChildPath "Modules\AuditCore"
+
+# --- Collection for remediation actions (XML export) ---
+$remediationActions = @()
 
 # --- Importation du Module ---
 Write-Host "Chargement du module d'audit..." -ForegroundColor Cyan
@@ -13,38 +16,111 @@ else {
     exit
 }
 
-$auditResults = [PSCustomObject]@{}
+# Initialize auditResults as a truly dynamic hashtable (no PSCustomObject constraint)
+# Hashtables allow unlimited dynamic property assignment
+$auditResults = @{
+    HostContext = $null
+    AccountSecurity = @{
+        LocalAdminAccount = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LocalGuestAccount = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LAPS = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        ADPasswordPolicy = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LocalPasswordPolicy = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        AuthentificationLevel = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        UAC = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        JEA = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LocalGroups = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        SMBShares = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        NTFS = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+    ServicesAndApplications = @{
+        RDP = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        WinRM = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        SMB = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        Updates = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        InstalledApplications = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+    NetworkSecurity = @{
+        IPv6 = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LLMNR = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        NetBIOS = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        Firewall = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        VPN = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+    DeviceSecurity = @{
+        AutoRun = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        BitLocker = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        ThirdPartyEncryptionIndicators = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+    OSSecurity = @{
+        OptionalFeatures = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        AppLocker = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        SRP = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        ServerAntivirusStatus = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LMHash = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LSASSProtection = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        CredentialGuard = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        ExploitProtection = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        ASR = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        NetworkProtection = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        ControlledFolderAccess = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        SmartAppControl = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        PowershellLanguageMode = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+    Logging = @{
+        LogStatus = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        EventForwardingStatus = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        LogAgentStatus = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+    UpdateManagement = @{
+        LastReboot = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+        NTFS = @{status = ""; automatable = $false; recommendations = @(); comments = ""}
+    }
+}
+
 $scriptStartDate = Get-Date -Format 'yyyyMMdd_HHmmss'
 
 # --- Helper Function to Merge Audit Results ---
 function Merge-AuditResults {
     param(
         [Parameter(Mandatory=$true)]
-        [PSObject]$Section,
+        $Section,
         
-        [Parameter(Mandatory=$true)]
-        [PSObject]$AuditData
+        [Parameter(Mandatory=$false)]
+        $AuditData
     )
     
     try {
-        # Récupérer toutes les propriétés de l'objet d'audit
-        $properties = $AuditData | Get-Member -MemberType Properties
+        if ($null -eq $AuditData) { return }
         
-        foreach ($prop in $properties) {
-            $propName = $prop.Name
-            
-            # Exclure les propriétés contenant "recommendation" (case insensitive)
-            if ($propName -notmatch "recommendation") {
-                $value = $AuditData.$propName
-                
-                # Ajouter la valeur à la section si elle existe
-                if ($null -ne $value) {
-                    # Si la section a déjà cette propriété, la mettre à jour
-                    if ($Section | Get-Member -Name $propName -ErrorAction SilentlyContinue) {
-                        $Section.$propName = $value
-                    } else {
-                        # Sinon, l'ajouter dynamiquement
-                        $Section | Add-Member -MemberType NoteProperty -Name $propName -Value $value -ErrorAction SilentlyContinue
+        # Handle hashtables (dynamic objects)
+        if ($AuditData -is [System.Collections.IDictionary]) {
+            foreach ($key in $AuditData.Keys) {
+                if ($key -notmatch "recommendation") {
+                    $value = $AuditData[$key]
+                    if ($null -ne $value) {
+                        $Section[$key] = $value
+                    }
+                }
+            }
+        }
+        # Handle PSObjects
+        else {
+            $properties = $AuditData | Get-Member -MemberType Properties
+            foreach ($prop in $properties) {
+                $propName = $prop.Name
+                if ($propName -notmatch "recommendation") {
+                    $value = $AuditData.$propName
+                    if ($null -ne $value) {
+                        if ($Section -is [System.Collections.IDictionary]) {
+                            $Section[$propName] = $value
+                        } else {
+                            if ($Section | Get-Member -Name $propName -ErrorAction SilentlyContinue) {
+                                $Section.$propName = $value
+                            } else {
+                                $Section | Add-Member -MemberType NoteProperty -Name $propName -Value $value -ErrorAction SilentlyContinue
+                            }
+                        }
                     }
                 }
             }
@@ -114,7 +190,7 @@ else {
 #       Account Security Audits      #
 ######################################
 
-$auditResults.AccountSecurity = [pscustomobject]@{}
+$auditResults.AccountSecurity = @{}
 
 ########## Local User Audit ##########
 
@@ -122,7 +198,7 @@ $localUserAudit = Get-LocalUserAudit
 
 if ($localUserAudit) {
     Write-Host "`n[+] Compte locaux identifiés :" -ForegroundColor Gray
-    $auditResults.AccountSecurity.LocalAdminAccount = [pscustomobject]@{
+    $auditResults.AccountSecurity.LocalAdminAccount = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -143,7 +219,7 @@ if ($localUserAudit) {
         $auditResults.AccountSecurity.LocalAdminAccount.comments += "Administrator default account is disabled."
     }
 
-    $auditResults.AccountSecurity.LocalGuestAccount = [pscustomobject]@{
+    $auditResults.AccountSecurity.LocalGuestAccount = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -171,7 +247,7 @@ Merge-AuditResults -Section $auditResults.AccountSecurity.LocalAdminAccount -Aud
 Merge-AuditResults -Section $auditResults.AccountSecurity.LocalGuestAccount -AuditData $localUserAudit
 
 ########## LAPS Audit ##########
-$auditResults.AccountSecurity.LAPS = [pscustomobject]@{
+$auditResults.AccountSecurity.LAPS = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -220,7 +296,7 @@ if ($lapsaudit){
 Merge-AuditResults -Section $auditResults.AccountSecurity.LAPS -AuditData $lapsAudit
 
 ########## Active Directory Password Policy Audit ##########
-$auditResults.AccountSecurity.ADPasswordPolicy = [pscustomobject]@{
+$auditResults.AccountSecurity.ADPasswordPolicy = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -228,7 +304,7 @@ $auditResults.AccountSecurity.ADPasswordPolicy = [pscustomobject]@{
 }
 
 if ($context.Domainjoined -eq $true){
-    $auditResults.AccountSecurity.ADPasswordPolicy = [pscustomobject]@{
+    $auditResults.AccountSecurity.ADPasswordPolicy = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -289,7 +365,7 @@ if ($context.Domainjoined -eq $true){
     Merge-AuditResults -Section $auditResults.AccountSecurity.ADPasswordPolicy -AuditData $adPasswordPolicy
 } else {
     ########## Local Password Policy Audit ##########
-    $auditResults.AccountSecurity.LocalPasswordPolicy = [pscustomobject]@{
+    $auditResults.AccountSecurity.LocalPasswordPolicy = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -352,7 +428,7 @@ if ($context.Domainjoined -eq $true){
 
 
 ########## Authentication Level Audit ##########
-$auditResults.AccountSecurity.AuthentificationLevel = [pscustomobject]@{
+$auditResults.AccountSecurity.AuthentificationLevel = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -427,7 +503,7 @@ if ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $true) {
 Merge-AuditResults -Section $auditResults.AccountSecurity.AuthentificationLevel -AuditData $authLevelAudit
 
 ########## UAC Audit ##########
-$auditResults.AccountSecurity.UAC = [pscustomobject]@{
+$auditResults.AccountSecurity.UAC = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -479,7 +555,7 @@ Merge-AuditResults -Section $auditResults.AccountSecurity.UAC -AuditData $uacAud
 
 
 ########## JEA Audit ##########
-$auditResults.AccountSecurity.JEA = [pscustomobject]@{
+$auditResults.AccountSecurity.JEA = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -518,7 +594,7 @@ Merge-AuditResults -Section $auditResults.AccountSecurity.JEA -AuditData $JEAAud
 
 
 ########## Local Groups Audit ##########
-$auditResults.AccountSecurity.LocalGroups = [pscustomobject]@{
+$auditResults.AccountSecurity.LocalGroups = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -528,7 +604,7 @@ Write-Host "`n[+] Audit des groupes locaux :" -Foregroundcolor Gray
 $groupsAudit = Get-GroupsAudit
 
 if ($groupsAudit) {
-    $audit.Results.AccountSecurity.LocalGroups.status = "PASS"
+    $auditResults.AccountSecurity.LocalGroups.status = "PASS"
     $auditResults.AccountSecurity.LocalGroups.recommendations += "A group should have at least one member. Verify local groups that have more than 3 members."
 
     foreach ($group in $groupsAudit) {
@@ -557,7 +633,7 @@ if ($groupsAudit) {
 Merge-AuditResults -Section $auditResults.AccountSecurity.LocalGroups -AuditData $groupsAudit
 
 ########## SMB Shares Audit ##########
-$auditResults.AccountSecurity.SMBShares = [pscustomobject]@{
+$auditResults.AccountSecurity.SMBShares = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -573,11 +649,11 @@ Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scri
 ######################################
 #    Service & Application Audits    #
 ######################################
-$auditResults.ServicesAndApplications = [pscustomobject]@{}
+$auditResults.ServicesAndApplications = @{}
 
 
 ########## RDP Audit ##########
-$auditResults.ServicesAndApplications.RDP = [pscustomobject]@{
+$auditResults.ServicesAndApplications.RDP = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -627,6 +703,7 @@ if ($rdpAudit -and $rdpAudit.Value) {
             Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
             Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
             $auditResults.ServicesAndApplications.RDP.automatable = $true
+            $remediationActions += $item
         }
 
     }
@@ -641,7 +718,7 @@ Merge-AuditResults -Section $auditResults.ServicesAndApplications.RDP -AuditData
 
 ########## WinRM Audit ##########
 
-$auditResults.ServicesAndApplications.WinRM = [pscustomobject]@{
+$auditResults.ServicesAndApplications.WinRM = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -708,7 +785,7 @@ catch {
 
 ########## SMB Audit ##########
 
-$auditResults.ServicesAndApplications.SMB = [pscustomobject]@{
+$auditResults.ServicesAndApplications.SMB = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -770,6 +847,7 @@ try {
                 Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
                 Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
                 $auditResults.ServicesAndApplications.SMB.automatable = $true
+                $remediationActions += $item
             }
         }
 
@@ -791,7 +869,7 @@ catch {
 
 ########### Update Audit ##########
 
-$auditResults.ServicesAndApplications.Updates = [pscustomobject]@{
+$auditResults.ServicesAndApplications.Updates = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -843,7 +921,7 @@ catch {
 
 ########## Installed Applications Audit ##########
 
-$auditResults.ServicesAndApplications.InstalledApplications = [pscustomobject]@{
+$auditResults.ServicesAndApplications.InstalledApplications = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -903,10 +981,10 @@ Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scri
 ######################################
 #      Network Security Audits       #
 ######################################
-$auditResults.NetworkSecurity = [pscustomobject]@{}
+$auditResults.NetworkSecurity = @{}
 ########## IPv6 Audit ##########
 
-$auditResults.NetworkSecurity.IPv6 = [pscustomobject]@{
+$auditResults.NetworkSecurity.IPv6 = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -942,7 +1020,7 @@ Merge-AuditResults -Section $auditResults.NetworkSecurity.IPv6 -AuditData $ipv6A
 
 ########## LLMNR Audit ##########
 
-$auditResults.NetworkSecurity.LLMNR = [pscustomobject]@{
+$auditResults.NetworkSecurity.LLMNR = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -979,7 +1057,7 @@ Merge-AuditResults -Section $auditResults.NetworkSecurity.LLMNR -AuditData $llmn
 
 ########## NETBIOS Audit ##########
 
-$auditResults.NetworkSecurity.NetBIOS = [pscustomobject]@{
+$auditResults.NetworkSecurity.NetBIOS = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1033,7 +1111,7 @@ if ($netbiosAudit -and $netbiosAudit.Count -gt 0) {
 Merge-AuditResults -Section $auditResults.NetworkSecurity.NetBIOS -AuditData $netbiosAudit
 
 ########## FIREWALL Audit ##########
-$auditResults.NetworkSecurity.Firewall = [pscustomobject]@{
+$auditResults.NetworkSecurity.Firewall = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1109,7 +1187,7 @@ else {
 Merge-AuditResults -Section $auditResults.NetworkSecurity.Firewall -AuditData $fwAudit
 
 ########## VPN Audit ##########
-$auditResults.NetworkSecurity.VPN = [pscustomobject]@{
+$auditResults.NetworkSecurity.VPN = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1168,11 +1246,11 @@ Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scri
 ##########################################
 #           OS Security Audit            #
 ##########################################
-$auditResults.OSSecurity = [pscustomobject]@{}
+$auditResults.OSSecurity = @{}
 
 ########## Optional Features Audit ##########
 
-$auditResults.OSSecurity.OptionalFeatures = [pscustomobject]@{
+$auditResults.OSSecurity.OptionalFeatures = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1231,7 +1309,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.OptionalFeatures -AuditData
 
 ########## AppLocker Audit ##########
 
-$auditResults.OSSecurity.AppLocker = [pscustomobject]@{
+$auditResults.OSSecurity.AppLocker = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1282,7 +1360,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.AppLocker -AuditData $appLo
 ########## SRP Audit ##########
 
 
-$auditResults.OSSecurity.SRP = [pscustomobject]@{
+$auditResults.OSSecurity.SRP = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1332,7 +1410,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.SRP -AuditData $srpAudit
 
 ########## Server Antivirus Status Audit ##########
 
-$auditResults.OSSecurity.ServerAntivirusStatus = [pscustomobject]@{
+$auditResults.OSSecurity.ServerAntivirusStatus = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1410,7 +1488,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.ServerAntivirusStatus -Audi
 
 ########## LM Hash Status Audit ##########
 
-$auditResults.OSSecurity.LMHash = [pscustomobject]@{
+$auditResults.OSSecurity.LMHash = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1446,6 +1524,7 @@ try {
             Write-Host "      - $($lmHashStatus.Xml.Category) : $($lmHashStatus.Xml.Description)" -ForegroundColor Yellow
             Write-Host "         Commande : $($lmHashStatus.Xml.Command)" -ForegroundColor DarkGray
             $auditResults.OSSecurity.LMHash.automatable = $true
+            $remediationActions += $lmHashStatus.Xml
         }
     } else {
         Write-Error "Impossible d'auditer la configuration LM Hash (Get-LMHashStatus n'a pas retourné de résultat)"
@@ -1461,7 +1540,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.LMHash -AuditData $lmHashSt
 
 ########## LSASS Protection Audit ##########
 
-$auditResults.OSSecurity.LSASSProtection = [pscustomobject]@{
+$auditResults.OSSecurity.LSASSProtection = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1517,6 +1596,7 @@ try {
                 Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
                 Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
                 $auditResults.OSSecurity.LSASSProtection.automatable = $true
+                $remediationActions += $item
             }
         }
         
@@ -1536,7 +1616,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.LSASSProtection -AuditData 
 
 ########## Credential Guard Audit ##########
 
-$auditResults.OSSecurity.CredentialGuard = [pscustomobject]@{
+$auditResults.OSSecurity.CredentialGuard = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1594,7 +1674,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.CredentialGuard -AuditData 
 
 ########## Device Guard / VBS Audit ##########
 
-$auditResults.OSSecurity.DeviceGuard_VBS = [pscustomobject]@{
+$auditResults.OSSecurity.DeviceGuard_VBS = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1654,7 +1734,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.DeviceGuard_VBS -AuditData 
 
 ########## Exploit Protection / Process Mitigations Audit ##########
 
-$auditResults.OSSecurity.ExploitProtection = [pscustomobject]@{
+$auditResults.OSSecurity.ExploitProtection = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1708,6 +1788,7 @@ try {
                 Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
                 Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
                 $auditResults.OSSecurity.ExploitProtection.automatable = $true
+                $remediationActions += $item
             }
         }
     }
@@ -1726,7 +1807,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.ExploitProtection -AuditDat
 
 ########## ASR (Attack Surface Reduction) Audit ##########
 
-$auditResults.OSSecurity.ASR = [pscustomobject]@{
+$auditResults.OSSecurity.ASR = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1781,7 +1862,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.ASR -AuditData $asrAudit
 
 ########## Network Protection (Defender) Audit ##########
 
-$auditResults.OSSecurity.NetworkProtection = [pscustomobject]@{
+$auditResults.OSSecurity.NetworkProtection = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1841,7 +1922,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.NetworkProtection -AuditDat
 
 ########## Controlled Folder Access (CFA) Audit ##########
 
-$auditResults.OSSecurity.ControlledFolderAccess = [pscustomobject]@{
+$auditResults.OSSecurity.ControlledFolderAccess = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1911,7 +1992,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.ControlledFolderAccess -Aud
 
 ########## Smart App Control Audit ##########
 
-$auditResults.OSSecurity.SmartAppControl = [pscustomobject]@{
+$auditResults.OSSecurity.SmartAppControl = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -1970,7 +2051,7 @@ Merge-AuditResults -Section $auditResults.OSSecurity.SmartAppControl -AuditData 
 
 ########## PowerShell Language Mode Audit ##########
 
-$auditResults.OSSecurity.PowershellLanguageMode = [pscustomobject]@{
+$auditResults.OSSecurity.PowershellLanguageMode = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -2019,7 +2100,7 @@ $auditResults.DeviceSecurity = @{}
 
 ########## AutoRun / NoDriveTypeAutorun Audit ##########
 
-$auditResults.DeviceSecurity.AutoRun = [pscustomobject]@{
+$auditResults.DeviceSecurity.AutoRun = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -2058,6 +2139,7 @@ try {
             Write-Host "      - $($ar.Xml.Category) : $($ar.Xml.Description)" -ForegroundColor Yellow
             Write-Host "         Commande : $($ar.Xml.Command)" -ForegroundColor DarkGray
             $auditResults.DeviceSecurity.AutoRun.automatable = $true
+            $remediationActions += $ar.Xml
         }
         
         $auditResults.DeviceSecurity.AutoRun.status = if ($hasIssue) { "FAIL" } else { "PASS" }
@@ -2078,7 +2160,7 @@ Merge-AuditResults -Section $auditResults.DeviceSecurity.AutoRun -AuditData $ar
 
 ########## BitLocker Audit ##########
 
-$auditResults.DeviceSecurity.BitLocker = [pscustomobject]@{
+$auditResults.DeviceSecurity.BitLocker = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -2134,7 +2216,7 @@ Merge-AuditResults -Section $auditResults.DeviceSecurity.BitLocker -AuditData $b
 
 ########## Third‑Party Full Disk Encryption Indicators ##########
 
-$auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators = [pscustomobject]@{
+$auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -2215,7 +2297,7 @@ $auditResults.UpdateManagement = @{}
 
 ########## Last Reboot / Uptime Audit ##########
 
-$auditResults.UpdateManagement.LastReboot_Uptime = [pscustomobject]@{
+$auditResults.UpdateManagement.LastReboot_Uptime = @{
     status = ""
     automatable = $false
     recommendations = @()
@@ -2270,7 +2352,7 @@ $auditResults.Logging = @{}
 
 Write-Host "`n[+] Audit des journaux et de la collecte d'événements :" -ForegroundColor Gray
 try {
-    $auditResults.Logging.LogStatus = [pscustomobject]@{
+    $auditResults.Logging.LogStatus = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -2322,7 +2404,7 @@ try {
         $auditResults.Logging.LogStatus.status = "WARNING"
     }
 
-    $auditResults.Logging.EventForwardingStatus = [pscustomobject]@{
+    $auditResults.Logging.EventForwardingStatus = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -2355,7 +2437,7 @@ try {
         $auditResults.Logging.EventForwardingStatus.status = "WARNING"
     }
 
-    $auditResults.Logging.LogAgentStatus = [pscustomobject]@{
+    $auditResults.Logging.LogAgentStatus = @{
         status = ""
         automatable = $false
         recommendations = @()
@@ -2402,8 +2484,22 @@ catch {
 
 Merge-AuditResults -Section $auditResults.Logging.LogStatus -AuditData $logs
 
-Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scriptStartDate $scriptStartDate -Depth 10
+Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scriptStartDate $scriptStartDate -Depth 10 | Out-Null
+
+# --- Export remediation actions to XML ---
+if ($remediationActions -and $remediationActions.Count -gt 0) {
+    try {
+        $xmlPath = Join-Path -Path $ScriptPath -ChildPath "xml\remediations_$scriptStartDate.xml"
+        $remediationActions | Export-Clixml -Path $xmlPath -Force
+        Write-Host "[✓] Actions de remédiation exportées : $xmlPath" -ForegroundColor Green
+    }
+    catch {
+        Write-Warning "Erreur lors de l'export des actions XML : $($_.Exception.Message)"
+    }
+}
 
 # --- Fin ---
 Write-Host "`nAudit terminé." -ForegroundColor Cyan
+
+
 
