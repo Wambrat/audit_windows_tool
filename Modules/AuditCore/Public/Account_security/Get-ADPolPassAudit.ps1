@@ -1,35 +1,35 @@
 # -----------------------------------------------------------------------------
 # Fonction : Get-AuditPasswordPolicies
 # Description : Audite les politiques de mots de passe.
-#               1. Vérifie si joint au domaine (sinon stop).
+#               1. Verifie si joint au domaine (sinon stop).
 #               2. Si DC : Audit complet (Default + FGPP).
 #               3. Si Non-DC : Best effort (AD distant si possible, sinon local).
-#               Vérifie la conformité ANSSI.
+#               Verifie la conformite ANSSI.
 # -----------------------------------------------------------------------------
 
 function Get-AuditPasswordPolicies {
     [CmdletBinding()]
     param()
 
-    # --- DÉFINITION DES STANDARDS ANSSI ---
+    # --- DeFINITION DES STANDARDS ANSSI ---
     $AnssiSpecs = @{
         Standard   = @{ MinLen = 12; Complexity = $true; Rotation = $false; Lockout = $true }
         Privileged = @{ MinLen = 15; Complexity = $true; Rotation = $true;  Lockout = $true }
         Service    = @{ MinLen = 32; Complexity = $true; Rotation = $true;  Lockout = $true }
     }
 
-    # 1. Vérification Appartenance Domaine & Rôle
+    # 1. Verification Appartenance Domaine & Role
     try {
         $sysInfo = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
         $domainRole = $sysInfo.DomainRole # 4 or 5 = DC
         $isDC = ($domainRole -eq 4 -or $domainRole -eq 5)
     }
     catch {
-        Write-Warning "Impossible de déterminer le statut de la machine via WMI."
+        Write-Warning "Impossible de determiner le statut de la machine via WMI."
         return $null
     }
 
-    # Initialisation des résultats pour machine domaine
+    # Initialisation des resultats pour machine domaine
     $results = @{
         MachineName = $env:COMPUTERNAME
         IsDomainController = $isDC
@@ -40,7 +40,7 @@ function Get-AuditPasswordPolicies {
         ComplianceChecks = @()
     }
 
-    # Fonction locale pour vérifier la conformité
+    # Fonction locale pour verifier la conformite
     function Test-AnssiCompliance {
         param($PolicyObj, $Type, $Standard)
         
@@ -49,27 +49,27 @@ function Get-AuditPasswordPolicies {
 
         if (-not $PolicyObj) { return @{ Status = "N/A"; Reasons = @("Politique introuvable") } }
 
-        # Vérification Longueur
+        # Verification Longueur
         if ($PolicyObj.MinPasswordLength -lt $Standard.MinLen) {
             $status = "NON CONFORME"
             $reasons += "Longueur min $($PolicyObj.MinPasswordLength) < $($Standard.MinLen)"
         }
 
-        # Vérification Complexité
+        # Verification Complexite
         if ($Standard.Complexity -and (-not $PolicyObj.PasswordComplexityEnabled)) {
             $status = "NON CONFORME"
-            $reasons += "Complexité désactivée"
+            $reasons += "Complexite desactivee"
         }
 
-        # Vérification Rotation (MaxAge)
+        # Verification Rotation (MaxAge)
         if ($Standard.Rotation) {
             if ($PolicyObj.MaxPasswordAge -eq [TimeSpan]::Zero -or $PolicyObj.MaxPasswordAge -eq [TimeSpan]::MaxValue) {
                 $status = "NON CONFORME"
-                $reasons += "Pas de rotation forcée"
+                $reasons += "Pas de rotation forcee"
             }
         }
 
-        # Vérification Verrouillage
+        # Verification Verrouillage
         if ($Standard.Lockout) {
             if ($PolicyObj.LockoutThreshold -eq 0) {
                 $status = "NON CONFORME"
@@ -86,20 +86,20 @@ function Get-AuditPasswordPolicies {
     }
 
     # -------------------------------------------------------------------------
-    # COLLECTE DES DONNÉES (Pour machines domaine)
+    # COLLECTE DES DONNeES (Pour machines domaine)
     # -------------------------------------------------------------------------
     
     # --- CAS 1 : Non-DC (Best Effort) ---
     if (-not $isDC) {
         Write-Host "[INFO] Machine membre (non-DC). Tentative de lecture 'Best Effort'..." -ForegroundColor Cyan
         
-        # Essai lecture AD Distant (nécessite RSAT + Droits lecture)
+        # Essai lecture AD Distant (necessite RSAT + Droits lecture)
         if (Get-Module -ListAvailable -Name ActiveDirectory) {
             try {
                 Import-Module ActiveDirectory -ErrorAction Stop
-                Write-Host "[INFO] Module AD détecté. Tentative de lecture complète (Standard + FGPP)..." -ForegroundColor Green
+                Write-Host "[INFO] Module AD detecte. Tentative de lecture complete (Standard + FGPP)..." -ForegroundColor Green
                 
-                # Récupération de tout ce qu'on peut (comme demandé)
+                # Recuperation de tout ce qu'on peut (comme demande)
                 $results.StandardUserPolicy = Get-ADDefaultDomainPasswordPolicy -Current LocalComputer -ErrorAction Stop
                 
                 $allPSOs = Get-ADFineGrainedPasswordPolicy -Filter * -ErrorAction SilentlyContinue
@@ -110,14 +110,14 @@ function Get-AuditPasswordPolicies {
                 $results.ScanMethod = "Remote AD Query (RSAT)"
             }
             catch {
-                Write-Warning "Module AD présent mais accès distant impossible. Fallback local."
+                Write-Warning "Module AD present mais acces distant impossible. Fallback local."
             }
         }
     }
     
-    # --- CAS 2 : Contrôleur de Domaine (Audit Complet) ---
+    # --- CAS 2 : Controleur de Domaine (Audit Complet) ---
     else {
-        Write-Host "[INFO] Contrôleur de Domaine détecté. Audit complet Active Directory." -ForegroundColor Magenta
+        Write-Host "[INFO] Controleur de Domaine detecte. Audit complet Active Directory." -ForegroundColor Magenta
         $results.ScanMethod = "Direct AD Database"
         
         try {
@@ -131,12 +131,12 @@ function Get-AuditPasswordPolicies {
             }
         }
         catch {
-            Write-Error "Erreur critique accès AD : $_"
+            Write-Error "Erreur critique acces AD : $_"
         }
     }
 
     # -------------------------------------------------------------------------
-    # ANALYSE DE CONFORMITÉ (Uniquement si objet AD récupéré)
+    # ANALYSE DE CONFORMITe (Uniquement si objet AD recupere)
     # -------------------------------------------------------------------------
     
     # 1. Standard
@@ -144,9 +144,9 @@ function Get-AuditPasswordPolicies {
         $results.ComplianceChecks += Test-AnssiCompliance -PolicyObj $results.StandardUserPolicy -Type "Utilisateur Standard" -Standard $AnssiSpecs.Standard
     }
 
-    # 2. Privilégiés
+    # 2. Privilegies
     foreach ($p in $results.PrivilegedAccountPolicy) {
-        $results.ComplianceChecks += Test-AnssiCompliance -PolicyObj $p -Type "Privilégié" -Standard $AnssiSpecs.Privileged
+        $results.ComplianceChecks += Test-AnssiCompliance -PolicyObj $p -Type "Privilegie" -Standard $AnssiSpecs.Privileged
     }
 
     # 3. Services

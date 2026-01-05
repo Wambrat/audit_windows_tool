@@ -1,4 +1,4 @@
-﻿function Get-EventForwardingStatus {
+function Get-EventForwardingStatus {
     [CmdletBinding()]
     param()
     # Check Windows Event Forwarding (WEF) and Sysmon
@@ -14,8 +14,8 @@
                 Name              = 'Windows Event Forwarding'
                 IsEnabled         = $false
                 SubscriptionsCount= 0
-                Comment           = 'No events found in the Microsoft-Windows-Forwarding/Operational log.'
-                Recommendation    = 'Configure Windows Event Forwarding (WEF) subscriptions to send critical security logs to a central collector/SIEM.'
+                Comment           = "Pas d'evenements trouves dans le journal Microsoft-Windows-Forwarding/Operational."
+                Recommendation    = "Configurez les abonnements Windows Event Forwarding (WEF) pour envoyer les journaux de securite critiques a un collecteur/SIEM central."
             }
             [void]$Print.Add($MyCustomObject)
         }
@@ -25,8 +25,8 @@
                 Name               = 'Windows Event Forwarding'
                 IsEnabled          = $true
                 SubscriptionsCount = ($sub | Measure-Object).Count
-                Comment            = 'Windows Event Forwarding log is present and contains events.'
-                Recommendation     = 'Review WEF subscriptions to ensure critical security logs (security, Sysmon, PowerShell, etc.) are forwarded to a central collector.'
+                Comment            = "Windows Event Forwarding est presente et contient des evenements."
+                Recommendation     = "Revoir les abonnements WEF pour vous assurer que les journaux de securite critiques (securite, Sysmon, PowerShell, etc.) sont envoyes a un collecteur central."
             }
             [void]$Print.Add($MyCustomObject)
         }
@@ -37,11 +37,11 @@
             $MyCustomObject = [PSCustomObject]@{
                 Name           = 'Sysmon'
                 IsEnabled      = ($Sysmon.Status -eq 'Running')
-                Comment        = "Sysmon service is installed and current status is '$($Sysmon.Status)'."
+                Comment        = "Le service Sysmon est installe et le statut actuel est '$($Sysmon.Status)'."
                 Recommendation = if ($Sysmon.Status -eq 'Running') {
-                    'Ensure Sysmon uses a hardened configuration file and that events are forwarded to a SIEM or central log collector.'
+                    "Assurez-vous que Sysmon utilise un fichier de configuration durci et que les evenements sont transmis a un SIEM ou a un collecteur de journaux central."
                 } else {
-                    'Consider starting and configuring Sysmon on this host to improve process and network telemetry.'
+                    "Envisagez de demarrer et de configurer Sysmon sur cet hote pour ameliorer la telemetrie des processus et du reseau."
                 }
             }
         }
@@ -49,8 +49,8 @@
             $MyCustomObject = [PSCustomObject]@{
                 Name           = 'Sysmon'
                 IsEnabled      = $false
-                Comment        = 'Sysmon service is not installed on this host.'
-                Recommendation = 'Consider deploying Sysmon with a hardened configuration on critical servers and workstations for advanced security logging.'
+                Comment        = "Le service Sysmon n'est pas installe sur cet hote."
+                Recommendation = "Considerez le deploiement de Sysmon avec une configuration durcie sur les serveurs et postes de travail critiques pour une journalisation de securite avancee."
             }
         }
         [void]$Print.Add($MyCustomObject)
@@ -89,13 +89,14 @@ function Get-LogAgentStatus {
                     IsLogAgent       = $isLogAgent
                     Comment          = if ($isLogAgent) {
                                            'Potential SIEM/logging agent detected on this host.'
+                                           "Potentiel SIEM/logging agent detecte sur cet hote."
                                        } else {
-                                           'Application matched the regex pattern but is not a logging agent (likely noise).'
+                                            "L'application correspond au modele regex mais n'est pas un agent de journalisation (probablement du bruit)."
                                        }
                     Recommendation   = if ($isLogAgent) {
-                                           'Verify that this log agent is correctly configured to send security-relevant logs to the central SIEM.'
+                                           "Verifiez que cet agent de journalisation est correctement configure pour envoyer les journaux pertinents pour la securite au SIEM central."
                                        } else {
-                                           'Review detection patterns if too many non-logging applications are matched.'
+                                           "Revoir les modeles de detection si trop d'applications non journalisantes sont correspondantes."
                                        }
                 }
                 [void]$Print.Add($obj)
@@ -106,8 +107,8 @@ function Get-LogAgentStatus {
                 DisplayName      = $null
                 DisplayVersion   = $null
                 IsLogAgent       = $false
-                Comment          = 'No known SIEM or log collector agents detected based on the configured patterns.'
-                Recommendation   = 'Ensure at least one log forwarding or SIEM agent is installed and configured on critical systems.'
+                Comment          = "Aucun agent SIEM ou collecteur de journaux connu detecte en fonction des modeles configures."
+                Recommendation   = "Assurez-vous qu'au moins un agent de transfert de journaux ou SIEM est installe et configure sur les systemes critiques."
             }
             [void]$Print.Add($obj)
         }
@@ -115,3 +116,4 @@ function Get-LogAgentStatus {
         return $Print
     }
 }
+

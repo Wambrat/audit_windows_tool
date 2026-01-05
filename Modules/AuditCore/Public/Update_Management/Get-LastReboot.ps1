@@ -1,4 +1,4 @@
-﻿function Get-LastReboot {
+function Get-LastReboot {
     [CmdletBinding()]
     param()
 
@@ -23,16 +23,16 @@
 
         if ($uptime.Days -gt $thresholdDays) {
             $recommendation = if ($isWorkstation) {
-                'This workstation has not been rebooted for a long time (>30 days). Plan a reboot to ensure patches and configuration changes are fully applied.'
+                "Cette station de travail n'a pas ete redemarree depuis longtemps (>30 jours). Planifiez un redemarrage pour assurer que les correctifs et les changements de configuration sont pleinement appliques."
             } else {
-                'This server has not been rebooted for a long time (>90 days). Review patch status and plan a maintenance window to reboot and apply pending updates.'
+                "Ce serveur n'a pas ete redemarre depuis longtemps (>90 jours). Verifiez l'etat des correctifs et planifiez une fenetre de maintenance pour redemarrer et appliquer les mises a jour en attente."
             }
         }
         else {
             $recommendation = if ($isWorkstation) {
-                'Workstation uptime is within the expected range; ensure regular reboots after patch cycles.'
+                "Le temps d'activite de la station de travail est dans la plage attendue ; assurez-vous de redemarrages reguliers apres les cycles de correctifs."
             } else {
-                'Server uptime is within the expected range; ensure reboots are performed after major patch cycles.'
+                "Le temps d'activite du serveur est dans la plage attendue ; assurez-vous que les redemarrages sont effectues apres les cycles de correctifs majeurs."
             }
         }
 
@@ -46,3 +46,4 @@
         }
     }
 }
+

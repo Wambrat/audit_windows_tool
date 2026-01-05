@@ -1,4 +1,4 @@
-﻿function Get-IPv6Status {
+function Get-IPv6Status {
     [CmdletBinding()]
     param()
 
@@ -13,9 +13,9 @@
     foreach ($bind in $bindings) {
 
         $recommendation = if ($bind.Enabled) {
-            "IPv6 est activé sur cet adaptateur ; vérifiez qu'IPv6 est correctement routé, filtré et surveillé, ou désactivez-le s'il n'est pas utilisé dans votre environnement."
+            "IPv6 est active sur cet adaptateur ; verifiez qu'IPv6 est correctement route, filtre et surveille, ou desactivez-le s'il n'est pas utilise dans votre environnement."
         } else {
-            "IPv6 est désactivé sur cet adaptateur ; cela est généralement sans danger si votre environnement ne dépend pas d'IPv6."
+            "IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6."
         }
 
         $ipv6state = [pscustomobject]@{
@@ -29,3 +29,4 @@
 
     return $Print
 }
+

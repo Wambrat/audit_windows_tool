@@ -1,4 +1,4 @@
-﻿function Get-UACAudit {
+function Get-UACAudit {
     [CmdletBinding()]
     param()
 

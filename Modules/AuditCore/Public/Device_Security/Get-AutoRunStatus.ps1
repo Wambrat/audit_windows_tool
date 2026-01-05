@@ -1,4 +1,4 @@
-﻿function Get-AutorunStatus {
+function Get-AutorunStatus {
     [CmdletBinding()]
     param()
 
@@ -29,18 +29,18 @@
             switch ($value) {
                 0xFF {
                     $AutoRun.AutoRunEnabled = $false
-                    $AutoRun.Value          = 'Disabled on all drives (0xFF)'
-                    $AutoRun.Comment        = 'Autorun is disabled for all drive types.'
-                    $AutoRun.Recommendation = 'Keep Autorun disabled on all drive types to reduce malware propagation risks via removable media.'
+                    $AutoRun.Value          = 'Desactiver sur tous les types de lecteurs (0xFF)'
+                    $AutoRun.Comment        = 'AutoRun est desactive pour tous les types de lecteurs.'
+                    $AutoRun.Recommendation = 'Gardez AutoRun desactive sur tous les types de lecteurs pour reduire les risques de propagation de malwares via les medias amovibles.'
                 }
                 default {
                     $AutoRun.AutoRunEnabled = $true
-                    $AutoRun.Value          = ("Current NoDriveTypeAutorun raw value: 0x{0:X2}" -f $value)
-                    $AutoRun.Comment        = 'Autorun is not fully disabled for all drive types.'
-                    $AutoRun.Recommendation = 'Set NoDriveTypeAutorun to 0xFF via Group Policy or registry to disable Autorun for all drive types.'
+                    $AutoRun.Value          = ("La valeur brute actuelle de NoDriveTypeAutorun : 0x{0:X2}" -f $value)
+                    $AutoRun.Comment        = "AutoRun n'est pas entierement desactive pour tous les types de lecteurs."
+                    $AutoRun.Recommendation = 'Definissez NoDriveTypeAutorun a 0xFF via Group Policy ou le registre pour desactiver AutoRun pour tous les types de lecteurs.'
                     $Xml = [pscustomobject]@{
                         Category    = 'AutoRun'
-                        Description = 'Disable AutoRun in registry for LocalMachine and CurrentUser'
+                        Description = "Desactivation d'AutoRun dans le registre pour LocalMachine et CurrentUser"
                         Command     = 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF | Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF'
                     }
                 }
@@ -51,14 +51,14 @@
             $AutoRun = [pscustomobject]@{
                 Scope          = $scope
                 AutoRunEnabled = $true
-                Value          = 'NoDriveTypeAutorun value not found'
-                Comment        = 'No explicit NoDriveTypeAutorun value configured; default Autorun behavior may be partially enabled.'
-                Recommendation = 'Explicitly configure NoDriveTypeAutorun (0xFF) to ensure Autorun is disabled for all drive types.'
+                Value          = 'La valeur NoDriveTypeAutorun est introuvable'
+                Comment        = "Pas de valeur NoDriveTypeAutorun explicite configuree; le comportement par defaut d'AutoRun peut etre partiellement active."
+                Recommendation = "Configurez explicitement NoDriveTypeAutorun (0xFF) pour vous assurer qu'AutoRun est desactive pour tous les types de lecteurs.'"
             }
 
             $Xml = [pscustomobject]@{
                         Category    = 'AutoRun'
-                        Description = 'Disable AutoRun in registry for LocalMachine and CurrentUser'
+                        Description = "Desactivez AutoRun dans le registre pour LocalMachine et CurrentUser"
                         Command     = 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF | Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF'
             }
         }
@@ -73,3 +73,4 @@
     
     return $Output
 }
+

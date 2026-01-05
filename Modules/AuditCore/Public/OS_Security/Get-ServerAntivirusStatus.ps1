@@ -1,4 +1,4 @@
-﻿function Get-ServerAntivirusStatus {
+function Get-ServerAntivirusStatus {
     [CmdletBinding()]
     param ()
 
@@ -22,16 +22,16 @@
         $overallProtected = $serviceRunning -and $rtMonitoringOn
 
         $recommendation = if (-not $serviceRunning) {
-            'Microsoft Defender service is not running; start the service or verify that another supported AV/EDR solution is active.'
+            "Le service Microsoft Defender n'est pas en cours d'execution ; demarrez le service ou verifiez qu'une autre solution AV/EDR prise en charge est active."
         }
         elseif (-not $rtMonitoringOn) {
-            'Microsoft Defender real-time monitoring is disabled (DisableRealtimeMonitoring = 1); enable it unless another real-time AV/EDR is providing equivalent protection.'
+            "La surveillance en temps reel de Microsoft Defender est desactivee (DisableRealtimeMonitoring = 1) ; activez-la a moins qu'une autre solution AV/EDR en temps reel ne fournisse une protection equivalente."
         }
         else {
             if ($isDomainController) {
-                'On domain controllers, validate Defender configuration, exclusions and hardening according to your security baseline and vendor guidance.'
+                "Sur les controlleurs de domaine, validez la configuration de Defender, les exclusions et le durcissement selon votre base de securite et les recommandations du fournisseur."
             } else {
-                'Defender real-time monitoring is enabled; ensure cloud-based protection and exclusions are configured according to your baseline.'
+                "La surveillance en temps reel de Defender est activee ; assurez-vous que la protection basee sur le cloud et les exclusions sont configurees selon votre base de securite."
             }
         }
 
@@ -61,9 +61,9 @@
 
         $description = 'Third-party antivirus / EDR related service detected.'
         $recommendation = if ($isDomainController) {
-            'This machine is a domain controller; many hardening guides recommend avoiding or strictly limiting third-party AV/EDR here. Validate vendor guidance and your internal baseline.'
+            "Cette machine est un controlleur de domaine ; de nombreux guides de durcissement recommandent d'eviter ou de limiter strictement les solutions AV/EDR tierces ici. Validez les conseils du fournisseur et votre base interne."
         } else {
-            'Verify this AV/EDR agent is correctly configured and that only one primary real-time protection engine is active to avoid conflicts.'
+            "Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits."
         }
 
         $antivirusStatus += [PSCustomObject]@{
@@ -88,10 +88,11 @@
             RealtimeMonitoring = $false
             OverallProtected   = $false
             IsDomainController = $isDomainController
-            Description        = 'No antivirus or EDR-related services detected on this host.'
-            Recommendation     = 'Deploy and enable at least one supported antivirus/EDR solution on this server according to your security baseline.'
+            Description        = "Pas d'antivirus ou de services EDR detectes sur cet hote."
+            Recommendation     = "Deployez et activez au moins une solution antivirus/EDR prise en charge sur ce serveur selon votre base de securite."
         }
     }
 
     return $antivirusStatus
 }
+

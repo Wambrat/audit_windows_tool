@@ -1,4 +1,4 @@
-﻿function Get-ASRStatus {
+function Get-ASRStatus {
     [CmdletBinding()]
     param()
 
@@ -15,12 +15,12 @@
             RuleId        = $null
             Action        = $null
             Enabled       = $false
-            Comment       = 'No ASR rules are currently configured (ASR effectively disabled).'
-            Recommendation = 'Enable Microsoft Defender Attack Surface Reduction rules like : 
-                - Blocking malicious macros in Office.
-                - Preventing the execution of suspicious scripts (PowerShell, JavaScript, etc.).
-                - Blocking unauthorized processes from sensitive locations (e.g., %AppData% or %Temp%).
-                - Protection against malicious email attachments. '
+            Comment       = "Aucune regle ASR n'est actuellement configuree (ASR desactivee)."
+            Recommendation = "Activez les regles de reduction de la surface d'attaque de Microsoft Defender, telles que : 
+                - Bloquer les macros malveillantes dans Office.
+                - Empecher l'execution de scripts suspects (PowerShell, JavaScript, etc.).
+                - Blocage des processus non autorises provenant d'emplacements sensibles (par exemple, %AppData% ou %Temp%).
+                - Protection contre les pieces jointes malveillantes dans les emails."
         }
     }
 
@@ -28,27 +28,27 @@
         $rawAction = $actions[$i]
 
         $mode = switch ($rawAction) {
-            0 { 'Disabled' }
-            1 { 'Block' }
+            0 { 'Desactive' }
+            1 { 'Bloque' }
             2 { 'Audit' }
-            6 { 'Warn' }
-            default { "Unknown ($rawAction)" }
+            6 { 'Avertir' }
+            default { "Inconnu ($rawAction)" }
         }
 
         # Simple recommendation based on mode
         $recommendation = switch ($rawAction) {
-            0 { 'Consider at least enabling this ASR rule in Audit mode, then switching to Block after validation.' }
-            2 { 'Review audit logs for this ASR rule and plan to move it to Block where stable.' }
-            6 { 'Monitor user experience for this ASR rule and consider moving to Block on hardened endpoints.' }
-            1 { 'Ensure this ASR rule in Block mode has been validated in your environment and is documented.' }
-            default { 'Review this ASR rule configuration against Microsoft and internal hardening guidelines.' }
+            0 { "Envisagez au moins d'activer cette regle ASR en mode Audit, puis de passer en mode 'Bloque' apres validation." }
+            2 { "Examinez les journaux d'audit de cette regle ASR et prevoyez de la deplacer vers le mede 'Bloque' lorsqu'elle est stable." }
+            6 { "Surveillez l'experience utilisateur pour cette regle ASR et envisagez de passer en mode 'Bloque' sur les machines renforces." }
+            1 { "Assurez-vous que cette regle ASR en mode Bloc a ete validee dans votre environnement et qu'elle est documentee." }
+            default { 'Veuillez verifier cette configuration de regle ASR par rapport aux directives de renforcement de la securite de Microsoft et aux directives internes.' }
         }
 
         $ASR = [pscustomobject]@{
             RuleId         = $ids[$i]
             Action         = $mode
             Enabled        = ($rawAction -eq 1)
-            Comment        = "ASR rule is currently set to '$mode'."
+            Comment        = "La regle ASR est actuellement configuree pour '$mode'."
             Recommendation = $recommendation
         }
 
@@ -57,3 +57,4 @@
 
     return $results
 }
+

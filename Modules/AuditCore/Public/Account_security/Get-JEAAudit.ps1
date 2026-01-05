@@ -1,4 +1,4 @@
-﻿function Get-JEAAudit {
+function Get-JEAAudit {
     [CmdletBinding()]
     param()
 
@@ -16,8 +16,8 @@
 
     if (-not $winrm) {
         $result.WinRmState     = 'NotInstalled'
-        $result.Comment        = 'WinRM service is not installed or not accessible on this host.'
-        $result.Recommendation = 'If JEA / PowerShell remoting is required, install and configure WinRM securely (HTTPS, restricted endpoints, JEA).'
+        $result.Comment        = 'Le service WinRM n''est pas installe ou accessible sur cet hote.'
+        $result.Recommendation = 'Si JEA / PowerShell remoting est requis, installez et configurez WinRM de maniere securisee (HTTPS, points de terminaison restreints, JEA).'
         return $result
     }
 
@@ -25,8 +25,8 @@
 
     if ($winrm.Status -ne 'Running') {
         $result.WinRmState     = 'Stopped'
-        $result.Comment        = 'WinRM service is present but not running; JEA endpoints will not be usable.'
-        $result.Recommendation = 'Start and secure WinRM only on systems where remote administration and JEA are required.'
+        $result.Comment        = 'Le service WinRM est present mais non actif; les points de terminaison JEA ne seront pas utilisables.'
+        $result.Recommendation = 'Demarrez et securisez WinRM uniquement sur les systemes ou l''administration a distance et JEA sont requis.'
         return $result
     }
 
@@ -36,13 +36,13 @@
     if ($sessionConfigs) {
         $result.HasJEASessionConfig   = $true
         $result.SessionConfigurations = $sessionConfigs
-        $result.Comment               = 'One or more PowerShell session configurations are registered; some may be JEA endpoints.'
-        $result.Recommendation        = 'Review JEA session configurations to ensure they expose only the minimum required cmdlets and are restricted to appropriate groups.'
+        $result.Comment               = 'Un ou plusieurs configurations de session PowerShell sont enregistrees; certaines peuvent etre des points de terminaison JEA.'
+        $result.Recommendation        = 'Examinez les configurations de session JEA pour vous assurer qu''elles exposent uniquement les cmdlets requises et sont restreintes aux groupes appropriés.'
     }
     else {
         $result.HasJEASessionConfig   = $false
-        $result.Comment               = 'No custom PowerShell session configuration found; JEA does not appear to be configured.'
-        $result.Recommendation        = 'Consider deploying JEA endpoints for privileged tasks instead of granting full admin remoting access.'
+        $result.Comment               = 'Aucune configuration de session PowerShell personnalisée trouvée; JEA ne semble pas être configuré.'
+        $result.Recommendation        = 'Considerez de deployer des points de terminaison JEA pour les taches privilegiees au lieu d''accorder un acces complet a l''administration a distance.'
     }
 
     $psModulePath = $env:PSModulePath -split ';'
@@ -62,3 +62,4 @@
 
     return $result
 }
+

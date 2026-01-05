@@ -1,4 +1,4 @@
-﻿function Get-AppLockerState {
+function Get-AppLockerState {
     [CmdletBinding()]
     param()
 
@@ -9,8 +9,8 @@
         return [pscustomobject]@{
             AppLockerPresent = $false
             AnyRuleEnabled   = $false
-            Comment          = 'No effective AppLocker policy detected on this system.'
-            Recommendation   = 'Consider deploying an AppLocker policy (at least in Audit mode) to control application execution.'
+            Comment          = 'Aucune strategie AppLocker efficace detectee sur ce systeme.'
+            Recommendation   = "Envisagez de deployer une strategie AppLocker (au moins en mode Audit) pour controler l'execution des applications."
         }
     }
 
@@ -29,14 +29,15 @@
         AppLockerPresent = $true
         AnyRuleEnabled   = $anyEnabled
         Comment          = if ($anyEnabled) {
-                               'AppLocker is present and at least one rule collection is in Enforced mode.'
+                               'AppLocker est present et au moins une collection de regles est en mode applique.'
                            } else {
-                               'AppLocker is present but no rule collection is in Enforced mode.'
+                               "AppLocker est present mais aucune collection de regles n'est en mode applique."
                            }
         Recommendation   = if ($anyEnabled) {
-                               'Review AppLocker rules regularly to ensure they properly cover sensitive applications and are kept up to date.'
+                               "Examinez regulierement les regles AppLocker pour vous assurer qu'elles couvrent correctement les applications sensibles et qu'elles sont tenues a jour."
                            } else {
-                               'Enable AppLocker in Audit mode first, then gradually switch required rule collections to Enforced mode to block unauthorized applications.'
+                               "Activez d'abord AppLocker en mode Audit, puis basculez progressivement les ensembles de regles requis en mode Applique pour bloquer les applications non autorisees."
                            }
     }
 }
+

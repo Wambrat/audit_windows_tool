@@ -9,15 +9,15 @@ function Get-NTFSAudit {
     )
 
     process {
-        # 1. Récupération de l'ACL
+        # 1. Recuperation de l'ACL
         $ACL = Get-Acl -Path $Path -ErrorAction SilentlyContinue
 
         if (-not $ACL) {
-            Write-Warning "Impossible d'accéder à : $Path"
+            Write-Warning "Impossible d'acceder a : $Path"
             return $null
         }
 
-        # 2. Récupérer et cumuler les droits (Bitwise OR)
+        # 2. Recuperer et cumuler les droits (Bitwise OR)
         $Rules = $ACL.Access | Where-Object { 
             ($_.IdentityReference.Value -match $User) -and  
             ($_.AccessControlType -eq 'Allow') 
@@ -30,7 +30,7 @@ function Get-NTFSAudit {
             }
         }
 
-        # 3. Calcul des booléens (Vrai/Faux)
+        # 3. Calcul des booleens (Vrai/Faux)
         $FullControlMask = [int][System.Security.AccessControl.FileSystemRights]::FullControl
         $WriteMask       = [int][System.Security.AccessControl.FileSystemRights]::Write
         $ReadMask        = [int][System.Security.AccessControl.FileSystemRights]::ReadAndExecute
@@ -39,7 +39,7 @@ function Get-NTFSAudit {
         $CanWrite      = ($CumulativeRights -band $WriteMask) -eq $WriteMask
         $CanRead       = ($CumulativeRights -band $ReadMask)  -eq $ReadMask
 
-        # 4. Détermination du label "Status" pour lecture humaine rapide
+        # 4. Determination du label "Status" pour lecture humaine rapide
         $Status = "None"
         if ($IsFullControl) { $Status = "FullControl" }
         elseif ($CanWrite -and $CanRead) { $Status = "Read/Write" }
@@ -51,11 +51,11 @@ function Get-NTFSAudit {
         [PSCustomObject]@{
             Path          = $Path
             User          = $User
-            Status        = $Status         # Résumé textuel
-            IsFullControl = $IsFullControl  # Booléen
-            CanWrite      = $CanWrite       # Booléen
-            CanRead       = $CanRead        # Booléen
-            RawRights     = $CumulativeRights # Valeur numérique (debug)
+            Status        = $Status         # Resume textuel
+            IsFullControl = $IsFullControl  # Booleen
+            CanWrite      = $CanWrite       # Booleen
+            CanRead       = $CanRead        # Booleen
+            RawRights     = $CumulativeRights # Valeur numerique (debug)
         }
     }
 }

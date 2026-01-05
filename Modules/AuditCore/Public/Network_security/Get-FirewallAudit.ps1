@@ -1,4 +1,4 @@
-﻿function Get-FirewallAudit {
+function Get-FirewallAudit {
     [CmdletBinding()]
     param()
 
@@ -21,28 +21,28 @@
     if ($rdpRules) {
         $hasAnyAny = $rdpRules | Where-Object { $_.RemoteAddress -eq 'Any' }
         if ($hasAnyAny) {
-            $rdpReco += 'RDP firewall rules allow connections from Any; restrict RemoteAddress to dedicated admin networks or specific IP ranges.'
+            $rdpReco += "Les regles de pare-feu RDP autorisent les connexions depuis Any ; restreignez RemoteAddress aux reseaux d'administration dedies ou aux plages IP specifiques."
         }
         else {
-            $rdpReco += 'RDP firewall rules are restricted by RemoteAddress; verify that only dedicated admin networks are allowed.'
+            $rdpReco += "Les regles de pare-feu RDP sont restreintes par RemoteAddress ; verifiez que seuls les reseaux d'administration dedies sont autorises."
         }
     }
     else {
-        $rdpReco += 'No enabled RDP firewall rules detected; verify if RDP is required and how access is controlled (VPN, jump servers, etc.).'
+        $rdpReco += "Aucune regle de pare-feu RDP active detectee ; verifiez si RDP est requis et comment l acces est controle (VPN, serveurs de saut, etc.)."
     }
 
     # Global firewall recommendation
     $fwReco = @()
 
     if (-not $svc) {
-        $fwReco += 'The Windows Firewall (mpssvc) service is not found; ensure a host-based firewall solution is installed and active.'
+        $fwReco += "Le service Windows Firewall (mpssvc) est introuvable ; assurez-vous qu'une solution de pare-feu au niveau de l'hote est installee et active."
     }
     elseif (-not $svcRunning) {
-        $fwReco += 'The Windows Firewall service exists but is not running; start it or confirm an alternative firewall product is enforcing filtering.'
+        $fwReco += "Le service Windows Firewall existe mais n'est pas en cours d'execution ; demarrez-le ou confirmez qu'un produit de pare-feu alternatif applique le filtrage."
     }
 
     if ($fwReco.Count -eq 0) {
-        $fwReco += 'Firewall service appear to be enabled; regularly review inbound rules for unnecessary exposure (RDP, SMB, WinRM, etc.).'
+        $fwReco += 'Le service de pare-feu Windows semble etre actif; examinez regulierement les regles d entrance pour eviter l exposition inutile (RDP, SMB, WinRM, etc.).'
     }
 
     return [pscustomobject]@{
@@ -54,3 +54,4 @@
         GlobalRecommendations = $fwReco
     }
 }
+

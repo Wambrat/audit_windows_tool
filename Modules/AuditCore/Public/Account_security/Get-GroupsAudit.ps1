@@ -8,18 +8,18 @@ function Get-GroupsAudit {
         
 
         if (-not $groups) {
-            Write-Warning "Aucun groupe local n'a pu être récupéré."
+            Write-Warning "Aucun groupe local n'a pu etre recupere."
             return $null
         }
 
         if ($groups.Name -contains 'Administrateurs') {
-            Write-Host "Le groupe 'Administrateurs' est présent sur ce système." -ForegroundColor Green
+            Write-Host "Le groupe 'Administrateurs' est present sur ce systeme." -ForegroundColor Green
             $admingroup = 'Administrateurs'
         } elseif ($groups.Name -contains 'Administrators') {
-            Write-Host "Le groupe 'Administrators' est présent sur ce système." -ForegroundColor Green
+            Write-Host "Le groupe 'Administrators' est present sur ce systeme." -ForegroundColor Green
             $admingroup = 'Administrators'
         } else {
-            Write-Host "Le groupe 'Administrateurs' n'a pas été trouvé sur ce système." -ForegroundColor Red
+            Write-Host "Le groupe 'Administrateurs' n'a pas ete trouve sur ce systeme." -ForegroundColor Red
         }
 
         $adminmembers = Get-LocalGroupMember -Group $admingroup -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
