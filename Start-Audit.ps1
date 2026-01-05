@@ -750,7 +750,7 @@ try {
     $winrmAudit = Get-WinRMAudit
 
     if (-not $winrmAudit.WinRmEnabled) {
-        Write-Host "   [INACTIF] WinRM n'est pas installe ou le service est arrete." -ForegroundColor Purple
+        Write-Host "   [INACTIF] WinRM n'est pas installe ou le service est arrete." -ForegroundColor Magenta
         Write-Host "   Recommandation :" -ForegroundColor Yellow
         foreach ($r in $winrmAudit.Recommendations) { 
             Write-Host "      - $r" -ForegroundColor Yellow
@@ -2292,7 +2292,7 @@ try {
                 $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.recommendations += $tpe.Recommendation
             }
         } else {
-            Write-Host "   [OK] Aucun chiffrement tiers detecte." -ForegroundColor Purple
+            Write-Host "   [OK] Aucun chiffrement tiers detecte." -ForegroundColor Magenta
             $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.status = "PASS"
             $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.comments += "No third-party encryption detected. "
         }

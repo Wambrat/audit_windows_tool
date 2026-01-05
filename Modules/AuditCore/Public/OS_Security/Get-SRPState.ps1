@@ -36,7 +36,7 @@ function Get-SRPState {
         $reco = if ($hasRules) {
             "Prevoyez de migrer des SRP legacy vers AppLocker ou WDAC pour un controle des applications plus solide et plus flexible."
         } else {
-            "Si SRP n'est pas utilise activement, envisagez de nettoyer les cles legacy et de mettre en œuvre AppLocker ou WDAC a la place."
+            "Si SRP n'est pas utilise activement, envisagez de nettoyer les cles legacy et de mettre en oeuvre AppLocker ou WDAC a la place."
         }
 
         $SRP = [pscustomobject]@{
