@@ -1,4 +1,4 @@
-﻿function Get-ThirdPartyEncryptionIndicators {
+function Get-ThirdPartyEncryptionIndicators {
     [CmdletBinding()]
     param()
 
@@ -18,18 +18,18 @@
         $reco = @()
 
         if ($isUnknown) {
-            $desc += 'Volume without a known file system or with an unknown drive type.'
-            $reco += 'Verify whether this volume is protected by a third-party full disk encryption product (e.g. Sophos, McAfee, etc.).'
+            $desc += "Les volumes sans systeme de fichiers connu ou avec un type de lecteur inconnu."
+            $reco += "Verifier si ce volume est protege par un produit de chiffrement de disque complet tiers (par exemple Sophos, McAfee, etc.).'"
         }
 
         if ($isVM) {
-            $desc += 'Virtual machine detected based on system model.'
-            $reco += 'Check if encryption is enforced at the hypervisor level (encrypted VHD/VMDK, vTPM, host-based encryption policy).'
+            $desc += "Machine virtuelle detectee en fonction du modele systeme."
+            $reco += "Verifier si le chiffrement est applique au niveau de l'hyperviseur (VHD/VMDK chiffres, vTPM, politique de chiffrement basee sur l'hote)."
         }
 
         if (-not $desc) {
-            $desc += 'No specific third-party encryption indicators detected on this volume.'
-            $reco += 'Review your global disk encryption policy (BitLocker, third-party FDE, or hypervisor-level encryption) for this host.'
+            $desc += "Aucun indicateur de chiffrement tiers specifique detecte sur ce volume."
+            $reco += "Revoir votre politique globale de chiffrement de disque (BitLocker, FDE tiers ou chiffrement au niveau de l'hyperviseur) pour cet hote."
         }
 
         $Indicators = [pscustomobject]@{
@@ -49,3 +49,4 @@
 
     return $Print
 }
+

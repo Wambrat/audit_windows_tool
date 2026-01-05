@@ -1,4 +1,4 @@
-﻿function Get-OptionalFeaturesAudit {
+function Get-OptionalFeaturesAudit {
     [CmdletBinding()]
     param()
 
@@ -11,21 +11,21 @@
     foreach ($f in $features) {
 
         $risk = switch -Wildcard ($f.FeatureName) {
-            'IIS*'         { 'Potentially exposed web service (IIS); increases attack surface if Internet-facing.' }
-            'TelnetClient' { 'Obsolete and insecure protocol (Telnet sends credentials in clear text).' }
-            'SMB1Protocol' { 'Legacy and vulnerable file sharing protocol (SMBv1); should be removed.' }
-            'TFTPClient'   { 'Insecure file transfer protocol (TFTP) without authentication or encryption.' }
-            'FTP*'         { 'Unencrypted file transfer; should be restricted or replaced with SFTP/FTPS.' }
-            'Hyper-V*'     { 'Virtualization role; keep only on hosts dedicated to virtualization or labs.' }
-            'WCF-*HTTP*'   { 'HTTP-exposed WCF components; verify they are required and properly hardened.' }
+            'IIS*'         { "Potentiellement un service web expose (IIS) ; augmente la surface d'attaque s'il est expose a Internet." }
+            'TelnetClient' { "Protocol obsolete et non securise (Telnet envoie les informations d'identification en texte clair)." }
+            'SMB1Protocol' { "Protocole de partage de fichiers hereditee et vulnerable (SMBv1) ; doit etre supprime." }
+            'TFTPClient'   { "Protocole de transfert de fichiers non securise (TFTP) sans authentification ni chiffrement." }
+            'FTP*'         { "Transfert de fichiers non chiffre; devrait être restreint ou remplace par SFTP/FTPS." }
+            'Hyper-V*'     { "Role de virtualisation; ne gardez que sur des hotes dedies a la virtualisation ou dans des laboratoires." }
+            'WCF-*HTTP*'   { "Composants WCF exposes via HTTP ; verifiez qu'ils sont necessaires et correctement durcis."}
             Default        { '' }
         }
 
         $reco = if ($risk) {
-            'Remove or disable this feature if it is not strictly required, and ensure it is not exposed to untrusted networks.'
+            "Supprimez ou desactivez cette fonctionnalite si elle n'est pas strictement requise, et assurez-vous qu'elle n'est pas exposee a des reseaux non fiables."
         }
         else {
-            'Review whether this optional feature is actually used; disable it if not needed to reduce attack surface.'
+            "Revoir si cette fonctionnalite optionnelle est reellement utilisee ; la desactiver si elle n'est pas necessaire pour reduire la surface d'attaque."
         }
 
         $OFA = [pscustomobject]@{
@@ -40,3 +40,4 @@
 
     return $Print
 }
+

@@ -1,4 +1,4 @@
-﻿function Get-DeviceGuardStatus {
+function Get-DeviceGuardStatus {
     [CmdletBinding()]
     param()
 
@@ -15,8 +15,8 @@
             SecurityServicesRunning                       = $null
             WDAC_Active                                   = $false
             VBS_Active                                    = $false
-            Comment                                       = 'Device Guard / VBS status could not be retrieved (Win32_DeviceGuard not available).'
-            Recommendation                                = 'Verify OS version and that Device Guard / VBS is supported and properly configured on this system.'
+            Comment                                       = "L'etat Device Guard/VBS n'a pas pu être recupere (Win32_DeviceGuard non disponible)."
+            Recommendation                                = "Verifiez la version du système d'exploitation et que Device Guard /VBS est pris en charge et correctement configure sur ce système."
         }
     }
 
@@ -26,28 +26,28 @@
     $wdacActive = ($dg.UserModeCodeIntegrityPolicyEnforcementStatus -eq 2)
 
     $cicActive = switch ($dg.CodeIntegrityPolicyEnforcementStatus) {
-        0 { 'Off' }
-        1 { 'Audit mode' }
-        2 { 'Enforced' }
-        Default { "Unknown value ($($dg.CodeIntegrityPolicyEnforcementStatus))" }
+        0 { 'Desactive' }
+        1 { 'Mode audit' }
+        2 { 'Applique' }
+        Default { "Valeur inconnue ($($dg.CodeIntegrityPolicyEnforcementStatus))" }
     }
 
     # Build a short comment + recommendation
     $comment = "VBS status: $($dg.VirtualizationBasedSecurityStatus); UMCI (WDAC) status: $($dg.UserModeCodeIntegrityPolicyEnforcementStatus); CI: $cicActive."
     $recommendation = if (-not $vbsActive -and -not $wdacActive) {
-        'Consider enabling Virtualization-Based Security (VBS) and Windows Defender Application Control (WDAC) on high-value systems to harden the kernel and control code execution.'
+        "Envisagez d'activer la securite basee sur la virtualisation (VBS) et le controle des applications Windows Defender (WDAC) sur les systèmes critique pour renforcer le noyau et controler l'execution du code."
     }
     elseif ($vbsActive -and -not $wdacActive) {
-        'VBS is enabled. Evaluate and deploy WDAC / code integrity policies (at least in Audit mode) to control which binaries and scripts can run.'
+        "VBS est active. evaluez et deployez les politiques d'integrite du code WDAC (au moins en mode Audit) pour controler quels binaires et scripts peuvent s'executer."
     }
     elseif ($wdacActive -and $cicActive -eq 'Audit mode') {
-        'WDAC / Code Integrity is in Audit mode. Review audit logs and plan to move critical systems to Enforced mode once stable.'
+        "WDAC /Integrite du code est en mode Audit. Examinez les journaux d'audit et prevoyez de deplacer les systèmes critiques en mode applique une fois stables."
     }
     elseif ($wdacActive -and $cicActive -eq 'Enforced') {
-        'WDAC / Code Integrity is enforced. Regularly review and update policies to ensure only trusted code is allowed while minimizing operational impact.'
+        "WDAC /Integrite du code est applique. Examinez et mettez à jour regulièrement les politiques pour garantir que seul le code fiable est autorise tout en minimisant l'impact operationnel."
     }
     else {
-        'Review current Device Guard / VBS configuration and align it with your hardening baseline for critical endpoints and servers.'
+        "Examinez la configuration actuelle de Device Guard/VBS et alignez-la sur votre base de reference de renforcement pour les points de terminaison et les serveurs critiques."
     }
 
     [pscustomobject]@{
@@ -62,3 +62,4 @@
         Recommendation                                = $recommendation
     }
 }
+

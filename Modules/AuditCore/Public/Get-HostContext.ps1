@@ -1,7 +1,7 @@
 function Get-HostContext {
     <#
     .SYNOPSIS
-        Récupère le contexte de l'hôte (Type de machine, Environnement, OS).
+        Recupere le contexte de l'hote (Type de machine, Environnement, OS).
     #>
     [CmdletBinding()]
     param()
@@ -42,3 +42,4 @@ function Get-HostContext {
         }
     }
 }
+

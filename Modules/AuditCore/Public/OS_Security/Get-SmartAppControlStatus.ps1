@@ -1,4 +1,4 @@
-﻿function Get-SmartAppControlStatus {
+function Get-SmartAppControlStatus {
     [CmdletBinding()]
     param()
 
@@ -22,3 +22,4 @@
     Return $SmartAppState
 
 }
+

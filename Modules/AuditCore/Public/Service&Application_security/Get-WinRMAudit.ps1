@@ -1,4 +1,4 @@
-﻿function Get-WinRMAudit {
+function Get-WinRMAudit {
     [CmdletBinding()]
     param()
 
@@ -15,7 +15,7 @@
             ClientAuth         = $null
             RmUsersNotAdmins   = $null
             Recommendations    = @(
-                'WinRM service is stopped or not installed. If remote management is required, enable and configure it securely (HTTPS listener, restricted IP filters, hardened authentication).'
+                'Le service WinRM est arrete ou non installe. Si la gestion a distance est requise, activez et configurez-le de maniere securisee (ecouteur HTTPS, filtres IP restreints, authentification renforcee).'
             )
         }
     }
@@ -59,7 +59,7 @@
         $reco += 'Restrict WinRM IPv6Filter to specific management subnets instead of allowing all (*) to reduce exposure.'
     }
 
-    # 3. Authentification côté service
+    # 3. Authentification cote service
     if ($serviceAuth.Basic -eq 'true') {
         $reco += 'Avoid using Basic authentication for WinRM, or ensure it is only allowed over HTTPS with strong credential policies.'
     }
@@ -67,7 +67,7 @@
         $reco += 'Disable unencrypted WinRM traffic (Service.Auth.Unencrypted = false) to enforce encryption for all remote management.'
     }
 
-    # 4. Authentification côté client
+    # 4. Authentification cote client
     if ($clientAuth.Basic -eq 'true') {
         $reco += 'Harden WinRM client settings to avoid Basic authentication where possible, preferring Kerberos/Negotiate.'
     }
@@ -95,3 +95,4 @@
 
     Return $Output
 }
+

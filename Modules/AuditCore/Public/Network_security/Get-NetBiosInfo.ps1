@@ -1,4 +1,4 @@
-﻿function Get-NetBiosInfo {
+function Get-NetBiosInfo {
     [CmdletBinding()]
     param()
 
@@ -19,16 +19,16 @@
 
         $recommendation = switch ($adapter.TcpipNetbiosOptions) {
             2 {
-                'NetBIOS over TCP/IP is disabled on this interface; this is recommended on modern networks using DNS only.'
+                "NetBIOS sur TCP/IP est desactive sur cet interface ; ceci est recommande sur les reseaux modernes utilisant uniquement DNS."
             }
             1 {
-                'NetBIOS over TCP/IP is enabled; consider disabling it (TcpipNetbiosOptions = 2) to reduce legacy name resolution and attack surface.'
+                "NetBIOS sur TCP/IP est active ; considerer de le desactiver (TcpipNetbiosOptions = 2) pour reduire la resolution de noms hereditee et la surface d attaque."
             }
             0 {
-                'NetBIOS state follows default/DHCP configuration; explicitly set TcpipNetbiosOptions = 2 to disable NetBIOS over TCP/IP where possible.'
+                "NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible."
             }
             default {
-                'Review NetBIOS over TCP/IP configuration for this interface and align with your hardening baseline (usually disabled).'
+                "Revoir la configuration de NetBIOS sur TCP/IP pour cet interface et l'aligner avec votre base de durcissement (generalement desactive)."
             }
         }
 
@@ -44,3 +44,4 @@
 
     return $Print
 }
+

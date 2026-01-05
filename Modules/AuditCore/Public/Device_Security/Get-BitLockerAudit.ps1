@@ -1,4 +1,4 @@
-﻿function Get-BitLockerAudit {
+function Get-BitLockerAudit {
     [CmdletBinding()]
     param()
 
@@ -22,23 +22,23 @@
             default { "Unknown ($($v.ProtectionStatus))" }
         }
 
-        $comment = "BitLocker protection status is '$protStatusText' with $($v.EncryptionPercentage)% encrypted."
+        $comment = "La Protection BitLocker est '$protStatusText' avec $($v.EncryptionPercentage)% de chiffrement."
         $recommendation = $null
 
         if ($protStatusText -eq 'Off' -or $v.EncryptionPercentage -lt 100) {
-            $recommendation = 'Enable BitLocker and ensure the volume is fully encrypted, especially for OS and data volumes containing sensitive information.'
+            $recommendation = "Activer BitLocker et assurer que le volume est pleinement chiffre, en particulier pour les volumes OS et de donnees contenant des informations sensibles."
         }
         elseif ($isOS -and -not $hasTPM -and -not $hasPIN) {
-            $recommendation = 'For OS volumes, use TPM (and optionally TPM+PIN) as key protector instead of password-only where hardware supports it.'
+            $recommendation = "Pour les volumes de systeme d'exploitation, utilisez TPM (et eventuellement TPM+PIN) comme protecteur de cle au lieu d'un mot de passe uniquement lorsque le materiel le prend en charge."
         }
         elseif ($isOS -and $hasTPM -and -not $hasPIN) {
-            $recommendation = 'Consider enabling TPM+PIN for the OS volume to provide stronger pre-boot authentication on sensitive endpoints.'
+            $recommendation = "Envisagez d'activer TPM+PIN pour le volume du systeme d'exploitation afin de fournir une authentification prealable au demarrage plus forte sur les points de terminaison sensibles."
         }
         elseif (-not $hasRecoveryPassword) {
-            $recommendation = 'Ensure a BitLocker recovery password is configured and properly backed up (e.g., in Active Directory or a secure vault).'
+            $recommendation = "Assurez-vous qu'un mot de passe de recuperation BitLocker est configure et correctement sauvegarde (par exemple, dans Active Directory ou un coffre-fort securise)."
         }
         else {
-            $recommendation = 'Review BitLocker settings regularly to ensure protectors (TPM, PIN, recovery key) still meet security requirements.'
+            $recommendation = "Revoir regulierement les parametres BitLocker pour s'assurer que les protecteurs (TPM, PIN, cle de recuperation) respectent toujours les exigences de securite."
         }
 
         $BitLockerState = [pscustomobject]@{
@@ -59,3 +59,4 @@
 
     return $Print
 }
+

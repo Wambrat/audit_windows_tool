@@ -1,4 +1,4 @@
-﻿function Get-PowerShellLanguageMode {
+function Get-PowerShellLanguageMode {
     [CmdletBinding()]
     param()
 
@@ -8,10 +8,10 @@
 
     # Simple recommendation based on language mode
     $recommendation = if ($isConstrained) {
-        'PowerShell is running in ConstrainedLanguage mode; verify this is enforced via AppLocker/WDAC as part of your hardening baseline and that required admin scripts still work.'
+        "PowerShell s'execute en mode ConstrainedLanguage ; verifiez que cela est applique via AppLocker/WDAC dans le cadre de votre base de durcissement et que les scripts d'administration requis fonctionnent toujours."
     }
     else {
-        'PowerShell is running in FullLanguage (or less restricted) mode; consider enforcing ConstrainedLanguage on standard users via AppLocker/WDAC for better abuse resistance.'
+        "PowerShell s'execute en mode FullLanguage (ou moins restreint) ; envisagez d'appliquer ConstrainedLanguage aux utilisateurs standard via AppLocker/WDAC pour une meilleure resistance aux abus."
     }
 
     [pscustomobject]@{
@@ -20,3 +20,4 @@
         Recommendation = $recommendation
     }
 }
+

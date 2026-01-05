@@ -1,57 +1,36 @@
-﻿function Get-LLMNRState2 {
+function Get-LLMNRState {
     [CmdletBinding()]
     param()
 
     $llmnrRegPath = 'HKLM:\Software\Policies\Microsoft\Windows NT\DNSClient'
-    $llmnrValue   = $null
+    $llmnrKey = 'EnableMulticast'
 
-    if (Test-Path $llmnrRegPath) {
-        $llmnrValue = (Get-ItemProperty -Path $llmnrRegPath -Name 'EnableMulticast' -ErrorAction SilentlyContinue).EnableMulticast
-    }
+    $llmnrValue = Get-ItemProperty -Path $llmnrRegPath -Name $llmnrKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty $llmnrKey
 
-    $llmnrStatus = switch ($llmnrValue) {
-        1     { 'Enabled via policy (multicast name resolution allowed)' }
-        0     { 'Disabled via policy (LLMNR turned off)' }
-        $null { 'Enabled by default (no explicit policy, multicast name resolution likely allowed)' }
-        default { "Unknown value ($llmnrValue)" }
-    }
-
-    $recommendation = switch ($llmnrValue) {
-        1 {
-            'LLMNR is explicitly enabled via policy; consider disabling it (EnableMulticast = 0) to reduce name resolution spoofing attacks.'
-        }
-        0 {
-            'LLMNR is disabled via policy; this is recommended to reduce spoofing and man-in-the-middle risks.'
-        }
-        $null {
-            'No explicit LLMNR policy found; configure EnableMulticast = 0 (Turn off multicast name resolution) to disable LLMNR.'
-        }
-        default {
-            'Review LLMNR configuration and align it with the hardening baseline (typically disabled on corporate networks).'
+    if (-not $llmnrValue) {
+        $llmnrValue = $null
+        return [PSCustomObject]@{
+            Value = $llmnrValue
+            LLMNR_Status = 'Active par defaut (aucune politique explicite, la resolution de noms multicast est probablement autorisee)'
+            Recommendation = "Aucune politique LLMNR explicite trouvee; configurez EnableMulticast = 0 (Desactiver la resolution de noms multicast) pour desactiver LLMNR."
         }
     }
 
-    if($llmnrStatus -ne 1){
-
-        $Xml = [pscustomobject]@{
-                    Category    = 'LLMNR'
-                    Description = 'Disable LLMNR in registry'
-                    Command     = 'New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows NT\DNSClient" | Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -Value 1'
-       }
-
+    if ($llmnrValue -eq 1) {
+        $llmnrStatus = 'Active via politique de groupe (la resolution de noms multicast est autorisee)'
+        $recommendation = 'LLMNR est explicitement active via la politique de groupe; considerer de le desactiver (EnableMulticast = 0) pour reduire les attaques de spoofing de resolution de noms.'
+    } elseif ($llmnrValue -eq 0) {
+        $llmnrStatus = 'Desactive via politique de groupe (LLMNR desactive)'
+        $recommendation = "LLMNR est desactive via la politique de groupe; ceci est recommande pour reduire les risques de spoofing et d'interception."
+    } else {
+        $llmnrStatus = "Valeur inconnue ($llmnrValue)"
+        $recommendation = "Revoir la configuration LLMNR et l'aligner avec la base de durcissement (typiquement desactive sur les reseaux d'entreprise)."
     }
 
-    $LLMNR = [PSCustomObject]@{
-        LLMNR_Status     = $llmnrStatus
-        EnableMulticast  = if ($llmnrValue) { $llmnrValue } else { 'N/A' }
-        Recommendation   = $recommendation
+    return [PSCustomObject]@{
+        Value = $llmnrValue
+        LLMNR_Status = $llmnrStatus
+        Recommendation = $recommendation
     }
-
-    $Output = [PSCustomObject]@{
-        Value = $LLMNR
-        Xml = $Xml
-    }
-
-    Return $Output
-
 }
+

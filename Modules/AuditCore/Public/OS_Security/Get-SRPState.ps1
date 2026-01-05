@@ -1,4 +1,4 @@
-﻿function Get-SRPState {
+function Get-SRPState {
     [CmdletBinding()]
     param()
 
@@ -17,8 +17,8 @@
                 Scope        = $scope
                 RegistryPath = $path
                 SRPPresent   = $false
-                Comment      = 'No Software Restriction Policy (SRP) detected for this scope.'
-                Recommendation = 'Prefer AppLocker or Windows Defender Application Control (WDAC) instead of legacy SRP for application control.'
+                Comment      = 'Pas de politique de restriction logicielle (SRP) detectee pour cette portee.'
+                Recommendation = "Preferez AppLocker ou Windows Defender Application Control (WDAC) plutot que SRP legacy pour le controle des applications."
             }
             [void]$Print.Add($obj)
             continue
@@ -28,15 +28,15 @@
         $hasRules = Test-Path $rulesKey
 
         $comment = if ($hasRules) {
-            'Software Restriction Policies (SRP) are defined for this scope.'
+            "Des politiques de restriction logicielle (SRP) sont definies pour cette portee."
         } else {
-            'SRP root key exists but no Path rules were found.'
+            "La clef racine SRP existe mais aucune regle de chemin n'a ete trouvee."
         }
 
         $reco = if ($hasRules) {
-            'Plan to migrate from legacy SRP to AppLocker or WDAC for stronger and more flexible application control.'
+            "Prevoyez de migrer des SRP legacy vers AppLocker ou WDAC pour un controle des applications plus solide et plus flexible."
         } else {
-            'If SRP is not actively used, consider cleaning up legacy keys and implementing AppLocker or WDAC instead.'
+            "Si SRP n'est pas utilise activement, envisagez de nettoyer les cles legacy et de mettre en œuvre AppLocker ou WDAC a la place."
         }
 
         $SRP = [pscustomobject]@{
@@ -52,3 +52,4 @@
 
     return $Print
 }
+

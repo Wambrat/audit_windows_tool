@@ -1,4 +1,4 @@
-﻿function Get-InstalledKB {
+function Get-InstalledKB {
     [CmdletBinding()]
     param()
 
@@ -42,7 +42,7 @@ function Get-UpdateSource {
         $auPath   = Join-Path $basePath 'AU'
 
         if (-not (Test-Path $auPath)) {
-            return 'No policy key found: using default Windows Update behavior'
+            return 'Aucune cle de strategie trouvee : utilisation du comportement par defaut de Windows Update'
         }
 
         $auValues  = Get-ItemProperty -Path $auPath -ErrorAction SilentlyContinue
@@ -54,15 +54,16 @@ function Get-UpdateSource {
 
             if ($wsusServer) {
                 if ($wsusServer -like 'https://*') {
-                    return "WSUS secured (HTTPS): $wsusServer"
+                    return "WSUS securise (HTTPS) : $wsusServer"
                 } else {
-                    return "WSUS NOT secured (HTTP detected): $wsusServer"
+                    return "WSUS NON securise (HTTP detecte) : $wsusServer"
                 }
             } else {
-                return 'WSUS configured (UseWUServer=1) but WUServer is not defined'
+                return "WSUS configure (UseWUServer=1) mais WUServer n'est pas defini"
             }
         }
 
         return 'Windows Update (Microsoft Update)'
     }
 }
+

@@ -1,38 +1,38 @@
-﻿function Get-LMHashStatus {
+function Get-LMHashStatus {
     [CmdletBinding()]
     param()
 
-    $path  = 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa'
-    $value = (Get-ItemProperty -Path $path -Name 'NoLMHash' -ErrorAction SilentlyContinue).NoLMHash
+    $path  = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa"
+    $value = (Get-ItemProperty -Path $path -Name "NoLMHash" -ErrorAction SilentlyContinue).NoLMHash
 
     $enabled = ($value -eq 1)
 
     if ($null -eq $value) {
-        $desc = 'NoLMHash value not found; LM hashes may still be stored depending on system defaults.'
-        $reco = 'Explicitly set NoLMHash = 1 via security policy/GPO and force a password change for all local/domain accounts.'
+        $desc = "Valeur NoLMHash introuvable; Les hachages LM peuvent toujours etre stockes en fonction des paramètres par defaut du système."
+        $reco = "Definissez explicitement NoLMHash = 1 via la politique de securite/GPO et forcez un changement de mot de passe pour tous les comptes locaux/de domaine."
         $Xml = [pscustomobject]@{
-                Category    = 'LM Hash'
-                Description = 'Disable storing of LM Hash in registry'
-                Command     = 'Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "NoLMHash" -Value 1'
+                Category    = "LM Hash"
+                Description = "Desactiver le stockage de LM Hash dans le registre"
+                Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'NoLMHash' -Value 1"
         }
     }
     elseif ($enabled) {
-        $desc = 'LM hashes are not stored (NoLMHash = 1).'
-        $reco = 'Keep NoLMHash = 1 and ensure password length and complexity are aligned with your security baseline.'
+        $desc = "Les hachages LM ne sont pas stockes (NoLMHash = 1)."
+        $reco = "Gardez NoLMHash = 1 et assurez-vous que la longueur et la complexite du mot de passe sont alignees sur votre base de securite."
     }
     else {
-        $desc = 'LM hashes may be stored (NoLMHash != 1).'
-        $reco = 'Set NoLMHash = 1 and force a password change for all accounts to remove existing LM hashes.'
+        $desc = "Les hachages LM peuvent etre stockes (NoLMHash != 1)."
+        $reco = "Definissez NoLMHash = 1 et forcez un changement de mot de passe pour tous les comptes afin de supprimer les hachages LM existants."
         $Xml = [pscustomobject]@{
-                Category    = 'LM Hash'
-                Description = 'Disable storing of LM Hash in registry'
-                Command     = 'Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "NoLMHash" -Value 1'
+                Category    = "LM Hash"
+                Description = "Desactiver le stockage de LM Hash dans le registre"
+                Command     = "Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'NoLMHash' -Value 1"
         }
     }
 
     $LMHash = [pscustomobject]@{
         Path         = $path
-        NoLMHash     = if ($null -ne $value) { $value } else { 'N/A' }
+        NoLMHash     = if ($null -ne $value) { $value } else { "N/A" }
         LMStored     = -not $enabled
         Description  = $desc
         Recommendation = $reco
@@ -45,3 +45,4 @@
 
     Return $Output
 }
+

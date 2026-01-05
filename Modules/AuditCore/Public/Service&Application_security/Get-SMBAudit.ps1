@@ -1,4 +1,4 @@
-﻿function Get-SMBAudit {
+function Get-SMBAudit {
     [CmdletBinding()]
     param()
 
@@ -29,47 +29,47 @@
     $reco     = @()
 
     if($SMBInfo.EnableSMB1Protocol) {
-        $comments += 'SMBv1 is enabled on this server.'
-        $reco     += 'Disable SMBv1 (EnableSMB1Protocol = $false) to remove a legacy and vulnerable protocol from the environment.'
+        $comments += 'Le protocole SMBv1 est active sur ce serveur.'
+        $reco     += "Desactivez SMBv1 (EnableSMB1Protocol = $false) pour supprimer un protocole ancien et vulnerable de l'environnement."
         $Xml = [pscustomobject]@{
                 Category    = "SMBv1"
-                Description = "Disable SMBv1 (EnableSMB1Protocol = $false) to remove a legacy and vulnerable protocol from the environment."
+                Description = "Desactivez SMBv1 (EnableSMB1Protocol = $false) pour supprimer un protocole ancien et vulnerable de l'environnement."
                 Command     = "Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force"
             }
         [void]$XmlList.Add($xml)
     }else{
-        $comments += 'SMBv1 is disabled on this server.'
+        $comments += 'Le protocole SMBv1 est desactive sur ce serveur.'
     }
 
     if(-not $SMBInfo.EnableSMB2Protocol){
-        $comments += 'SMBv2/3 is disabled.'
-        $reco     += 'Enable SMBv2/3 and migrate any remaining SMBv1 dependencies before fully deprecating SMBv1.'
+        $comments += 'SMBv2/3 est desactive.'
+        $reco     += 'Activez SMBv2/3 et migrez toutes les dependances SMBv1 restantes avant de supprimer completement SMBv1.'
         $Xml = [pscustomobject]@{
                 Category    = "SMBv2"
-                Description = "Enable SMBv2 and migrate any remaining SMBv1 dependencies before fully deprecating SMBv1."
+                Description = "Activez SMBv2 et migrez toutes les dependances SMBv1 restantes avant de supprimer completement SMBv1."
                 Command     = "Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force"
             }
         [void]$XmlList.Add($xml)
     }
 
     if(-not $SMBInfo.RequireSecuritySignature){
-        $comments += 'SMB signing is not required for server connections.'
+        $comments += "La signature SMB n'est pas requise pour les connexions au serveur."
         $reco     += 'Configure RequireSecuritySignature = $true on servers and align client settings to reduce NTLM relay and tampering risks.'
         $Xml = [pscustomobject]@{
                 Category    = "SMB Signing"
-                Description = "Configure RequireSecuritySignature = $true on servers and align client settings to reduce NTLM relay and tampering risks."
+                Description = "Configurez RequireSecuritySignature = $true sur les serveurs et alignez les parametres du client pour reduire les risques de relais NTLM et de falsification."
                 Command     = "Set-SmbServerConfiguration -RequireSecuritySignature $true -Force"
             }
         [void]$XmlList.Add($xml)
     }else{
-        $comments += 'SMB signing is required for server connections.'
+        $comments += 'La signature SMB est requise pour les connexions au serveur.'
     }
 
     $SMBA.Comment        = $comments -join ' | '
     $SMBA.Recommendation = if ($reco.Count -gt 0) {
         $reco -join ' | '
     }else{
-        'SMB configuration appears aligned with common hardening baselines (SMBv1 disabled, SMBv2/3 enabled, signing required).'
+        'La configuration SMB semble conforme aux normes de securite courantes (SMBv1 desactive, SMBv2/3 active, signature requise).'
     }
 
     $Output = [PSCustomObject]@{
@@ -79,3 +79,4 @@
 
     return $Output
 }
+

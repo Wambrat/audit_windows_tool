@@ -1,4 +1,4 @@
-﻿function Get-VPNStatus {
+function Get-VPNStatus {
     [CmdletBinding()]
     param()
 
@@ -26,19 +26,19 @@
     $parts = @()
 
     if ($hasVpnAdapters) {
-        $parts += "$($adapters.Count) VPN/TAP/TUN interface(s) detected (Status = Up)"
+        $parts += "$($adapters.Count) Interface(s) VPN/TAP/TUN detectee(s) (Statut = Actif)"
     } else {
-        $parts += "0 VPN/TAP/TUN interface detected"
+        $parts += "0 interface(s) VPN/TAP/TUN detectee(s)"
     }
 
     if ($hasVpnProfiles) {
         $parts += "$($vpnProfiles.Count) VPN profile(s) configured via Windows VPN client"
     } else {
-        $parts += "0 VPN profile configured via Windows VPN client"
+        $parts += "0 profil(s) VPN configure(s) via le client VPN Windows"
     }
 
     if ($hasActiveVpnProfiles) {
-        $parts += "$($activeProfiles.Count) VPN profile(s) currently connected"
+        $parts += "$($activeProfiles.Count) profil(s) VPN actuellement connecte(s)"
     }
 
     $VPNStatus = [pscustomobject]@{
@@ -53,3 +53,4 @@
 
     return $VPNStatus
 }
+

@@ -1,4 +1,4 @@
-﻿function Get-DomainState {
+function Get-DomainState {
     [CmdletBinding()]
     param()
 
@@ -17,3 +17,4 @@
 
 
 }
+

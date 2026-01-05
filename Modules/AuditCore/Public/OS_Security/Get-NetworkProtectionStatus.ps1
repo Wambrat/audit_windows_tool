@@ -1,4 +1,4 @@
-﻿function Get-NetworkProtectionStatus {
+function Get-NetworkProtectionStatus {
     [CmdletBinding()]
     param()
 
@@ -14,19 +14,19 @@
 
     $recommendation = switch ($mp.EnableNetworkProtection) {
         1 {
-            'Network Protection is in Block mode; regularly review alerts and ensure business applications are not impacted.'
+            "Protection reseau est en mode Blocage ; examinez regulierement les alertes et assurez-vous que les applications metier ne sont pas impactees."
         }
         2 {
-            'Network Protection is in Audit mode; review logged events and plan to move to Block mode on critical endpoints.'
+            "La Protection reseau est en mode Audit ; examinez les evenements enregistres et prevoyez de passer en mode Blocage sur les points de terminaison critiques."
         }
         0 {
-            'Network Protection is disabled; enable it in Audit mode first, then Block mode to prevent access to malicious domains and IPs.'
+            "La Protection reseau est desactivee ; activez-la d'abord en mode Audit, puis en mode Blocage pour empecher l'acces aux domaines et IPs malveillants."
         }
         $null {
-            'Network Protection is not configured; define a policy (Audit/Block) via GPO, Intune, or Set-MpPreference.'
+            "La Protection reseau n'est pas configuree ; defini une politique (Audit/Blocage) via GPO, Intune ou Set-MpPreference."
         }
         default {
-            'Review the current Network Protection configuration and align it with your Defender hardening baseline.'
+            "Examinez la configuration actuelle de la Protection reseau et alignez-la sur votre base de renforcement de Defender."
         }
     }
 
@@ -39,3 +39,4 @@
 
     return $NP
 }
+
