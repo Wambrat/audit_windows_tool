@@ -28,7 +28,6 @@ function Get-AppUpgrade {
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if (-not $winget) {
         Write-Warning 'WinGet CLI n''est pas disponible sur ce systeme. Installez App Installer / WinGet avant d''utiliser cette fonction.'
-        return
     }
 
     # Verifie si Get-WinGetPackage est disponible, sinon propose d'installer le module
