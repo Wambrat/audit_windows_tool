@@ -11,7 +11,6 @@ function Get-SMBSharesAudit {
             return $null
         }
 
-        # Transformer en objet sérialisable pour éviter les erreurs JSON
         $shareList = @()
         foreach ($share in $shares) {
             $shareList += @{
