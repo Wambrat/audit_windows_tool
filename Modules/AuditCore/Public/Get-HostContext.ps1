@@ -22,6 +22,11 @@ function Get-HostContext {
             
             $isAdmin = $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
 
+            # récupérer le context réseau de la machine incluant le nom d'hote, l'adresse IP et le domaine
+            $networkInfo = Get-CimInstance -ClassName Win32_NetworkAdapterConfiguration -Filter "IPEnabled = True" -ErrorAction Stop
+            $ipAddresses = $networkInfo.IPAddress -join ", "
+            $domainName = $compInfo.Domain
+
             return [PSCustomObject]@{
                 Hostname       = $compInfo.Name
                 OSRole         = $osRole
@@ -30,6 +35,8 @@ function Get-HostContext {
                 Model          = $compInfo.Model
                 IsDomainJoined = $compInfo.PartOfDomain
                 Timestamp      = (Get-Date)
+                IPAddresses    = $ipAddresses
+                DomainName     = $domainName
 
                 CurrentUser    = $identity.Name
                 IsRunAsAdmin   = $isAdmin

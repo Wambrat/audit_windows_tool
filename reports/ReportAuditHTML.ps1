@@ -85,18 +85,18 @@ $scoreInfo = Get-VulnerabilityScore -Results $AuditResults
 $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
 # Extraire les info de HostContext de manière sécurisée
-$computerName = ""
-$osInfo = ""
 if ($AuditResults.PSObject.Properties.Name -contains "HostContext") {
     $hostContext = $AuditResults.HostContext
     if ($hostContext) {
-        $computerName = if ($hostContext.PSObject.Properties.Name -contains "ComputerName") { $hostContext.ComputerName } else { "" }
-        $osInfo = if ($hostContext.PSObject.Properties.Name -contains "OSVersion") { $hostContext.OSVersion } else { "" }
+        $computerName = if ($hostContext.PSObject.Properties.Name -contains "Hostname") { $hostContext.Hostname } else { "" }
+        $ip = if ($hostContext.PSObject.Properties.Name -contains "IPAddresses") { $hostContext.IPAddresses} else { "" }
+        $domainName = if ($hostContext.PSObject.Properties.Name -contains "DomainName") { $hostContext.DomainName } else { "" }
     }
 }
 
 $computerName = if ([string]::IsNullOrWhiteSpace($computerName)) { "Unknown" } else { $computerName.Trim() }
-$osInfo = if ([string]::IsNullOrWhiteSpace($osInfo)) { "Unknown" } else { $osInfo.Trim() }
+$ip = if ([string]::IsNullOrWhiteSpace($ip)) { "Unknown" } else { $ip.Trim() }
+$domainName = if ([string]::IsNullOrWhiteSpace($domainName)) { "Unknown" } else { $domainName.Trim() }
 
 $htmlContent = @"
 <!DOCTYPE html>
@@ -105,7 +105,7 @@ $htmlContent = @"
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Windows Security Audit Report - $computerName</title>
+    <title>Windows Security Audit Report - $</title>
 </head>
 <body>
     <div class="container">
@@ -137,11 +137,15 @@ $htmlContent = @"
                 <div class="system-info-grid">
                     <div class="info-item">
                         <div class="info-label" data-en="Computer Name" data-fr="Nom de l&apos;Ordinateur">Nom de l&apos;Ordinateur</div>
-                        <div class="info-value">$(ConvertTo-HtmlSafe $computerName)</div>
+                        <div class="info-value">$($computerName)</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label" data-en="Operating System" data-fr="Syst&egrave;me d&apos;Exploitation">Syst&egrave;me d&apos;Exploitation</div>
-                        <div class="info-value">$(ConvertTo-HtmlSafe $osInfo)</div>
+                        <div class="info-label" data-en="Domain Name" data-fr="Nom de Domaine">Nom de Domaine</div>
+                        <div class="info-value">$(ConvertTo-HtmlSafe $domainName)</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-en="IP" data-fr="Adresse IP">Adresse IP</div>
+                        <div class="info-value">$(ConvertTo-HtmlSafe $ip)</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label" data-en="Report Date" data-fr="Date du Rapport">Date du Rapport</div>
@@ -149,8 +153,22 @@ $htmlContent = @"
                     </div>
                 </div>
             </div>
-
             
+            <div class="remediations-section" style="margin-top: 40px; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; border-left: 5px solid #3483ff;">
+                <h2 style="color: #3483ff; margin-bottom: 20px; margin-top: 0;" data-en="Remediations Summary" data-fr="R&eacute;sum&eacute; des R&eacute;m&eacute;diations">R&eacute;sum&eacute; des R&eacute;m&eacute;diations</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;" data-en="Number of Available Remediations" data-fr="Nombre de R&eacute;m&eacute;diations Disponibles">Nombre de R&eacute;m&eacute;diations Disponibles</div>
+                        <div style="font-size: 28px; font-weight: bold; color: #3483ff;">$remediationCount</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;" data-en="Location" data-fr="Localisation">Localisation</div>
+                        <div style="font-size: 13px; color: #333; word-break: break-all; font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px;">$("$(Get-Location)\xml")</div>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; font-size: 13px; color: #666; line-height: 1.6;" data-en="Access the detailed remediation steps by reviewing the XML files in the xml folder. Each remediation includes specific PowerShell commands for automated deployment." data-fr="Acc&eacute;dez aux &eacute;tapes de r&eacute;m&eacute;diation d&eacute;taill&eacute;es en consultant les fichiers XML du dossier xml. Chaque r&eacute;m&eacute;diation inclut des commandes PowerShell sp&eacute;cifiques pour un d&eacute;ploiement automatis&eacute;.">Acc&eacute;dez aux &eacute;tapes de r&eacute;m&eacute;diation d&eacute;taill&eacute;es en consultant les fichiers XML du dossier xml. Chaque r&eacute;m&eacute;diation inclut des commandes PowerShell sp&eacute;cifiques pour un d&eacute;ploiement automatis&eacute;.</p>
+            </div>
+
             <div class="search-section">
                 <h2 style="color: #3483ff; margin-bottom: 20px" data-en="Vulnerabilities Summary" data-fr="R&eacute;sum&eacute; des Vuln&eacute;rabilit&eacute;s">R&eacute;sum&eacute; des Vuln&eacute;rabilit&eacute;s</h2>
                 <input type="text" class="search-box" id="searchInput" placeholder="Rechercher une vuln&eacute;rabilit&eacute;..." data-en-placeholder="Search for a vulnerability..." data-fr-placeholder="Rechercher une vuln&eacute;rabilit&eacute;...">
@@ -253,12 +271,33 @@ $($additionalDetails -join "`n")
     }
 }
 
+# Calculer les statistiques de remediations
+$xmlPath = "$(Get-Location)\xml"
+$remediationCount = 0
+$remediationLocation = ""
+
+if (Test-Path $xmlPath) {
+    $xmlFiles = Get-ChildItem -Path $xmlPath -Filter "*.xml" | Sort-Object LastWriteTime -Descending
+    if ($xmlFiles) {
+        $latestXmlFile = $xmlFiles[0]
+        $remediationLocation = $latestXmlFile.FullName
+        
+        try {
+            $xmlContent = [xml](Get-Content -Path $latestXmlFile.FullName -Raw)
+            $remediationCount = $xmlContent.Objs.Obj.Count
+            if (-not $remediationCount) { $remediationCount = 1 }
+        } catch {
+            Write-Host "Erreur lors de la lecture du XML: $_" -ForegroundColor Yellow
+        }
+    }
+}
+
 $htmlContent += @"
             </div>
         </div>
         
         <footer>
-            <p data-en="You can find the detailed remediation informations in the repository : audit_windows_tool\xmls" data-fr="Vous pouvez trouver les informations de r&eacute;m&eacute;diation d&eacute;taill&eacute;es dans le r&eacute;pertoire : audit_windows_tool\xmls">Vous pouvez trouver les informations de r&eacute;m&eacute;diation d&eacute;taill&eacute;es dans le r&eacute;pertoire : audit_windows_tool\xmls</p>
+            <p data-en="You can find the detailed remediation informations in the repository : audit_windows_tool\xml" data-fr="Vous pouvez trouver les informations de r&eacute;m&eacute;diation d&eacute;taill&eacute;es dans le r&eacute;pertoire : audit_windows_tool\xml">Vous pouvez trouver les informations de r&eacute;m&eacute;diation d&eacute;taill&eacute;es dans le r&eacute;pertoire : audit_windows_tool\xml</p>
             <p data-en="This audit provides an overview of security configurations. For more details, consult the system logs." data-fr="Cet audit fournit un aper&ccedil;u des configurations de s&eacute;curit&eacute;. Pour plus de d&eacute;tails, consultez les journaux syst&egrave;me.">Cet audit fournit un aper&ccedil;u des configurations de s&eacute;curit&eacute;. Pour plus de d&eacute;tails, consultez les journaux syst&egrave;me.</p>
             <p data-en="Report generated by JadusAudit from ZakelElectonics | " data-fr="Rapport g&eacute;n&eacute;r&eacute; par JadusAudit de ZakelElectonics | ">Rapport g&eacute;n&eacute;r&eacute; par JadusAudit de ZakelElectonics | $timestamp</p>
         </footer>

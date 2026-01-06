@@ -16,8 +16,7 @@ else {
     exit
 }
 
-# Initialize auditResults as a truly dynamic hashtable (no PSCustomObject constraint)
-# Hashtables allow unlimited dynamic property assignment
+# Initialize auditResults structure
 $auditResults = @{
     HostContext = $null
     AccountSecurity = @{
@@ -405,10 +404,12 @@ if ($context.Domainjoined -eq $true){
     }
 
     Write-Host "`n[+] Audit des politiques de mots de passe :" -Foregroundcolor Gray
-    $passwordPolicy = Get-PolPassAudit
 
-    if ($passwordPolicy){
-        try {
+    
+    try {
+        $passwordPolicy = Get-PolPassAudit
+
+        if ($passwordPolicy){
             $auditResults.AccountSecurity.LocalPasswordPolicy.status = "PASS"
             $auditResults.AccountSecurity.LocalPasswordPolicy.recommendations += "Password Policy length must be at least $($passwordPolicy.MinLengthReco)"
             $auditResults.AccountSecurity.LocalPasswordPolicy.recommendations += "Password Complexity must be $($passwordPolicy.ComplexityReco)"
@@ -450,10 +451,11 @@ if ($context.Domainjoined -eq $true){
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Account lockout requirement is met."
             }
         }
-        catch {
-            Write-Host "Erreur lors de l'affichage des resultats de l'audit de la politique de mot de passe"
-        }
+        
+    } catch {
+        Write-Host "Erreur lors de l'affichage des resultats de l'audit de la politique de mot de passe"
     }
+    
     Merge-AuditResults -Section $auditResults.AccountSecurity.LocalPasswordPolicy -AuditData $passwordPolicy
 }
 
@@ -574,8 +576,7 @@ try {
         $auditResults.AccountSecurity.UAC.status = "FAIL"
         $auditResults.AccountSecurity.UAC.comments += "Local Account Token Filter Policy is enabled."
     } else {
-        Write-Host "   [ALERTE] La politique de filtrage des tokens pour les comptes locaux est desactivee (risque d'acces non administrateur via le reseau)." -ForegroundColor Red
-        $auditResults.AccountSecurity.UAC.status = "FAIL"
+        Write-Host "   [OK] La politique de filtrage des tokens pour les comptes locaux est desactivee." -ForegroundColor Green
         $auditResults.AccountSecurity.UAC.comments += "Local Account Token Filter Policy is disabled."
     }
 }
@@ -637,7 +638,7 @@ $groupsAudit = Get-GroupsAudit
 
 if ($groupsAudit) {
     $auditResults.AccountSecurity.LocalGroups.status = "PASS"
-    $auditResults.AccountSecurity.LocalGroups.recommendations += "A group should have at least one member. Verify local groups that have more than 3 members."
+    $auditResults.AccountSecurity.LocalGroups.recommendations += "A group should have at least one member. Verify local groups that have more than 3 members. Verify for unauthorized users."
 
     foreach ($group in $groupsAudit) {
         Write-Host "`nGroupe : $($group.GroupName)" -ForegroundColor Cyan
@@ -650,7 +651,7 @@ if ($groupsAudit) {
             # A voir je trouve que c'est un peu trop restreint comme alerte
             if ($group.MembersCount -gt 1) {
                 Write-Host "   [ALERTE] Ce groupe contient un grand nombre de membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Red
-                $auditResults.AccountSecurity.LocalGroups.status = "FAIL"
+                $auditResults.AccountSecurity.LocalGroups.status = "WARNING"
                 $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has $($group.MembersCount) members. Verify for unauthorized users."
             } else {
                 Write-Host "   [OK] Nombre de membres dans ce groupe : $($group.MembersCount)" -ForegroundColor Green
@@ -2532,11 +2533,3 @@ if ($remediationActions -and $remediationActions.Count -gt 0) {
 
 # --- Fin ---
 Write-Host "`nAudit termine." -ForegroundColor Cyan
-
-
-
-
-
-
-
-
