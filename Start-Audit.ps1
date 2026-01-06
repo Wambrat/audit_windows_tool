@@ -2201,40 +2201,48 @@ $auditResults.DeviceSecurity.BitLocker = @{
 
 Write-Host "`n[+] Audit BitLocker :" -ForegroundColor Gray
 try {
-    $bitlocker = Get-BitLockerAudit
 
-    if ($bitlocker) {
-        $allEncrypted = $true
-        $blRecs = @()
-        foreach ($vol in $bitlocker) {
-            Write-Host "`n   Volume : $($vol.MountPoint) ($($vol.VolumeType))" -ForegroundColor Cyan
-            Write-Host "      ProtectionStatus   : $($vol.ProtectionStatus)  |  Chiffrement : $($vol.EncryptionPercent)% " -ForegroundColor Gray
-            if ($vol.ProtectionStatus -eq 'On' -and $vol.EncryptionPercent -ge 100) {
-                Write-Host "      [OK] Volume chiffre et protege." -ForegroundColor Green
-                $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is encrypted and protected. "
-            }
-            elseif ($vol.ProtectionStatus -eq 'Suspended') {
-                Write-Host "      [INFO] Protection suspendue." -ForegroundColor Yellow
-                $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) has suspended protection. "
-                $allEncrypted = $false
-            }
-            else {
-                Write-Host "      [ALERTE] Volume non protege ou chiffrement incomplet." -ForegroundColor Red
-                $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is not protected or encryption is incomplete. "
-                $allEncrypted = $false
-            }
+    if ($context.HardwareType -ne 'VirtualMachine') {
+        
+        $bitlocker = Get-BitLockerAudit
 
-            Write-Host "      TPM : $($vol.HasTPM)    PIN : $($vol.HasPIN)    RecoveryKey : $($vol.HasRecoveryPassword)" -ForegroundColor Gray
-            Write-Host "      Commentaire : $($vol.Comment)" -ForegroundColor Gray
-            Write-Host "      Recommandation : $($vol.Recommendation)" -ForegroundColor Yellow
-            $blRecs += $vol.Recommendation
+        if ($bitlocker) {
+            $allEncrypted = $true
+            $blRecs = @()
+            foreach ($vol in $bitlocker) {
+                Write-Host "`n   Volume : $($vol.MountPoint) ($($vol.VolumeType))" -ForegroundColor Cyan
+                Write-Host "      ProtectionStatus   : $($vol.ProtectionStatus)  |  Chiffrement : $($vol.EncryptionPercent)% " -ForegroundColor Gray
+                if ($vol.ProtectionStatus -eq 'On' -and $vol.EncryptionPercent -ge 100) {
+                    Write-Host "      [OK] Volume chiffre et protege." -ForegroundColor Green
+                    $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is encrypted and protected. "
+                }
+                elseif ($vol.ProtectionStatus -eq 'Suspended') {
+                    Write-Host "      [INFO] Protection suspendue." -ForegroundColor Yellow
+                    $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) has suspended protection. "
+                    $allEncrypted = $false
+                }
+                else {
+                    Write-Host "      [ALERTE] Volume non protege ou chiffrement incomplet." -ForegroundColor Red
+                    $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is not protected or encryption is incomplete. "
+                    $allEncrypted = $false
+                }
+
+                Write-Host "      TPM : $($vol.HasTPM)    PIN : $($vol.HasPIN)    RecoveryKey : $($vol.HasRecoveryPassword)" -ForegroundColor Gray
+                Write-Host "      Commentaire : $($vol.Comment)" -ForegroundColor Gray
+                Write-Host "      Recommandation : $($vol.Recommendation)" -ForegroundColor Yellow
+                $blRecs += $vol.Recommendation
+            }
+            $auditResults.DeviceSecurity.BitLocker.status = if ($allEncrypted) { "PASS" } else { "FAIL" }
+            $auditResults.DeviceSecurity.BitLocker.recommendations = ($blRecs | Select-Object -Unique) -join " | "
         }
-        $auditResults.DeviceSecurity.BitLocker.status = if ($allEncrypted) { "PASS" } else { "FAIL" }
-        $auditResults.DeviceSecurity.BitLocker.recommendations = ($blRecs | Select-Object -Unique) -join " | "
-    }
-    else {
-        Write-Error "Impossible d'auditer BitLocker (Get-BitLockerAudit n'a pas retourne de resultat)"
-        $auditResults.DeviceSecurity.BitLocker.status = "WARNING"
+        else {
+            Write-Error "Impossible d'auditer BitLocker (Get-BitLockerAudit n'a pas retourne de resultat)"
+            $auditResults.DeviceSecurity.BitLocker.status = "WARNING"
+        }
+    } else {
+        Write-Host "   [INFO] Systeme virtuel detecte — saut de l'audit BitLocker." -ForegroundColor Yellow
+        $auditResults.DeviceSecurity.BitLocker.status = "N/A"
+        $auditResults.DeviceSecurity.BitLocker.comments += "Virtual machine detected — BitLocker audit skipped. "
     }
 }
 catch {
