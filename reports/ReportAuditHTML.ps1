@@ -98,6 +98,27 @@ $computerName = if ([string]::IsNullOrWhiteSpace($computerName)) { "Unknown" } e
 $ip = if ([string]::IsNullOrWhiteSpace($ip)) { "Unknown" } else { $ip.Trim() }
 $domainName = if ([string]::IsNullOrWhiteSpace($domainName)) { "Unknown" } else { $domainName.Trim() }
 
+# Calculer les statistiques de remediations
+$xmlPath = "$(Get-Location)\xml"
+$remediationCount = 0
+$remediationLocation = ""
+
+if (Test-Path $xmlPath) {
+    $xmlFiles = Get-ChildItem -Path $xmlPath -Filter "*.xml" | Sort-Object LastWriteTime -Descending
+    if ($xmlFiles) {
+        $latestXmlFile = $xmlFiles[0]
+        $remediationLocation = $latestXmlFile.FullName
+        
+        try {
+            $xmlContent = [xml](Get-Content -Path $latestXmlFile.FullName -Raw)
+            $remediationCount = $xmlContent.Objs.Obj.Count
+            if (-not $remediationCount) { $remediationCount = 1 }
+        } catch {
+            Write-Host "Erreur lors de la lecture du XML: $_" -ForegroundColor Yellow
+        }
+    }
+}
+
 $htmlContent = @"
 <!DOCTYPE html>
 <html lang="fr">
@@ -117,7 +138,7 @@ $htmlContent = @"
                 </select>
             </div>
             <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: 300; opacity: 0.95;">JadusAudit</p>
-            <h1 data-en="Windows Security Audit Report - " data-fr="Rapport d&apos;Audit de S&eacute;curit&eacute; Windows - ">Rapport d&apos;Audit de S&eacute;curit&eacute; Windows - $computerName</h1>
+            <h1 data-en="Windows Security Audit Report" data-fr="Rapport d&apos;Audit de S&eacute;curit&eacute; Windows">Rapport d&apos;Audit de S&eacute;curit&eacute; Windows</h1>
             <p data-en="Complete System Security Audit" data-fr="Audit Complet de la S&eacute;curit&eacute; du Syst&egrave;me">Audit Complet de la S&eacute;curit&eacute; du Syst&egrave;me</p>
         </header>
         
@@ -267,27 +288,6 @@ $($additionalDetails -join "`n")
                         </div>
                     </div>
 "@
-        }
-    }
-}
-
-# Calculer les statistiques de remediations
-$xmlPath = "$(Get-Location)\xml"
-$remediationCount = 0
-$remediationLocation = ""
-
-if (Test-Path $xmlPath) {
-    $xmlFiles = Get-ChildItem -Path $xmlPath -Filter "*.xml" | Sort-Object LastWriteTime -Descending
-    if ($xmlFiles) {
-        $latestXmlFile = $xmlFiles[0]
-        $remediationLocation = $latestXmlFile.FullName
-        
-        try {
-            $xmlContent = [xml](Get-Content -Path $latestXmlFile.FullName -Raw)
-            $remediationCount = $xmlContent.Objs.Obj.Count
-            if (-not $remediationCount) { $remediationCount = 1 }
-        } catch {
-            Write-Host "Erreur lors de la lecture du XML: $_" -ForegroundColor Yellow
         }
     }
 }

@@ -95,8 +95,8 @@ function Show-AskingWindow {
      $xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     Title="Confirmation"
-    Height="320"
-    Width="420"
+    Height="240"
+    Width="640"
     WindowStartupLocation="CenterScreen"
     ResizeMode="NoResize"
     Background="#F5F5F5">
