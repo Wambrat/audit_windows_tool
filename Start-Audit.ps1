@@ -290,7 +290,7 @@ Write-Host "`n[+] Audit de la configuration LAPS :" -Foregroundcolor Gray
 
 if ($lapsaudit){
 
-    if ($context.Domainjoined -eq $true) {
+    if ($context.isDomainjoined -eq $true) {
         $auditResults.AccountSecurity.LAPS.recommendations += $lapsAudit.Recommendation
 
         # Affichage dynamique selon le resultat
@@ -334,7 +334,7 @@ $auditResults.AccountSecurity.ADPasswordPolicy = @{
     comments = ""
 }
 
-if ($context.Domainjoined -eq $true){
+if ($context.isDomainjoined -eq $true){
     $auditResults.AccountSecurity.ADPasswordPolicy = @{
         status = ""
         automatable = $false
@@ -344,7 +344,7 @@ if ($context.Domainjoined -eq $true){
 
     $adPasswordPolicy = Get-ADPolPassAudit
 
-    if ($adPasswordPolicy -and $context.Domainjoined -eq $true) {
+    if ($adPasswordPolicy -and $context.isDomainjoined -eq $true) {
         $auditResults.AccountSecurity.ADPasswordPolicy.status = "PASS"
 
         Write-Host "`n[+] Audit des politiques de mots de passe Active Directory :" -Foregroundcolor Gray
@@ -472,7 +472,7 @@ $auditResults.AccountSecurity.AuthentificationLevel = @{
 Write-Host "`n[+] Audit du niveau d'authentification :" -Foregroundcolor Gray
 $authLevelAudit = Get-AuthenticationLevelAudit
 
-if ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $true) {
+if ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $true) {
     $auditResults.AccountSecurity.AuthentificationLevel.status = "PASS"
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Enable Windows Hello for Business via GPO or CSP."
 
@@ -489,8 +489,8 @@ if ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $true) {
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is not enabled."
     }
-} elseif ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $false) {
-    $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Consider using Windows Hello for Business in a domain-joined environment."
+} elseif ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $false) {
+    $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Consider using Windows Hello even in a no domain-joined environment."
 
     if ($authLevelAudit.Consumer -eq $true) {
         Write-Host "   [OK] Windows Hello (Consumer/Local) est active." -ForegroundColor Green
@@ -501,7 +501,7 @@ if ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $true) {
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello (Consumer/Local) is not enabled."
     }
-} elseif ($context.osRole -eq "Server" -and $context.Domainjoined -eq $true) {
+} elseif ($context.osRole -eq "Server" -and $context.isDomainjoined -eq $true) {
     $auditResults.AccountSecurity.AuthentificationLevel.status = "PASS"
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Enable Windows Hello for Business via GPO or CSP."
 
@@ -518,7 +518,7 @@ if ($context.osRole -eq "Workstation" -and $context.Domainjoined -eq $true) {
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is not enabled."
     }
-} elseif ($context.osRole -eq "Server" -and $context.Domainjoined -eq $false) {
+} elseif ($context.osRole -eq "Server" -and $context.isDomainjoined -eq $false) {
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Disable Windows Hello (Consumer/Local) on servers."
 
     if ($authLevelAudit.Consumer -eq $true) {
