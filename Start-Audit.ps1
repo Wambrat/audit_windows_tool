@@ -203,18 +203,18 @@ if ($localUserAudit) {
         recommendations = @()
         comments = ""
     }
-    if (($localUserAudit.AdminAccountSID -match "-500$") -and ($localUserAudit.AdminEnabled -eq $true)){
+    if (($localUserAudit.Value.AdminAccountSID -match "-500$") -and ($localUserAudit.Value.AdminEnabled -eq $true)){
         Write-Host "`nLe compte Administrateur par defaut est active" -ForegroundColor Red
-        Write-Host $localUserAudit.AdminRecommandation.Enabled -ForegroundColor Yellow
+        Write-Host $localUserAudit.Value.AdminRecommandation.Enabled -ForegroundColor Yellow
         $auditResults.AccountSecurity.LocalAdminAccount.status = "FAIL"
-        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.AdminRecommandation.Enabled
+        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.Value.AdminRecommandation.Enabled
         $auditResults.AccountSecurity.LocalAdminAccount.comments += "Administrator default account is enabled."     
     }
     else {
-        Write-Host $localUserAudit.AdminRecommandation.Disabled -ForegroundColor Green
+        Write-Host "$($localUserAudit.Value.AdminRecommandation.Disabled)" -ForegroundColor Green
         
         $auditResults.AccountSecurity.LocalAdminAccount.status = "PASS"
-        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.AdminRecommandation.Disabled
+        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.Value.AdminRecommandation.Disabled
         $auditResults.AccountSecurity.LocalAdminAccount.comments += "Administrator default account is disabled."
     }
 
@@ -224,17 +224,17 @@ if ($localUserAudit) {
         recommendations = @()
         comments = ""
     }
-    if (($localUserAudit.GuestAccountSID -match "-501$") -and ($localUserAudit.GuestEnabled -eq $true)){
+    if (($localUserAudit.Value.GuestAccountSID -match "-501$") -and ($localUserAudit.Value.GuestEnabled -eq $true)){
         Write-Host "`nLe compte Invite par defaut est active" -ForegroundColor Red
-        Write-Host $localUserAudit.GuestRecommandation.Enabled -ForegroundColor Yellow
+        Write-Host $localUserAudit.Value.GuestRecommandation.Enabled -ForegroundColor Yellow
         $auditResults.AccountSecurity.LocalGuestAccount.status = "FAIL"
-        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.GuestRecommandation.Enabled
+        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.Value.GuestRecommandation.Enabled
         $auditResults.AccountSecurity.LocalGuestAccount.comments += "Guest default account is enabled."
 
     } else {
-        Write-Host $localUserAudit.GuestRecommandation.Disabled -ForegroundColor Green
+        Write-Host $localUserAudit.Value.GuestRecommandation.Disabled -ForegroundColor Green
         $auditResults.AccountSecurity.LocalGuestAccount.status = "PASS"
-        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.GuestRecommandation.Disabled
+        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.Value.GuestRecommandation.Disabled
         $auditResults.AccountSecurity.LocalGuestAccount.comments += "Guest default account is disabled."
     }
 }
@@ -2202,40 +2202,48 @@ $auditResults.DeviceSecurity.BitLocker = @{
 
 Write-Host "`n[+] Audit BitLocker :" -ForegroundColor Gray
 try {
-    $bitlocker = Get-BitLockerAudit
 
-    if ($bitlocker) {
-        $allEncrypted = $true
-        $blRecs = @()
-        foreach ($vol in $bitlocker) {
-            Write-Host "`n   Volume : $($vol.MountPoint) ($($vol.VolumeType))" -ForegroundColor Cyan
-            Write-Host "      ProtectionStatus   : $($vol.ProtectionStatus)  |  Chiffrement : $($vol.EncryptionPercent)% " -ForegroundColor Gray
-            if ($vol.ProtectionStatus -eq 'On' -and $vol.EncryptionPercent -ge 100) {
-                Write-Host "      [OK] Volume chiffre et protege." -ForegroundColor Green
-                $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is encrypted and protected. "
-            }
-            elseif ($vol.ProtectionStatus -eq 'Suspended') {
-                Write-Host "      [INFO] Protection suspendue." -ForegroundColor Yellow
-                $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) has suspended protection. "
-                $allEncrypted = $false
-            }
-            else {
-                Write-Host "      [ALERTE] Volume non protege ou chiffrement incomplet." -ForegroundColor Red
-                $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is not protected or encryption is incomplete. "
-                $allEncrypted = $false
-            }
+    if ($context.HardwareType -ne 'VirtualMachine') {
+        
+        $bitlocker = Get-BitLockerAudit
 
-            Write-Host "      TPM : $($vol.HasTPM)    PIN : $($vol.HasPIN)    RecoveryKey : $($vol.HasRecoveryPassword)" -ForegroundColor Gray
-            Write-Host "      Commentaire : $($vol.Comment)" -ForegroundColor Gray
-            Write-Host "      Recommandation : $($vol.Recommendation)" -ForegroundColor Yellow
-            $blRecs += $vol.Recommendation
+        if ($bitlocker) {
+            $allEncrypted = $true
+            $blRecs = @()
+            foreach ($vol in $bitlocker) {
+                Write-Host "`n   Volume : $($vol.MountPoint) ($($vol.VolumeType))" -ForegroundColor Cyan
+                Write-Host "      ProtectionStatus   : $($vol.ProtectionStatus)  |  Chiffrement : $($vol.EncryptionPercent)% " -ForegroundColor Gray
+                if ($vol.ProtectionStatus -eq 'On' -and $vol.EncryptionPercent -ge 100) {
+                    Write-Host "      [OK] Volume chiffre et protege." -ForegroundColor Green
+                    $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is encrypted and protected. "
+                }
+                elseif ($vol.ProtectionStatus -eq 'Suspended') {
+                    Write-Host "      [INFO] Protection suspendue." -ForegroundColor Yellow
+                    $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) has suspended protection. "
+                    $allEncrypted = $false
+                }
+                else {
+                    Write-Host "      [ALERTE] Volume non protege ou chiffrement incomplet." -ForegroundColor Red
+                    $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is not protected or encryption is incomplete. "
+                    $allEncrypted = $false
+                }
+
+                Write-Host "      TPM : $($vol.HasTPM)    PIN : $($vol.HasPIN)    RecoveryKey : $($vol.HasRecoveryPassword)" -ForegroundColor Gray
+                Write-Host "      Commentaire : $($vol.Comment)" -ForegroundColor Gray
+                Write-Host "      Recommandation : $($vol.Recommendation)" -ForegroundColor Yellow
+                $blRecs += $vol.Recommendation
+            }
+            $auditResults.DeviceSecurity.BitLocker.status = if ($allEncrypted) { "PASS" } else { "FAIL" }
+            $auditResults.DeviceSecurity.BitLocker.recommendations = ($blRecs | Select-Object -Unique) -join " | "
         }
-        $auditResults.DeviceSecurity.BitLocker.status = if ($allEncrypted) { "PASS" } else { "FAIL" }
-        $auditResults.DeviceSecurity.BitLocker.recommendations = ($blRecs | Select-Object -Unique) -join " | "
-    }
-    else {
-        Write-Error "Impossible d'auditer BitLocker (Get-BitLockerAudit n'a pas retourne de resultat)"
-        $auditResults.DeviceSecurity.BitLocker.status = "WARNING"
+        else {
+            Write-Error "Impossible d'auditer BitLocker (Get-BitLockerAudit n'a pas retourne de resultat)"
+            $auditResults.DeviceSecurity.BitLocker.status = "WARNING"
+        }
+    } else {
+        Write-Host "   [INFO] Systeme virtuel detecte — saut de l'audit BitLocker." -ForegroundColor Yellow
+        $auditResults.DeviceSecurity.BitLocker.status = "N/A"
+        $auditResults.DeviceSecurity.BitLocker.comments += "Virtual machine detected — BitLocker audit skipped. "
     }
 }
 catch {
