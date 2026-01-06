@@ -159,15 +159,15 @@ $htmlContent = @"
             <div class="filter-section">
                 <div class="filter-group">
                     <strong data-en="Vulnerabilities:" data-fr="Vuln&eacute;rabilit&eacute;s:">Vuln&eacute;rabilit&eacute;s:</strong>
-                    <button class="filter-btn unknown-btn" data-filter="status" data-value="unknown" data-en="Unknown" data-fr="Inconnu">Inconnu</button>
-                    <button class="filter-btn bad-btn" data-filter="status" data-value="bad" data-en="Non Compliant" data-fr="Non Conforme">Non Conforme</button>
-                    <button class="filter-btn warning-btn" data-filter="status" data-value="warning" data-en="Semi-Compliant" data-fr="Partiellement Conforme">Partiellement Conforme</button>
-                    <button class="filter-btn good-btn" data-filter="status" data-value="good" data-en="Compliant" data-fr="Conforme">Conforme</button>
+                    <button class="filter-btn unknown-btn" data-filter="status" data-value="unknown" data-en="Unknown" data-fr="Inconnu"></button>
+                    <button class="filter-btn bad-btn" data-filter="status" data-value="bad" data-en="Non Compliant" data-fr="Non Conforme"></button>
+                    <button class="filter-btn warning-btn" data-filter="status" data-value="warning" data-en="Semi-Compliant" data-fr="Partiellement Conforme"></button>
+                    <button class="filter-btn good-btn" data-filter="status" data-value="good" data-en="Compliant" data-fr="Conforme"></button>
                 </div>
                 <div class="filter-group">
                     <strong data-en="Remediations:" data-fr="R&eacute;m&eacute;diations:">R&eacute;m&eacute;diations:</strong>
-                    <button class="filter-btn auto-btn" data-filter="automation" data-value="auto" data-en="Automatic" data-fr="Automatique">Automatique</button>
-                    <button class="filter-btn manual-btn" data-filter="automation" data-value="manual" data-en="Manual" data-fr="Manuel">Manuel</button>
+                    <button class="filter-btn auto-btn" data-filter="automation" data-value="auto" data-en="Automatic" data-fr="Automatique"></button>
+                    <button class="filter-btn manual-btn" data-filter="automation" data-value="manual" data-en="Manual" data-fr="Manuel"></button>
                 </div>
             </div>
             

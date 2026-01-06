@@ -161,7 +161,7 @@ if ($failCount -gt 0) {
 if ($failCount -gt 0) {
     $htmlContent += @"
             <div class="recommendation" style="margin-top: 30px;">
-                <strong>⚠️ Action Required:</strong><br>
+                <strong>!!! Action Required:</strong><br>
                 <p style="margin-top: 10px;">Some remediations failed during execution. Please review the error messages above and:</p>
                 <ul style="margin-top: 10px; margin-left: 20px;">
                     <li>Check the system logs for more details</li>

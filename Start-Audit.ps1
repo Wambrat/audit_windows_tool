@@ -252,17 +252,29 @@ $privilegeAudits = Get-Privilege
 
 foreach ($audit in $privilegeAudits) {
     Write-Host "`n[+] Audit du privilege $($audit.Privilege) :" -ForegroundColor Gray
-    
+    $auditResults.AccountSecurity.Privilege = @{
+        status = ""
+        automatable = $false
+        recommendations = @()
+        comments = ""
+    }
+    $auditResults.AccountSecurity.Privilege.recommendations += $audit.Recommendation
     if ($audit.Configured) {
         Write-Host "Privilege configure : $($audit.Privilege)" -ForegroundColor Yellow
         Write-Host "Assigne a : $($audit.AssignedTo -join ', ')" -ForegroundColor Gray
         Write-Host "Administrateurs presents : $($audit.IsAdminPresent)" -ForegroundColor Gray
         Write-Host "Recommandation : $($audit.Recommendation)" -ForegroundColor Yellow
+        $auditResults.AccountSecurity.Privilege.status = "WARNING"
+        $auditResults.AccountSecurity.Privilege.comments += "Privilege $($audit.Privilege), assigned to $($audit.AssignedTo -join ', '). Admins present: $($audit.IsAdminPresent)."
     } else {
         Write-Host "Privilege non configure." -ForegroundColor Green
         Write-Host "Recommandation : $($audit.Recommendation)" -ForegroundColor Yellow
+        $auditResults.AccountSecurity.Privilege.status = "PASS"
+        $auditResults.AccountSecurity.Privilege.comments += "Privilege $($audit.Privilege) is not configured."
+
     }
 }
+Merge-AuditResults -Section $auditResults.AccountSecurity.Privilege -AuditData $audit
 
 
 
@@ -541,7 +553,6 @@ try {
 
     if ($uacAudit.UACEnabled -eq 1) {
         Write-Host "   [OK] L'UAC est active." -ForegroundColor Green
-        $auditResults.AccountSecurity.UAC.recommendations += "Keep UAC enabled to enhance security."
         $auditResults.AccountSecurity.UAC.comments += "UAC is enabled."
     } else {
         Write-Host "   [ALERTE] L'UAC est desactive." -ForegroundColor Red
@@ -559,7 +570,8 @@ try {
     }
 
     if ($uacAudit.LocalAccountTokenFilterPolicy -eq 1) {
-        Write-Host "   [OK] La politique de filtrage des tokens pour les comptes locaux est activee." -ForegroundColor Green
+        Write-Host "   [OK] La politique de filtrage des tokens pour les comptes locaux est activee." -ForegroundColor Red
+        $auditResults.AccountSecurity.UAC.status = "FAIL"
         $auditResults.AccountSecurity.UAC.comments += "Local Account Token Filter Policy is enabled."
     } else {
         Write-Host "   [ALERTE] La politique de filtrage des tokens pour les comptes locaux est desactivee (risque d'acces non administrateur via le reseau)." -ForegroundColor Red
