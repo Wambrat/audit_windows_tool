@@ -204,18 +204,18 @@ if ($localUserAudit) {
         recommendations = @()
         comments = ""
     }
-    if (($localUserAudit.AdminAccountSID -match "-500$") -and ($localUserAudit.AdminEnabled -eq $true)){
+    if (($localUserAudit.Value.AdminAccountSID -match "-500$") -and ($localUserAudit.Value.AdminEnabled -eq $true)){
         Write-Host "`nLe compte Administrateur par defaut est active" -ForegroundColor Red
-        Write-Host $localUserAudit.AdminRecommandation.Enabled -ForegroundColor Yellow
+        Write-Host $localUserAudit.Value.AdminRecommandation.Enabled -ForegroundColor Yellow
         $auditResults.AccountSecurity.LocalAdminAccount.status = "FAIL"
-        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.AdminRecommandation.Enabled
+        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.Value.AdminRecommandation.Enabled
         $auditResults.AccountSecurity.LocalAdminAccount.comments += "Administrator default account is enabled."     
     }
     else {
-        Write-Host $localUserAudit.AdminRecommandation.Disabled -ForegroundColor Green
+        Write-Host "$($localUserAudit.Value.AdminRecommandation.Disabled)" -ForegroundColor Green
         
         $auditResults.AccountSecurity.LocalAdminAccount.status = "PASS"
-        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.AdminRecommandation.Disabled
+        $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.Value.AdminRecommandation.Disabled
         $auditResults.AccountSecurity.LocalAdminAccount.comments += "Administrator default account is disabled."
     }
 
@@ -225,17 +225,17 @@ if ($localUserAudit) {
         recommendations = @()
         comments = ""
     }
-    if (($localUserAudit.GuestAccountSID -match "-501$") -and ($localUserAudit.GuestEnabled -eq $true)){
+    if (($localUserAudit.Value.GuestAccountSID -match "-501$") -and ($localUserAudit.Value.GuestEnabled -eq $true)){
         Write-Host "`nLe compte Invite par defaut est active" -ForegroundColor Red
-        Write-Host $localUserAudit.GuestRecommandation.Enabled -ForegroundColor Yellow
+        Write-Host $localUserAudit.Value.GuestRecommandation.Enabled -ForegroundColor Yellow
         $auditResults.AccountSecurity.LocalGuestAccount.status = "FAIL"
-        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.GuestRecommandation.Enabled
+        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.Value.GuestRecommandation.Enabled
         $auditResults.AccountSecurity.LocalGuestAccount.comments += "Guest default account is enabled."
 
     } else {
-        Write-Host $localUserAudit.GuestRecommandation.Disabled -ForegroundColor Green
+        Write-Host $localUserAudit.Value.GuestRecommandation.Disabled -ForegroundColor Green
         $auditResults.AccountSecurity.LocalGuestAccount.status = "PASS"
-        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.GuestRecommandation.Disabled
+        $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.Value.GuestRecommandation.Disabled
         $auditResults.AccountSecurity.LocalGuestAccount.comments += "Guest default account is disabled."
     }
 }
