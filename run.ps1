@@ -48,7 +48,10 @@
             $window.Close()
             
             try {
-                & $(Join-Path $PSScriptRoot "Start-Audit.ps1") -ErrorAction Stop | Out-Null
+                $scriptPath = Join-Path $PSScriptRoot "Start-Audit.ps1"
+
+                Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs -Wait -ErrorAction Stop
+
                 Show-AskingWindow -Message "Do you want to have a html report with results exported ?" -scriptPath "reports\ReportAuditHTML.ps1"
                 Show-AskingWindow -Message "Do you want to change to REMEDIATION mode now ?" -scriptPath "Start-Remediation.ps1"
                 Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
@@ -62,7 +65,10 @@
             $window.Close()
             
             try {
-                & $(Join-Path $PSScriptRoot "Start-Remediation.ps1") -ErrorAction Stop | Out-Null
+                $scriptPath = Join-Path $PSScriptRoot "Start-Remediation.ps1"
+
+                Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs -Wait -ErrorAction Stop
+                
                 Show-AskingWindow -Message "Do you want to have a html report with results of remediations ?" -scriptPath "reports\ReportRemediationHTML.ps1"
             }
             catch {
