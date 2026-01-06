@@ -158,7 +158,7 @@ $htmlContent = @"
                 <h2 style="color: #3483ff; margin-bottom: 20px; margin-top: 0;" data-en="Remediations Summary" data-fr="R&eacute;sum&eacute; des R&eacute;m&eacute;diations">R&eacute;sum&eacute; des R&eacute;m&eacute;diations</h2>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;" data-en="Number of Available Remediations" data-fr="Nombre de R&eacute;m&eacute;diations Disponibles">Nombre de R&eacute;m&eacute;diations Disponibles</div>
+                        <div style="font-size: 14px; color: #666; margin-bottom: 8px;" data-en="Number of Available Automatic Remediations" data-fr="Nombre de R&eacute;m&eacute;diations Disponibles">Nombre de R&eacute;m&eacute;diations Automatique Disponibles</div>
                         <div style="font-size: 28px; font-weight: bold; color: #3483ff;">$remediationCount</div>
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">

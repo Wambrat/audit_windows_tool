@@ -636,6 +636,8 @@ $auditResults.AccountSecurity.LocalGroups = @{
 Write-Host "`n[+] Audit des groupes locaux :" -Foregroundcolor Gray
 $groupsAudit = Get-GroupsAudit
 
+Write-Host $groupsAudit.GetType()
+
 if ($groupsAudit) {
     $auditResults.AccountSecurity.LocalGroups.status = "PASS"
     $auditResults.AccountSecurity.LocalGroups.recommendations += "A group should have at least one member. Verify local groups that have more than 3 members. Verify for unauthorized users."
@@ -649,8 +651,12 @@ if ($groupsAudit) {
         } else {
             Write-Host "   Membres : $($group.Members -join ', ')" -ForegroundColor Yellow
             # A voir je trouve que c'est un peu trop restreint comme alerte
-            if ($group.MembersCount -gt 1) {
+            if ($group.MembersCount -gt 3) {
                 Write-Host "   [ALERTE] Ce groupe contient un grand nombre de membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Red
+                $auditResults.AccountSecurity.LocalGroups.status = "FAIL"
+                $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has $($group.MembersCount) members. Verify for unauthorized users."
+            } elseif ( $group.MembersCount -gt 1) {
+                Write-Host "   [ATTENTION] Ce groupe contient plusieurs membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Yellow
                 $auditResults.AccountSecurity.LocalGroups.status = "WARNING"
                 $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has $($group.MembersCount) members. Verify for unauthorized users."
             } else {
@@ -676,9 +682,57 @@ $auditResults.AccountSecurity.SMBShares = @{
 Write-Host "`n[+] Audit des partages SMB :" -Foregroundcolor Gray
 $smbSharesAudit = Get-SMBSharesAudit
 
+if ($smbSharesAudit) {
+    $auditResults.AccountSecurity.SMBShares.recommendations += "Avoid using 'Everyone' group on SMB shares. Review share permissions and NTFS permissions for 'Everyone' group."
+    $smbSharesAudit | ForEach-Object {
+        $share = $_
+        $sharesAccess = Get-SmbShareAccess -Name $share.Name
+        $sharesAccess | Where-Object { $_.AccountName -eq 'Tout le monde' -and $_.AccessControlType -eq 'Allow' } | ForEach-Object {
+            Write-Host "`nAttention : Le partage SMB '"$($share.Name)"' est accessible par 'Tout le monde'. Chemin du partage : "$($share.Path) -ForegroundColor Red
+            Write-Host "Verification des droits NTFS du groupe 'Tout le monde' sur le repertoire partage..." -ForegroundColor Yellow
+            $NTFSAudit = Get-NTFSAudit -Path $share.Path -User 'Tout le monde'
+            if ($NTFSAudit.IsFullControl -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
+                Write-Host "Le groupe 'Tout le monde' dispose de droits Full Control sur le repertoire partage." -ForegroundColor Red
+                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible sans mot de passe" -ForegroundColor Red
+                $auditResults.AccountSecurity.SMBShares.status = "FAIL"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Full Control on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
+            } elseif ($NTFSAudit.CanWrite -eq $true -and $NTFSAudit.CanRead -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
+                Write-Host "Le groupe 'Tout le monde' dispose de droits en lecture et ecriture sur le repertoire partage." -ForegroundColor Red
+                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible en lecture ecriture sans mot de passe" -ForegroundColor Red
+                $auditResults.AccountSecurity.SMBShares.status = "FAIL"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Read and Write access on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
+            } elseif ($NTFSAudit.CanWrite -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
+                Write-Host "Le groupe 'Tout le monde' dispose de droits en ecriture sur le repertoire partage." -ForegroundColor Red
+                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible en ecriture sans mot de passe" -ForegroundColor Red
+                $auditResults.AccountSecurity.SMBShares.status = "FAIL"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Write access on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
+            } elseif ($NTFSAudit.CanRead -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
+                Write-Host "Le groupe 'Tout le monde' dispose de droits en lecture sur le repertoire partage." -ForegroundColor Yellow
+                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible en lecture sans mot de passe" -ForegroundColor Yellow
+                $auditResults.AccountSecurity.SMBShares.status = "WARNING"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Read access on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
+            } elseif ($NTFSAudit.RawRights -eq 0 -and $localUserAudit.GuestEnabled -eq $true) {
+                Write-Host "Le groupe 'Tout le monde' dispose de droits personnalises sur le repertoire partage." -ForegroundColor Yellow
+                Write-Host "Le compte invite est active sur ce systeme, le partage est possiblement accessible sans mot de passe" -ForegroundColor Yellow
+                $auditResults.AccountSecurity.SMBShares.status = "WARNING"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has custom rights on the SMB share '$($share.Name)'. Guest account is enabled, possibly allowing unauthenticated access."
+            } elseif ($localUserAudit.GuestEnabled -eq $false) {
+                Write-Host "Le compte invite est desactive sur ce systeme, le partage n'est pas accessible sans mot de passe." -ForegroundColor Green
+                $auditResults.AccountSecurity.SMBShares.status = "PASS"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has access on the SMB share '$($share.Name)', but the Guest account is disabled, preventing unauthenticated access."
+            } else {
+                Write-Host "Le groupe 'Tout le monde' ne dispose pas de droits de lecture ou ecriture sur le repertoire partage." -ForegroundColor Green
+                $auditResults.AccountSecurity.SMBShares.status = "PASS"
+                $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has no Read or Write access on the SMB share '$($share.Name)'."
+            }
+        }
+    }
+}
+
 Merge-AuditResults -Section $auditResults.AccountSecurity.SMBShares -AuditData $smbSharesAudit
 
 Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scriptStartDate $scriptStartDate -Depth 10
+
 ######################################
 #    Service & Application Audits    #
 ######################################

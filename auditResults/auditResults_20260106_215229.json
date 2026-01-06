@@ -1,0 +1,457 @@
+﻿{
+    "OSSecurity":  {
+                       "ServerAntivirusStatus":  {
+                                                     "comments":  "",
+                                                     "status":  "",
+                                                     "recommendations":  [
+
+                                                                         ],
+                                                     "automatable":  false
+                                                 },
+                       "LSASSProtection":  {
+                                               "comments":  "",
+                                               "status":  "",
+                                               "recommendations":  [
+
+                                                                   ],
+                                               "automatable":  false
+                                           },
+                       "PowershellLanguageMode":  {
+                                                      "comments":  "",
+                                                      "status":  "",
+                                                      "recommendations":  [
+
+                                                                          ],
+                                                      "automatable":  false
+                                                  },
+                       "LMHash":  {
+                                      "comments":  "",
+                                      "status":  "",
+                                      "recommendations":  [
+
+                                                          ],
+                                      "automatable":  false
+                                  },
+                       "ASR":  {
+                                   "comments":  "",
+                                   "status":  "",
+                                   "recommendations":  [
+
+                                                       ],
+                                   "automatable":  false
+                               },
+                       "OptionalFeatures":  {
+                                                "comments":  "",
+                                                "status":  "",
+                                                "recommendations":  [
+
+                                                                    ],
+                                                "automatable":  false
+                                            },
+                       "CredentialGuard":  {
+                                               "comments":  "",
+                                               "status":  "",
+                                               "recommendations":  [
+
+                                                                   ],
+                                               "automatable":  false
+                                           },
+                       "AppLocker":  {
+                                         "comments":  "",
+                                         "status":  "",
+                                         "recommendations":  [
+
+                                                             ],
+                                         "automatable":  false
+                                     },
+                       "SRP":  {
+                                   "comments":  "",
+                                   "status":  "",
+                                   "recommendations":  [
+
+                                                       ],
+                                   "automatable":  false
+                               },
+                       "NetworkProtection":  {
+                                                 "comments":  "",
+                                                 "status":  "",
+                                                 "recommendations":  [
+
+                                                                     ],
+                                                 "automatable":  false
+                                             },
+                       "SmartAppControl":  {
+                                               "comments":  "",
+                                               "status":  "",
+                                               "recommendations":  [
+
+                                                                   ],
+                                               "automatable":  false
+                                           },
+                       "ControlledFolderAccess":  {
+                                                      "comments":  "",
+                                                      "status":  "",
+                                                      "recommendations":  [
+
+                                                                          ],
+                                                      "automatable":  false
+                                                  },
+                       "ExploitProtection":  {
+                                                 "comments":  "",
+                                                 "status":  "",
+                                                 "recommendations":  [
+
+                                                                     ],
+                                                 "automatable":  false
+                                             }
+                   },
+    "HostContext":  {
+                        "Hostname":  "PC_PERSO_RYAN_C",
+                        "OSRole":  "Workstation",
+                        "HardwareType":  "Physical",
+                        "Manufacturer":  "ASUSTeK COMPUTER INC.",
+                        "Model":  "ZenBook UX325EA_UX325EA",
+                        "IsDomainJoined":  false,
+                        "Timestamp":  {
+                                          "value":  "\/Date(1767732749681)\/",
+                                          "DisplayHint":  2,
+                                          "DateTime":  "mardi 6 janvier 2026 21:52:29"
+                                      },
+                        "IPAddresses":  "192.168.237.1, 192.168.91.1, 192.168.1.22, 100.109.100.115, fe80::74df:5d4:126a:a088, fd7a:115c:a1e0::dd01:6473, 10.2.0.2, 10.2.0.2, 192.168.56.1",
+                        "DomainName":  "WORKGROUP",
+                        "CurrentUser":  "PC_PERSO_RYAN_C\\perso",
+                        "IsRunAsAdmin":  false
+                    },
+    "Logging":  {
+                    "EventForwardingStatus":  {
+                                                  "comments":  "",
+                                                  "status":  "",
+                                                  "recommendations":  [
+
+                                                                      ],
+                                                  "automatable":  false
+                                              },
+                    "LogStatus":  {
+                                      "comments":  "",
+                                      "status":  "",
+                                      "recommendations":  [
+
+                                                          ],
+                                      "automatable":  false
+                                  },
+                    "LogAgentStatus":  {
+                                           "comments":  "",
+                                           "status":  "",
+                                           "recommendations":  [
+
+                                                               ],
+                                           "automatable":  false
+                                       }
+                },
+    "AccountSecurity":  {
+                            "LocalGuestAccount":  {
+                                                      "comments":  "Guest default account is disabled.",
+                                                      "status":  "PASS",
+                                                      "recommendations":  [
+                                                                              "\rLe compte Invite est bien desactive."
+                                                                          ],
+                                                      "automatable":  false,
+                                                      "Value":  {
+                                                                    "AdminAccountName":  "Administrateur",
+                                                                    "AdminAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-500",
+                                                                    "AdminEnabled":  false,
+                                                                    "AdminRecommandation":  {
+                                                                                                "Disabled":  "\rLe compte Administrateur par defaut est desactive reduisant la surface d\u0027attaque.",
+                                                                                                "Enabled":  "\rLe compte Administrateur (SID-500) est active. C\u0027est une cible privilegiee car son SID est connu de tous.\rRecommandation : Desactivez-le et utilisez des comptes nominatifs ou LAPS."
+                                                                                            },
+                                                                    "GuestAccountName":  "Invité",
+                                                                    "GuestAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-501",
+                                                                    "GuestEnabled":  false,
+                                                                    "GuestRecommandation":  {
+                                                                                                "Disabled":  "\rLe compte Invite est bien desactive.",
+                                                                                                "Enabled":  "\rLe compte Invite est active. Cela peut permettre un acces anonyme ou non trace au systeme. Recommandation : Desactivez ce compte immediatement."
+                                                                                            },
+                                                                    "OtherAdminsCount":  1,
+                                                                    "OtherAdminsList":  "PC_PERSO_RYAN_C\\perso",
+                                                                    "Timestamp":  {
+                                                                                      "value":  "\/Date(1767732749847)\/",
+                                                                                      "DisplayHint":  2,
+                                                                                      "DateTime":  "mardi 6 janvier 2026 21:52:29"
+                                                                                  }
+                                                                }
+                                                  },
+                            "LocalGroups":  {
+                                                "Members":  [
+                                                                "PC_PERSO_RYAN_C\\Administrateur",
+                                                                "PC_PERSO_RYAN_C\\perso"
+                                                            ],
+                                                "recommendations":  [
+                                                                        "A group should have at least one member. Verify local groups that have more than 3 members. Verify for unauthorized users."
+                                                                    ],
+                                                "automatable":  false,
+                                                "MembersCount":  2,
+                                                "GroupName":  "Administrateurs",
+                                                "comments":  "The local group \u0027Administrateurs\u0027 has 2 members. Verify for unauthorized users.",
+                                                "status":  "WARNING"
+                                            },
+                            "LocalAdminAccount":  {
+                                                      "comments":  "Administrator default account is disabled.",
+                                                      "status":  "PASS",
+                                                      "recommendations":  [
+                                                                              "\rLe compte Administrateur par defaut est desactive reduisant la surface d\u0027attaque."
+                                                                          ],
+                                                      "automatable":  false,
+                                                      "Value":  {
+                                                                    "AdminAccountName":  "Administrateur",
+                                                                    "AdminAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-500",
+                                                                    "AdminEnabled":  false,
+                                                                    "AdminRecommandation":  {
+                                                                                                "Disabled":  "\rLe compte Administrateur par defaut est desactive reduisant la surface d\u0027attaque.",
+                                                                                                "Enabled":  "\rLe compte Administrateur (SID-500) est active. C\u0027est une cible privilegiee car son SID est connu de tous.\rRecommandation : Desactivez-le et utilisez des comptes nominatifs ou LAPS."
+                                                                                            },
+                                                                    "GuestAccountName":  "Invité",
+                                                                    "GuestAccountSID":  "S-1-5-21-3914197287-3561821341-1676494053-501",
+                                                                    "GuestEnabled":  false,
+                                                                    "GuestRecommandation":  {
+                                                                                                "Disabled":  "\rLe compte Invite est bien desactive.",
+                                                                                                "Enabled":  "\rLe compte Invite est active. Cela peut permettre un acces anonyme ou non trace au systeme. Recommandation : Desactivez ce compte immediatement."
+                                                                                            },
+                                                                    "OtherAdminsCount":  1,
+                                                                    "OtherAdminsList":  "PC_PERSO_RYAN_C\\perso",
+                                                                    "Timestamp":  {
+                                                                                      "value":  "\/Date(1767732749847)\/",
+                                                                                      "DisplayHint":  2,
+                                                                                      "DateTime":  "mardi 6 janvier 2026 21:52:29"
+                                                                                  }
+                                                                }
+                                                  },
+                            "ADPasswordPolicy":  {
+                                                     "comments":  "",
+                                                     "status":  "",
+                                                     "recommendations":  [
+
+                                                                         ],
+                                                     "automatable":  false
+                                                 },
+                            "UAC":  {
+                                        "comments":  "UAC is disabled.Administrator Token Filtering is disabled.Local Account Token Filter Policy is disabled.",
+                                        "status":  "FAIL",
+                                        "recommendations":  [
+                                                                "Enable UAC to enhance security.",
+                                                                "Enable Administrator Token Filtering to enhance security.",
+                                                                "Enable Local Account Token Filter Policy to prevent non-administrator network access."
+                                                            ],
+                                        "automatable":  false
+                                    },
+                            "LocalPasswordPolicy":  {
+                                                        "recommendations":  [
+                                                                                "Password Policy length must be at least ",
+                                                                                "Password Complexity must be ",
+                                                                                "Account Lockout Policy must be "
+                                                                            ],
+                                                        "Error":  "Impossible de generer le fichier d\u0027export SecEdit.",
+                                                        "automatable":  false,
+                                                        "comments":  "Password length requirement is met.Password complexity requirement is met.Account lockout requirement is met.",
+                                                        "status":  "Error",
+                                                        "Check":  "Password Policy"
+                                                    },
+                            "JEA":  {
+                                        "Comment":  "Le service WinRM est present mais non actif; les points de terminaison JEA ne seront pas utilisables.",
+                                        "recommendations":  [
+                                                                null
+                                                            ],
+                                        "WinRmState":  "Stopped",
+                                        "RoleCapabilityFiles":  [
+
+                                                                ],
+                                        "automatable":  false,
+                                        "HasJEASessionConfig":  false,
+                                        "PSModulePaths":  [
+
+                                                          ],
+                                        "comments":  "WinRM is stopped; JEA cannot be used.",
+                                        "status":  "FAIL",
+                                        "SessionConfigurations":  [
+
+                                                                  ]
+                                    },
+                            "SMBShares":  {
+                                              "comments":  "The \u0027Everyone\u0027 group has no Read or Write access on the SMB share \u0027MS Publisher Color Printer\u0027.The \u0027Everyone\u0027 group has no Read or Write access on the SMB share \u0027print$\u0027.",
+                                              "status":  "PASS",
+                                              "recommendations":  [
+                                                                      "Avoid using \u0027Everyone\u0027 group on SMB shares. Review share permissions and NTFS permissions for \u0027Everyone\u0027 group.",
+                                                                      "Avoid using \u0027Everyone\u0027 group on SMB shares. Review share permissions and NTFS permissions for \u0027Everyone\u0027 group.",
+                                                                      "Avoid using \u0027Everyone\u0027 group on SMB shares. Review share permissions and NTFS permissions for \u0027Everyone\u0027 group.",
+                                                                      "Avoid using \u0027Everyone\u0027 group on SMB shares. Review share permissions and NTFS permissions for \u0027Everyone\u0027 group.",
+                                                                      "Avoid using \u0027Everyone\u0027 group on SMB shares. Review share permissions and NTFS permissions for \u0027Everyone\u0027 group."
+                                                                  ],
+                                              "automatable":  false
+                                          },
+                            "LAPS":  {
+                                         "IsLegacy":  false,
+                                         "Details":  [
+
+                                                     ],
+                                         "recommendations":  [
+
+                                                             ],
+                                         "DetectedMethods":  "None",
+                                         "automatable":  false,
+                                         "IsModern":  false,
+                                         "comments":  "",
+                                         "status":  "FAIL",
+                                         "Check":  "LAPS Configuration",
+                                         "Timestamp":  "\/Date(1767732750072)\/"
+                                     },
+                            "Privilege":  {
+                                              "recommendations":  [
+                                                                      " SeLoadDriverPrivilege n\u0027est pas configure explicitement; appliquez une politique qui restreint ce droit a un ensemble minimal de comptes administrateurs. Limiter SeLoadDriverPrivilege (Load and unload device drivers)."
+                                                                  ],
+                                              "automatable":  false,
+                                              "Configured":  false,
+                                              "comments":  "Privilege SeLoadDriverPrivilege is not configured.",
+                                              "status":  "PASS",
+                                              "Privilege":  "SeLoadDriverPrivilege",
+                                              "IsAdminPresent":  false
+                                          },
+                            "AuthentificationLevel":  {
+                                                          "recommendations":  [
+                                                                                  "Consider using Windows Hello even in a no domain-joined environment."
+                                                                              ],
+                                                          "CSP":  false,
+                                                          "automatable":  false,
+                                                          "GPO":  false,
+                                                          "status":  "FAIL",
+                                                          "comments":  "Windows Hello (Consumer/Local) is not enabled.",
+                                                          "Consumer":  false
+                                                      }
+                        },
+    "NetworkSecurity":  {
+                            "Firewall":  {
+                                             "comments":  "",
+                                             "status":  "",
+                                             "recommendations":  [
+
+                                                                 ],
+                                             "automatable":  false
+                                         },
+                            "VPN":  {
+                                        "comments":  "",
+                                        "status":  "",
+                                        "recommendations":  [
+
+                                                            ],
+                                        "automatable":  false
+                                    },
+                            "NetBIOS":  {
+                                            "comments":  "",
+                                            "status":  "",
+                                            "recommendations":  [
+
+                                                                ],
+                                            "automatable":  false
+                                        },
+                            "LLMNR":  {
+                                          "comments":  "",
+                                          "status":  "",
+                                          "recommendations":  [
+
+                                                              ],
+                                          "automatable":  false
+                                      },
+                            "IPv6":  {
+                                         "comments":  "",
+                                         "status":  "",
+                                         "recommendations":  [
+
+                                                             ],
+                                         "automatable":  false
+                                     }
+                        },
+    "UpdateManagement":  {
+                             "NTFS":  {
+                                          "comments":  "",
+                                          "status":  "",
+                                          "recommendations":  [
+
+                                                              ],
+                                          "automatable":  false
+                                      },
+                             "LastReboot":  {
+                                                "comments":  "",
+                                                "status":  "",
+                                                "recommendations":  [
+
+                                                                    ],
+                                                "automatable":  false
+                                            }
+                         },
+    "DeviceSecurity":  {
+                           "ThirdPartyEncryptionIndicators":  {
+                                                                  "comments":  "",
+                                                                  "status":  "",
+                                                                  "recommendations":  [
+
+                                                                                      ],
+                                                                  "automatable":  false
+                                                              },
+                           "BitLocker":  {
+                                             "comments":  "",
+                                             "status":  "",
+                                             "recommendations":  [
+
+                                                                 ],
+                                             "automatable":  false
+                                         },
+                           "AutoRun":  {
+                                           "comments":  "",
+                                           "status":  "",
+                                           "recommendations":  [
+
+                                                               ],
+                                           "automatable":  false
+                                       }
+                       },
+    "ServicesAndApplications":  {
+                                    "InstalledApplications":  {
+                                                                  "comments":  "",
+                                                                  "status":  "",
+                                                                  "recommendations":  [
+
+                                                                                      ],
+                                                                  "automatable":  false
+                                                              },
+                                    "RDP":  {
+                                                "comments":  "",
+                                                "status":  "",
+                                                "recommendations":  [
+
+                                                                    ],
+                                                "automatable":  false
+                                            },
+                                    "SMB":  {
+                                                "comments":  "",
+                                                "status":  "",
+                                                "recommendations":  [
+
+                                                                    ],
+                                                "automatable":  false
+                                            },
+                                    "WinRM":  {
+                                                  "comments":  "",
+                                                  "status":  "",
+                                                  "recommendations":  [
+
+                                                                      ],
+                                                  "automatable":  false
+                                              },
+                                    "Updates":  {
+                                                    "comments":  "",
+                                                    "status":  "",
+                                                    "recommendations":  [
+
+                                                                        ],
+                                                    "automatable":  false
+                                                }
+                                }
+}
