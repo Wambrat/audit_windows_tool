@@ -1,4 +1,4 @@
-﻿function Get-UACAuditzerzer{
+﻿function Get-UACAudit{
     [CmdletBinding()]
     param()
 
@@ -135,4 +135,5 @@
     }
 }
     
+
 
