@@ -161,8 +161,19 @@ function Export-AuditResultsToJson {
     }
 }
 
+function Add-ToLog {
+    param (
+        [string]$Message,
+        [string]$ForegroundColor = "White"
+    )
+
+    Write-Host $Message -ForegroundColor $ForegroundColor
+    #ajouter dans le fichier de log
+    Add-Content -Path "$PSScriptRoot\audit.log" -Value "$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) - $Message"
+}
+
 # --- Execution de l'Audit ---
-Write-Host "Demarrage de l'audit sur $env:COMPUTERNAME..." -ForegroundColor Green
+Add-ToLog -Message "Demarrage de l'audit sur $env:COMPUTERNAME..." -ForegroundColor Green
 
 # 1. Recuperation du contexte (appel de notre fonction importee)
 $context = Get-HostContext
@@ -170,15 +181,15 @@ $context = Get-HostContext
 $auditResults.HostContext = $context
 
 if ($context) {
-    Write-Host "`n[+] Contexte Identifie :" -ForegroundColor Yellow
+    Add-ToLog -Message "`n[+] Contexte Identifie :" -ForegroundColor Yellow
     $context | Format-List
     
     # Logique conditionnelle base sur le contexte
     if ($context.OSRole -eq "Server") {
-        Write-Host ">> Mode Audit Serveur active." -ForegroundColor Gray
+        Add-ToLog -Message ">> Mode Audit Serveur active." -ForegroundColor Gray
     }
     elseif ($context.HardwareType -eq "Virtual Machine") {
-        Write-Host ">> Machine Virtuelle detectee : Verification des Integration Tools requise." -ForegroundColor Gray
+        Add-ToLog -Message ">> Machine Virtuelle detectee : Verification des Integration Tools requise." -ForegroundColor Gray
     }
 }
 else {
@@ -196,7 +207,7 @@ $auditResults.AccountSecurity = @{}
 $localUserAudit = Get-LocalUserAudit
 
 if ($localUserAudit) {
-    Write-Host "`n[+] Comptes locaux identifies :" -ForegroundColor Gray
+    Add-ToLog -Message "`n[+] Comptes locaux identifies :" -ForegroundColor Gray
     $auditResults.AccountSecurity.LocalAdminAccount = @{
         status = ""
         automatable = $false
@@ -204,14 +215,14 @@ if ($localUserAudit) {
         comments = ""
     }
     if (($localUserAudit.Value.AdminAccountSID -match "-500$") -and ($localUserAudit.Value.AdminEnabled -eq $true)){
-        Write-Host "`nLe compte Administrateur par defaut est active" -ForegroundColor Red
-        Write-Host $localUserAudit.Value.AdminRecommandation.Enabled -ForegroundColor Yellow
+        Add-ToLog -Message "`nLe compte Administrateur par defaut est active" -ForegroundColor Red
+        Add-ToLog -Message $localUserAudit.Value.AdminRecommandation.Enabled -ForegroundColor Yellow
         $auditResults.AccountSecurity.LocalAdminAccount.status = "FAIL"
         $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.Value.AdminRecommandation.Enabled
         $auditResults.AccountSecurity.LocalAdminAccount.comments += "Administrator default account is enabled."     
     }
     else {
-        Write-Host "$($localUserAudit.Value.AdminRecommandation.Disabled)" -ForegroundColor Green
+        Add-ToLog -Message "$($localUserAudit.Value.AdminRecommandation.Disabled)" -ForegroundColor Green
         
         $auditResults.AccountSecurity.LocalAdminAccount.status = "PASS"
         $auditResults.AccountSecurity.LocalAdminAccount.recommendations += $localUserAudit.Value.AdminRecommandation.Disabled
@@ -225,14 +236,14 @@ if ($localUserAudit) {
         comments = ""
     }
     if (($localUserAudit.Value.GuestAccountSID -match "-501$") -and ($localUserAudit.Value.GuestEnabled -eq $true)){
-        Write-Host "`nLe compte Invite par defaut est active" -ForegroundColor Red
-        Write-Host $localUserAudit.Value.GuestRecommandation.Enabled -ForegroundColor Yellow
+        Add-ToLog -Message "`nLe compte Invite par defaut est active" -ForegroundColor Red
+        Add-ToLog -Message $localUserAudit.Value.GuestRecommandation.Enabled -ForegroundColor Yellow
         $auditResults.AccountSecurity.LocalGuestAccount.status = "FAIL"
         $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.Value.GuestRecommandation.Enabled
         $auditResults.AccountSecurity.LocalGuestAccount.comments += "Guest default account is enabled."
 
     } else {
-        Write-Host $localUserAudit.Value.GuestRecommandation.Disabled -ForegroundColor Green
+        Add-ToLog -Message $localUserAudit.Value.GuestRecommandation.Disabled -ForegroundColor Green
         $auditResults.AccountSecurity.LocalGuestAccount.status = "PASS"
         $auditResults.AccountSecurity.LocalGuestAccount.recommendations += $localUserAudit.Value.GuestRecommandation.Disabled
         $auditResults.AccountSecurity.LocalGuestAccount.comments += "Guest default account is disabled."
@@ -250,7 +261,7 @@ Merge-AuditResults -Section $auditResults.AccountSecurity.LocalGuestAccount -Aud
 $privilegeAudits = Get-Privilege
 
 foreach ($audit in $privilegeAudits) {
-    Write-Host "`n[+] Audit du privilege $($audit.Privilege) :" -ForegroundColor Gray
+    Add-ToLog -Message "`n[+] Audit du privilege $($audit.Privilege) :" -ForegroundColor Gray
     $auditResults.AccountSecurity.Privilege = @{
         status = ""
         automatable = $false
@@ -259,15 +270,15 @@ foreach ($audit in $privilegeAudits) {
     }
     $auditResults.AccountSecurity.Privilege.recommendations += $audit.Recommendation
     if ($audit.Configured) {
-        Write-Host "Privilege configure : $($audit.Privilege)" -ForegroundColor Yellow
-        Write-Host "Assigne a : $($audit.AssignedTo -join ', ')" -ForegroundColor Gray
-        Write-Host "Administrateurs presents : $($audit.IsAdminPresent)" -ForegroundColor Gray
-        Write-Host "Recommandation : $($audit.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "Privilege configure : $($audit.Privilege)" -ForegroundColor Yellow
+        Add-ToLog -Message "Assigne a : $($audit.AssignedTo -join ', ')" -ForegroundColor Gray
+        Add-ToLog -Message "Administrateurs presents : $($audit.IsAdminPresent)" -ForegroundColor Gray
+        Add-ToLog -Message "Recommandation : $($audit.Recommendation)" -ForegroundColor Yellow
         $auditResults.AccountSecurity.Privilege.status = "WARNING"
         $auditResults.AccountSecurity.Privilege.comments += "Privilege $($audit.Privilege), assigned to $($audit.AssignedTo -join ', '). Admins present: $($audit.IsAdminPresent)."
     } else {
-        Write-Host "Privilege non configure." -ForegroundColor Green
-        Write-Host "Recommandation : $($audit.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "Privilege non configure." -ForegroundColor Green
+        Add-ToLog -Message "Recommandation : $($audit.Recommendation)" -ForegroundColor Yellow
         $auditResults.AccountSecurity.Privilege.status = "PASS"
         $auditResults.AccountSecurity.Privilege.comments += "Privilege $($audit.Privilege) is not configured."
 
@@ -286,7 +297,7 @@ $auditResults.AccountSecurity.LAPS = @{
 }
 
 $lapsAudit = Get-LAPSAudit
-Write-Host "`n[+] Audit de la configuration LAPS :" -Foregroundcolor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration LAPS :" -Foregroundcolor Gray
 
 if ($lapsaudit){
 
@@ -296,23 +307,23 @@ if ($lapsaudit){
         # Affichage dynamique selon le resultat
         switch ($lapsAudit.Status) {
             "PASS" {
-                Write-Host "   [OK] $($lapsAudit.DetectedMethods)" -ForegroundColor Green
+                Add-ToLog -Message "   [OK] $($lapsAudit.DetectedMethods)" -ForegroundColor Green
                 # Si on a un warning mineur (ex: Legacy + Modern en meme temps)
                 if ($lapsAudit.Recommendation -match "ATTENTION") {
-                    Write-Host "   $($lapsAudit.Recommendation)" -ForegroundColor Magenta
+                    Add-ToLog -Message "   $($lapsAudit.Recommendation)" -ForegroundColor Magenta
                 }
                 $auditResults.AccountSecurity.LAPS.status = "PASS"
                 $auditResults.AccountSecurity.LAPS.comments += "LAPS configuration is compliant."
             }
             "WARNING" {
                 # Cas specifique Legacy seul
-                Write-Host "   [OBSOLETE] $($lapsAudit.DetectedMethods)" -ForegroundColor Orange
-                Write-Host "   -> $($lapsAudit.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "   [OBSOLETE] $($lapsAudit.DetectedMethods)" -ForegroundColor Orange
+                Add-ToLog -Message "   -> $($lapsAudit.Recommendation)" -ForegroundColor Yellow
                 $auditResults.AccountSecurity.LAPS.status = "WARNING"
                 $auditResults.AccountSecurity.LAPS.comments += "LAPS configuration uses obsolete methods."
             }
             "FAIL" {
-                Write-Host "   [ALERTE] $($lapsAudit.Recommendation)" -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] $($lapsAudit.Recommendation)" -ForegroundColor Red
                 $auditResults.AccountSecurity.LAPS.status = "FAIL"
                 $auditResults.AccountSecurity.LAPS.comments += "LAPS is not configured."
             }
@@ -320,7 +331,7 @@ if ($lapsaudit){
 
     }
     else {
-        Write-Host "`rLa machine n'est pas jointe a un domaine. LAPS n'est pas auditable" -ForegroundColor Magenta
+        Add-ToLog -Message "`rLa machine n'est pas jointe a un domaine. LAPS n'est pas auditable" -ForegroundColor Magenta
     }
 }
 
@@ -347,7 +358,7 @@ if ($context.isDomainjoined -eq $true){
     if ($adPasswordPolicy -and $context.isDomainjoined -eq $true) {
         $auditResults.AccountSecurity.ADPasswordPolicy.status = "PASS"
 
-        Write-Host "`n[+] Audit des politiques de mots de passe Active Directory :" -Foregroundcolor Gray
+        Add-ToLog -Message "`n[+] Audit des politiques de mots de passe Active Directory :" -Foregroundcolor Gray
         try {
             $auditResults.AccountSecurity.ADPasswordPolicy.recommendations += "AD Password Policy length must be at least $($adPasswordPolicy.MinLengthReco)"
             $auditResults.AccountSecurity.ADPasswordPolicy.recommendations += "AD Password Complexity must be $($adPasswordPolicy.ComplexityReco)"
@@ -355,42 +366,42 @@ if ($context.isDomainjoined -eq $true){
                 
             # Affichage Longueur
             if ($adPasswordPolicy.MinLengthStatus -eq "FAIL") {
-                Write-Host "   [LONGUEUR]   [ALERTE] $($adPasswordPolicy.MinLengthReco)" -ForegroundColor Red
+                Add-ToLog -Message "   [LONGUEUR]   [ALERTE] $($adPasswordPolicy.MinLengthReco)" -ForegroundColor Red
                 $auditResults.AccountSecurity.ADPasswordPolicy.status = "FAIL"
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Password length requirement is not met."
             } else {
-                Write-Host "   [LONGUEUR]   [OK] $($adPasswordPolicy.MinLengthReco)" -ForegroundColor Green
+                Add-ToLog -Message "   [LONGUEUR]   [OK] $($adPasswordPolicy.MinLengthReco)" -ForegroundColor Green
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Password length requirement is met."
             }
 
             # Affichage Complexite
             if ($adPasswordPolicy.ComplexityStatus -eq "FAIL") {
-                Write-Host "   [COMPLEXITE] [ALERTE] $($adPasswordPolicy.ComplexityReco)" -ForegroundColor Red
+                Add-ToLog -Message "   [COMPLEXITE] [ALERTE] $($adPasswordPolicy.ComplexityReco)" -ForegroundColor Red
                 $auditResults.AccountSecurity.ADPasswordPolicy.status = "FAIL"
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Password complexity requirement is not met."
             } else {
-                Write-Host "   [COMPLEXITE] [OK] $($adPasswordPolicy.ComplexityReco)" -ForegroundColor Green
+                Add-ToLog -Message "   [COMPLEXITE] [OK] $($adPasswordPolicy.ComplexityReco)" -ForegroundColor Green
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Password complexity requirement is met."
             }
 
             # Affichage Verrouillage
             if ($adPasswordPolicy.LockoutStatus -eq "FAIL") {
-                Write-Host "   [BLOCAGE]    [ALERTE] $($adPasswordPolicy.LockoutReco)" -ForegroundColor Red
+                Add-ToLog -Message "   [BLOCAGE]    [ALERTE] $($adPasswordPolicy.LockoutReco)" -ForegroundColor Red
                 $auditResults.AccountSecurity.ADPasswordPolicy.status = "FAIL"
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Account lockout requirement is not met."
             } elseif ($adPasswordPolicy.LockoutStatus -eq "WARNING") {
-                Write-Host "   [BLOCAGE]    [MOYEN] $($adPasswordPolicy.LockoutReco)" -ForegroundColor Magenta
+                Add-ToLog -Message "   [BLOCAGE]    [MOYEN] $($adPasswordPolicy.LockoutReco)" -ForegroundColor Magenta
                 if ($auditResults.AccountSecurity.ADPasswordPolicy.status -ne "FAIL") {
                     $auditResults.AccountSecurity.ADPasswordPolicy.status = "WARNING"
                 }
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Account lockout requirement is partially met."
             } else {
-                Write-Host "   [BLOCAGE]    [OK] $($adPasswordPolicy.LockoutReco)" -ForegroundColor Green
+                Add-ToLog -Message "   [BLOCAGE]    [OK] $($adPasswordPolicy.LockoutReco)" -ForegroundColor Green
                 $auditResults.AccountSecurity.ADPasswordPolicy.comments += "AD Account lockout requirement is met."
             }
         }
         catch {
-            Write-Host "Erreur lors de l'affichage des resultats de l'audit de la politique de mot de passe AD"
+            Add-ToLog -Message "Erreur lors de l'affichage des resultats de l'audit de la politique de mot de passe AD"
         }
     }
     Merge-AuditResults -Section $auditResults.AccountSecurity.ADPasswordPolicy -AuditData $adPasswordPolicy
@@ -403,7 +414,7 @@ if ($context.isDomainjoined -eq $true){
         comments = ""
     }
 
-    Write-Host "`n[+] Audit des politiques de mots de passe :" -Foregroundcolor Gray
+    Add-ToLog -Message "`n[+] Audit des politiques de mots de passe :" -Foregroundcolor Gray
 
     
     try {
@@ -417,43 +428,43 @@ if ($context.isDomainjoined -eq $true){
                 
             # Affichage Longueur
             if ($passwordPolicy.MinLengthStatus -eq "FAIL") {
-                Write-Host "   [LONGUEUR]   [ALERTE] $($passwordPolicy.MinLengthReco)" -ForegroundColor Red
+                Add-ToLog -Message "   [LONGUEUR]   [ALERTE] $($passwordPolicy.MinLengthReco)" -ForegroundColor Red
                 $auditResults.AccountSecurity.LocalPasswordPolicy.status = "FAIL"
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Password length requirement is not met."
             } else {
-                Write-Host "   [LONGUEUR]   [OK] $($passwordPolicy.MinLengthReco)" -ForegroundColor Green
+                Add-ToLog -Message "   [LONGUEUR]   [OK] $($passwordPolicy.MinLengthReco)" -ForegroundColor Green
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Password length requirement is met."
             }
 
             # Affichage Complexite
             if ($passwordPolicy.ComplexityStatus -eq "FAIL") {
-                Write-Host "   [COMPLEXITE] [ALERTE] $($passwordPolicy.ComplexityReco)" -ForegroundColor Red
+                Add-ToLog -Message "   [COMPLEXITE] [ALERTE] $($passwordPolicy.ComplexityReco)" -ForegroundColor Red
                 $auditResults.AccountSecurity.LocalPasswordPolicy.status = "FAIL"
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Password complexity requirement is not met."
             } else {
-                Write-Host "   [COMPLEXITE] [OK] $($passwordPolicy.ComplexityReco)" -ForegroundColor Green
+                Add-ToLog -Message "   [COMPLEXITE] [OK] $($passwordPolicy.ComplexityReco)" -ForegroundColor Green
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Password complexity requirement is met."
             }
 
             # Affichage Verrouillage
             if ($passwordPolicy.LockoutStatus -eq "FAIL") {
-                Write-Host "   [BLOCAGE]    [ALERTE] $($passwordPolicy.LockoutReco)" -ForegroundColor Red
+                Add-ToLog -Message "   [BLOCAGE]    [ALERTE] $($passwordPolicy.LockoutReco)" -ForegroundColor Red
                 $auditResults.AccountSecurity.LocalPasswordPolicy.status = "FAIL"
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Account lockout requirement is not met."
             } elseif ($passwordPolicy.LockoutStatus -eq "WARNING") {
-                Write-Host "   [BLOCAGE]    [MOYEN] $($passwordPolicy.LockoutReco)" -ForegroundColor Magenta
+                Add-ToLog -Message "   [BLOCAGE]    [MOYEN] $($passwordPolicy.LockoutReco)" -ForegroundColor Magenta
                 if ($auditResults.AccountSecurity.LocalPasswordPolicy.status -ne "FAIL") {
                     $auditResults.AccountSecurity.LocalPasswordPolicy.status = "WARNING"
                 }
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Account lockout requirement is partially met."
             } else {
-                Write-Host "   [BLOCAGE]    [OK] $($passwordPolicy.LockoutReco)" -ForegroundColor Green
+                Add-ToLog -Message "   [BLOCAGE]    [OK] $($passwordPolicy.LockoutReco)" -ForegroundColor Green
                 $auditResults.AccountSecurity.LocalPasswordPolicy.comments += "Account lockout requirement is met."
             }
         }
         
     } catch {
-        Write-Host "Erreur lors de l'affichage des resultats de l'audit de la politique de mot de passe"
+        Add-ToLog -Message "Erreur lors de l'affichage des resultats de l'audit de la politique de mot de passe"
     }
     
     Merge-AuditResults -Section $auditResults.AccountSecurity.LocalPasswordPolicy -AuditData $passwordPolicy
@@ -469,7 +480,7 @@ $auditResults.AccountSecurity.AuthentificationLevel = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit du niveau d'authentification :" -Foregroundcolor Gray
+Add-ToLog -Message "`n[+] Audit du niveau d'authentification :" -Foregroundcolor Gray
 $authLevelAudit = Get-AuthenticationLevelAudit
 
 if ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $true) {
@@ -477,15 +488,15 @@ if ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $true) {
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Enable Windows Hello for Business via GPO or CSP."
 
     if ($authLevelAudit.GPO -eq $true) {
-        Write-Host "   [OK] Windows Hello for Business est active via : GPO" -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Windows Hello for Business est active via : GPO" -ForegroundColor Green
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is enabled via GPO."
     }
     if ($authLevelAudit.CSP -eq $true) {
-        Write-Host "   [OK] Windows Hello for Business est active via : CSP" -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Windows Hello for Business est active via : CSP" -ForegroundColor Green
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is enabled via CSP."
     }
     if (($authLevelAudit.GPO -eq $false) -and ($authLevelAudit.CSP -eq $false)) {
-        Write-Host "   [ALERTE] Windows Hello for Business n'est pas active." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] Windows Hello for Business n'est pas active." -ForegroundColor Red
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is not enabled."
     }
@@ -493,11 +504,11 @@ if ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $true) {
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Consider using Windows Hello even in a no domain-joined environment."
 
     if ($authLevelAudit.Consumer -eq $true) {
-        Write-Host "   [OK] Windows Hello (Consumer/Local) est active." -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Windows Hello (Consumer/Local) est active." -ForegroundColor Green
         $auditResults.AccountSecurity.AuthentificationLevel.status = "PASS"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello (Consumer/Local) is enabled."
     } else {
-        Write-Host "   [ALERTE] Windows Hello (Consumer/Local) n'est pas active." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] Windows Hello (Consumer/Local) n'est pas active." -ForegroundColor Red
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello (Consumer/Local) is not enabled."
     }
@@ -506,15 +517,15 @@ if ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $true) {
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Enable Windows Hello for Business via GPO or CSP."
 
     if ($authLevelAudit.GPO -eq $true) {
-        Write-Host "   [OK] Windows Hello for Business est active via : GPO" -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Windows Hello for Business est active via : GPO" -ForegroundColor Green
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is enabled via GPO."
     }
     if ($authLevelAudit.CSP -eq $true) {
-        Write-Host "   [OK] Windows Hello for Business est active via : CSP" -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Windows Hello for Business est active via : CSP" -ForegroundColor Green
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is enabled via CSP."
     }
     if (($authLevelAudit.GPO -eq $false) -and ($authLevelAudit.CSP -eq $false)) {
-        Write-Host "   [ALERTE] Windows Hello for Business n'est pas active." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] Windows Hello for Business n'est pas active." -ForegroundColor Red
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello for Business is not enabled."
     }
@@ -522,16 +533,16 @@ if ($context.osRole -eq "Workstation" -and $context.isDomainjoined -eq $true) {
     $auditResults.AccountSecurity.AuthentificationLevel.recommendations += "Disable Windows Hello (Consumer/Local) on servers."
 
     if ($authLevelAudit.Consumer -eq $true) {
-        Write-Host "   [ALERTE] Windows Hello (Consumer/Local) est active. Il est plutot recommande de desactiver cette fonctionnalite sur les serveurs." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] Windows Hello (Consumer/Local) est active. Il est plutot recommande de desactiver cette fonctionnalite sur les serveurs." -ForegroundColor Red
         $auditResults.AccountSecurity.AuthentificationLevel.status = "FAIL"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello (Consumer/Local) is enabled on a server."
     } else {
-        Write-Host "   [OK] Windows Hello (Consumer/Local) n'est pas active." -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Windows Hello (Consumer/Local) n'est pas active." -ForegroundColor Green
         $auditResults.AccountSecurity.AuthentificationLevel.status = "PASS"
         $auditResults.AccountSecurity.AuthentificationLevel.comments += "Windows Hello (Consumer/Local) is not enabled on the server."
     }
 } else {
-    Write-Host "   [INFORMATION] Le niveau d'authentification n'a pas pu etre audite dans ce contexte." -ForegroundColor Yellow
+    Add-ToLog -Message "   [INFORMATION] Le niveau d'authentification n'a pas pu etre audite dans ce contexte." -ForegroundColor Yellow
 }
 
 Merge-AuditResults -Section $auditResults.AccountSecurity.AuthentificationLevel -AuditData $authLevelAudit
@@ -544,7 +555,7 @@ $auditResults.AccountSecurity.UAC = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration de l'UAC :" -Foregroundcolor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration de l'UAC :" -Foregroundcolor Gray
 $uacAudit = Get-UACAudit
 
 try {
@@ -554,34 +565,34 @@ try {
     $auditResults.AccountSecurity.UAC.recommendations += "Enable Local Account Token Filter Policy to prevent non-administrator network access."
 
     if ($uacAudit.UACEnabled -eq 1) {
-        Write-Host "   [OK] L'UAC est active." -ForegroundColor Green
+        Add-ToLog -Message "   [OK] L'UAC est active." -ForegroundColor Green
         $auditResults.AccountSecurity.UAC.comments += "UAC is enabled."
     } else {
-        Write-Host "   [ALERTE] L'UAC est desactive." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] L'UAC est desactive." -ForegroundColor Red
         $auditResults.AccountSecurity.UAC.status = "FAIL"
         $auditResults.AccountSecurity.UAC.comments += "UAC is disabled."
     }
 
     if ($uacAudit.FilterAdministratorToken -eq 1) {
-        Write-Host "   [OK] Le filtrage du token administrateur est active." -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Le filtrage du token administrateur est active." -ForegroundColor Green
         $auditResults.AccountSecurity.UAC.comments += "Administrator Token Filtering is enabled."
     } else {
-        Write-Host "   [ALERTE] Le filtrage du token administrateur est desactive." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] Le filtrage du token administrateur est desactive." -ForegroundColor Red
         $auditResults.AccountSecurity.UAC.status = "FAIL"
         $auditResults.AccountSecurity.UAC.comments += "Administrator Token Filtering is disabled." 
     }
 
     if ($uacAudit.LocalAccountTokenFilterPolicy -eq 1) {
-        Write-Host "   [OK] La politique de filtrage des tokens pour les comptes locaux est activee." -ForegroundColor Red
+        Add-ToLog -Message "   [OK] La politique de filtrage des tokens pour les comptes locaux est activee." -ForegroundColor Red
         $auditResults.AccountSecurity.UAC.status = "FAIL"
         $auditResults.AccountSecurity.UAC.comments += "Local Account Token Filter Policy is enabled."
     } else {
-        Write-Host "   [OK] La politique de filtrage des tokens pour les comptes locaux est desactivee." -ForegroundColor Green
+        Add-ToLog -Message "   [OK] La politique de filtrage des tokens pour les comptes locaux est desactivee." -ForegroundColor Green
         $auditResults.AccountSecurity.UAC.comments += "Local Account Token Filter Policy is disabled."
     }
 }
 catch {
-    Write-Host "Erreur lors de l'affichage des resultats de l'audit UAC"
+    Add-ToLog -Message "Erreur lors de l'affichage des resultats de l'audit UAC"
 }
 
 Merge-AuditResults -Section $auditResults.AccountSecurity.UAC -AuditData $uacAudit
@@ -595,32 +606,32 @@ $auditResults.AccountSecurity.JEA = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration JEA :" -Foregroundcolor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration JEA :" -Foregroundcolor Gray
 $JEAAudit = Get-JEAAudit
 try {
     $auditResults.AccountSecurity.JEA.recommendations += $JEAAudit.Recommandation
 
     if ($JEAAudit.WinRmState -eq 'NotInstalled'){
-        Write-Host "   [INFORMATION] WinRM n'est pas installe. JEA ne peut pas etre configure." -ForegroundColor Red
+        Add-ToLog -Message "   [INFORMATION] WinRM n'est pas installe. JEA ne peut pas etre configure." -ForegroundColor Red
         $auditResults.AccountSecurity.JEA.comments += "WinRM is not installed; JEA cannot be used."
     } elseif ($JEAAudit.WinRmState -eq 'Stopped') {
-        Write-Host "   [ALERTE] WinRM est installe mais arrete. JEA ne peut pas etre utilise tant que WinRM n'est pas demarre." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] WinRM est installe mais arrete. JEA ne peut pas etre utilise tant que WinRM n'est pas demarre." -ForegroundColor Red
         $auditResults.AccountSecurity.JEA.status = "FAIL"
         $auditResults.AccountSecurity.JEA.comments += "WinRM is stopped; JEA cannot be used."
     } elseif ($JEAAudit.HasJEASessionConfig -eq $true){
-        Write-Host "   [OK] Des endpoints JEA sont configures sur cette machine." -ForegroundColor Green
-        Write-Host "       $($JEAAudit.Recommandation)" -ForegroundColor Gray
+        Add-ToLog -Message "   [OK] Des endpoints JEA sont configures sur cette machine." -ForegroundColor Green
+        Add-ToLog -Message "       $($JEAAudit.Recommandation)" -ForegroundColor Gray
         $auditResults.AccountSecurity.JEA.status = "PASS"
         $auditResults.AccountSecurity.JEA.comments += "JEA endpoints are configured."
     } elseif ($JEAAudit.HasJEASessionConfig -eq $false){
-        Write-Host "   [ALERTE] WinRM est fonctionnel mais aucun endpoint JEA n'est configure." -ForegroundColor Red
+        Add-ToLog -Message "   [ALERTE] WinRM est fonctionnel mais aucun endpoint JEA n'est configure." -ForegroundColor Red
         $auditResults.AccountSecurity.JEA.status = "FAIL"
         $auditResults.AccountSecurity.JEA.comments += "WinRM is running; No JEA endpoints are configured."
     } else {
         Write-Error "   [ERREUR] Impossible d'auditer la configuration JEA." -ForegroundColor Red
     }
 } catch {
-    Write-Host "Erreur lors de l'affichage des resultats de l'audit JEA"
+    Add-ToLog -Message "Erreur lors de l'affichage des resultats de l'audit JEA"
 }
 
 Merge-AuditResults -Section $auditResults.AccountSecurity.JEA -AuditData $JEAAudit
@@ -633,34 +644,34 @@ $auditResults.AccountSecurity.LocalGroups = @{
     recommendations = @()
     comments = ""
 }
-Write-Host "`n[+] Audit des groupes locaux :" -Foregroundcolor Gray
+Add-ToLog -Message "`n[+] Audit des groupes locaux :" -Foregroundcolor Gray
 $groupsAudit = Get-GroupsAudit
 
-Write-Host $groupsAudit.GetType()
+Add-ToLog -Message $groupsAudit.GetType()
 
 if ($groupsAudit) {
     $auditResults.AccountSecurity.LocalGroups.status = "PASS"
     $auditResults.AccountSecurity.LocalGroups.recommendations += "A group should have at least one member. Verify local groups that have more than 3 members. Verify for unauthorized users."
 
     foreach ($group in $groupsAudit) {
-        Write-Host "`nGroupe : $($group.GroupName)" -ForegroundColor Cyan
+        Add-ToLog -Message "`nGroupe : $($group.GroupName)" -ForegroundColor Cyan
         if ($group.Members -eq 0) {
-            Write-Host "   Aucun membre dans ce groupe." -ForegroundColor Yellow
+            Add-ToLog -Message "   Aucun membre dans ce groupe." -ForegroundColor Yellow
             $auditResults.AccountSecurity.LocalGroups.status = "WARNING"
             $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has no members. Add complexity and increase attack surface."
         } else {
-            Write-Host "   Membres : $($group.Members -join ', ')" -ForegroundColor Yellow
+            Add-ToLog -Message "   Membres : $($group.Members -join ', ')" -ForegroundColor Yellow
             # A voir je trouve que c'est un peu trop restreint comme alerte
             if ($group.MembersCount -gt 3) {
-                Write-Host "   [ALERTE] Ce groupe contient un grand nombre de membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Ce groupe contient un grand nombre de membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Red
                 $auditResults.AccountSecurity.LocalGroups.status = "FAIL"
                 $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has $($group.MembersCount) members. Verify for unauthorized users."
             } elseif ( $group.MembersCount -gt 1) {
-                Write-Host "   [ATTENTION] Ce groupe contient plusieurs membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Yellow
+                Add-ToLog -Message "   [ATTENTION] Ce groupe contient plusieurs membres ($($group.MembersCount)). Verifiez qu'il n'y a pas d'utilisateurs non autorises." -ForegroundColor Yellow
                 $auditResults.AccountSecurity.LocalGroups.status = "WARNING"
                 $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has $($group.MembersCount) members. Verify for unauthorized users."
             } else {
-                Write-Host "   [OK] Nombre de membres dans ce groupe : $($group.MembersCount)" -ForegroundColor Green
+                Add-ToLog -Message "   [OK] Nombre de membres dans ce groupe : $($group.MembersCount)" -ForegroundColor Green
                 $auditResults.AccountSecurity.LocalGroups.comments += "The local group '$($group.GroupName)' has an acceptable number of members."
             }
         }
@@ -679,7 +690,7 @@ $auditResults.AccountSecurity.SMBShares = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit des partages SMB :" -Foregroundcolor Gray
+Add-ToLog -Message "`n[+] Audit des partages SMB :" -Foregroundcolor Gray
 $smbSharesAudit = Get-SMBSharesAudit
 
 if ($smbSharesAudit) {
@@ -689,40 +700,40 @@ if ($smbSharesAudit) {
         $sharesAccess = Get-SmbShareAccess -Name $share.Name
         $user = if ($_.AccountName -eq 'Tout le monde') {'Tout le monde'} else {'Everyone'}
         $sharesAccess | Where-Object { $_.AccountName -eq $user -and $_.AccessControlType -eq 'Allow' } | ForEach-Object {
-            Write-Host "`nAttention : Le partage SMB '"$($share.Name)"' est accessible par 'Tout le monde'. Chemin du partage : "$($share.Path) -ForegroundColor Red
-            Write-Host "Verification des droits NTFS du groupe 'Tout le monde' sur le repertoire partage..." -ForegroundColor Yellow
+            Add-ToLog -Message "`nAttention : Le partage SMB '"$($share.Name)"' est accessible par 'Tout le monde'. Chemin du partage : "$($share.Path) -ForegroundColor Red
+            Add-ToLog -Message "Verification des droits NTFS du groupe 'Tout le monde' sur le repertoire partage..." -ForegroundColor Yellow
             $NTFSAudit = Get-NTFSAudit -Path $share.Path -User $user
             if ($NTFSAudit.IsFullControl -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
-                Write-Host "Le groupe 'Tout le monde' dispose de droits Full Control sur le repertoire partage." -ForegroundColor Red
-                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible sans mot de passe" -ForegroundColor Red
+                Add-ToLog -Message "Le groupe 'Tout le monde' dispose de droits Full Control sur le repertoire partage." -ForegroundColor Red
+                Add-ToLog -Message "Le compte invite est active sur ce systeme, le partage est accessible sans mot de passe" -ForegroundColor Red
                 $auditResults.AccountSecurity.SMBShares.status = "FAIL"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Full Control on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
             } elseif ($NTFSAudit.CanWrite -eq $true -and $NTFSAudit.CanRead -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
-                Write-Host "Le groupe 'Tout le monde' dispose de droits en lecture et ecriture sur le repertoire partage." -ForegroundColor Red
-                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible en lecture ecriture sans mot de passe" -ForegroundColor Red
+                Add-ToLog -Message "Le groupe 'Tout le monde' dispose de droits en lecture et ecriture sur le repertoire partage." -ForegroundColor Red
+                Add-ToLog -Message "Le compte invite est active sur ce systeme, le partage est accessible en lecture ecriture sans mot de passe" -ForegroundColor Red
                 $auditResults.AccountSecurity.SMBShares.status = "FAIL"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Read and Write access on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
             } elseif ($NTFSAudit.CanWrite -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
-                Write-Host "Le groupe 'Tout le monde' dispose de droits en ecriture sur le repertoire partage." -ForegroundColor Red
-                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible en ecriture sans mot de passe" -ForegroundColor Red
+                Add-ToLog -Message "Le groupe 'Tout le monde' dispose de droits en ecriture sur le repertoire partage." -ForegroundColor Red
+                Add-ToLog -Message "Le compte invite est active sur ce systeme, le partage est accessible en ecriture sans mot de passe" -ForegroundColor Red
                 $auditResults.AccountSecurity.SMBShares.status = "FAIL"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Write access on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
             } elseif ($NTFSAudit.CanRead -eq $true -and $localUserAudit.GuestEnabled -eq $true) {
-                Write-Host "Le groupe 'Tout le monde' dispose de droits en lecture sur le repertoire partage." -ForegroundColor Yellow
-                Write-Host "Le compte invite est active sur ce systeme, le partage est accessible en lecture sans mot de passe" -ForegroundColor Yellow
+                Add-ToLog -Message "Le groupe 'Tout le monde' dispose de droits en lecture sur le repertoire partage." -ForegroundColor Yellow
+                Add-ToLog -Message "Le compte invite est active sur ce systeme, le partage est accessible en lecture sans mot de passe" -ForegroundColor Yellow
                 $auditResults.AccountSecurity.SMBShares.status = "WARNING"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has Read access on the SMB share '$($share.Name)'. Guest account is enabled, allowing unauthenticated access."
             } elseif ($NTFSAudit.RawRights -eq 0 -and $localUserAudit.GuestEnabled -eq $true) {
-                Write-Host "Le groupe 'Tout le monde' dispose de droits personnalises sur le repertoire partage." -ForegroundColor Yellow
-                Write-Host "Le compte invite est active sur ce systeme, le partage est possiblement accessible sans mot de passe" -ForegroundColor Yellow
+                Add-ToLog -Message "Le groupe 'Tout le monde' dispose de droits personnalises sur le repertoire partage." -ForegroundColor Yellow
+                Add-ToLog -Message "Le compte invite est active sur ce systeme, le partage est possiblement accessible sans mot de passe" -ForegroundColor Yellow
                 $auditResults.AccountSecurity.SMBShares.status = "WARNING"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has custom rights on the SMB share '$($share.Name)'. Guest account is enabled, possibly allowing unauthenticated access."
             } elseif ($localUserAudit.GuestEnabled -eq $false) {
-                Write-Host "Le compte invite est desactive sur ce systeme, le partage n'est pas accessible sans mot de passe." -ForegroundColor Green
+                Add-ToLog -Message "Le compte invite est desactive sur ce systeme, le partage n'est pas accessible sans mot de passe." -ForegroundColor Green
                 $auditResults.AccountSecurity.SMBShares.status = "PASS"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has access on the SMB share '$($share.Name)', but the Guest account is disabled, preventing unauthenticated access."
             } else {
-                Write-Host "Le groupe 'Tout le monde' ne dispose pas de droits de lecture ou ecriture sur le repertoire partage." -ForegroundColor Green
+                Add-ToLog -Message "Le groupe 'Tout le monde' ne dispose pas de droits de lecture ou ecriture sur le repertoire partage." -ForegroundColor Green
                 $auditResults.AccountSecurity.SMBShares.status = "PASS"
                 $auditResults.AccountSecurity.SMBShares.comments += "The 'Everyone' group has no Read or Write access on the SMB share '$($share.Name)'."
             }
@@ -747,33 +758,33 @@ $auditResults.ServicesAndApplications.RDP = @{
     recommendations = @()
     comments = ""
 }
-Write-Host "`n[+] Audit des services RDP :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit des services RDP :" -ForegroundColor Gray
 $rdpAudit = Get-RDPAudit
 
 if ($rdpAudit -and $rdpAudit.Value) {
     $r = $rdpAudit.Value
 
     if ($r.RDPEnabled -eq $true) {
-        Write-Host "   [ENABLED] RDP est active sur cette machine." -ForegroundColor Red
+        Add-ToLog -Message "   [ENABLED] RDP est active sur cette machine." -ForegroundColor Red
         $auditResults.ServicesAndApplications.RDP.status = "FAIL"
         $auditResults.ServicesAndApplications.RDP.comments += "RDP is enabled."
     }
     else {
-        Write-Host "   [DISABLED] RDP est desactive au niveau OS." -ForegroundColor Green
+        Add-ToLog -Message "   [DISABLED] RDP est desactive au niveau OS." -ForegroundColor Green
         $auditResults.ServicesAndApplications.RDP.status = "PASS"
         $auditResults.ServicesAndApplications.RDP.comments += "RDP is disabled. "
     }
 
-    Write-Host "   [ADMIN RESTREINT] DisableRestrictedAdmin : $($r.DisableRestrictedAdmin)" -ForegroundColor Gray
-    Write-Host "   [CHIFFREMENT] MinEncryptionLevel : $($r.MinEncryptionLevel)" -ForegroundColor Gray
-    Write-Host "   [COUCHE DE SECURITE] SecurityLayer : $($r.SecurityLayer)" -ForegroundColor Gray
-    Write-Host "   [NLA] UserAuthentication : $($r.UserAuthentication)" -ForegroundColor Gray
+    Add-ToLog -Message "   [ADMIN RESTREINT] DisableRestrictedAdmin : $($r.DisableRestrictedAdmin)" -ForegroundColor Gray
+    Add-ToLog -Message "   [CHIFFREMENT] MinEncryptionLevel : $($r.MinEncryptionLevel)" -ForegroundColor Gray
+    Add-ToLog -Message "   [COUCHE DE SECURITE] SecurityLayer : $($r.SecurityLayer)" -ForegroundColor Gray
+    Add-ToLog -Message "   [NLA] UserAuthentication : $($r.UserAuthentication)" -ForegroundColor Gray
 
     if ($r.fEncryptRPCTraffic -eq $true) {
-        Write-Host "   [RPC] fEncryptRPCTraffic : Enabled" -ForegroundColor Green
+        Add-ToLog -Message "   [RPC] fEncryptRPCTraffic : Enabled" -ForegroundColor Green
         $auditResults.ServicesAndApplications.RDP.comments += "RPC traffic encryption is enabled. "
     } else {
-        Write-Host "   [RPC] fEncryptRPCTraffic : Disabled" -ForegroundColor Red
+        Add-ToLog -Message "   [RPC] fEncryptRPCTraffic : Disabled" -ForegroundColor Red
         $auditResults.ServicesAndApplications.RDP.comments += "RPC traffic encryption is disabled. "
         if ($auditResults.ServicesAndApplications.RDP.status -ne "FAIL") {
             $auditResults.ServicesAndApplications.RDP.status = "WARNING"
@@ -781,15 +792,15 @@ if ($rdpAudit -and $rdpAudit.Value) {
     }
 
     if ($r.Recommendation) {
-        Write-Host "`n   Recommandation : $($r.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "`n   Recommandation : $($r.Recommendation)" -ForegroundColor Yellow
         $auditResults.ServicesAndApplications.RDP.recommendations += "$($r.Recommendation) | "
     }
 
     if ($rdpAudit.Xml) {
-        Write-Host "`n   Actions proposees :" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Actions proposees :" -ForegroundColor Gray
         foreach ($item in $rdpAudit.Xml) {
-            Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
-            Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
+            Add-ToLog -Message "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
+            Add-ToLog -Message "         Commande : $($item.Command)" -ForegroundColor DarkGray
             $auditResults.ServicesAndApplications.RDP.automatable = $true
             $remediationActions += $item
         }
@@ -813,51 +824,51 @@ $auditResults.ServicesAndApplications.WinRM = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit WinRM :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit WinRM :" -ForegroundColor Gray
 try {
     $winrmAudit = Get-WinRMAudit
 
     if (-not $winrmAudit.WinRmEnabled) {
-        Write-Host "   [INACTIF] WinRM n'est pas installe ou le service est arrete." -ForegroundColor Magenta
-        Write-Host "   Recommandation :" -ForegroundColor Yellow
+        Add-ToLog -Message "   [INACTIF] WinRM n'est pas installe ou le service est arrete." -ForegroundColor Magenta
+        Add-ToLog -Message "   Recommandation :" -ForegroundColor Yellow
         foreach ($r in $winrmAudit.Recommendations) { 
-            Write-Host "      - $r" -ForegroundColor Yellow
+            Add-ToLog -Message "      - $r" -ForegroundColor Yellow
             $auditResults.ServicesAndApplications.WinRM.recommendations += "$r | "
         }
         $auditResults.ServicesAndApplications.WinRM.status = "FAIL"
         $auditResults.ServicesAndApplications.WinRM.comments += "WinRM is not enabled. "
     }
     else {
-        Write-Host "   [ACTIF] WinRM est active." -ForegroundColor Yellow
-        Write-Host "   [TRANSPORT] ListenerTransport : $($winrmAudit.ListenerTransport)" -ForegroundColor Gray
-        Write-Host "   [ECOUTE] ListeningOn        : $($winrmAudit.ListeningOn)" -ForegroundColor Gray
-        Write-Host "   [FILTRES IP] IPv4 : $($winrmAudit.IPv4Filter)    IPv6 : $($winrmAudit.IPv6Filter)" -ForegroundColor Gray
+        Add-ToLog -Message "   [ACTIF] WinRM est active." -ForegroundColor Yellow
+        Add-ToLog -Message "   [TRANSPORT] ListenerTransport : $($winrmAudit.ListenerTransport)" -ForegroundColor Gray
+        Add-ToLog -Message "   [ECOUTE] ListeningOn        : $($winrmAudit.ListeningOn)" -ForegroundColor Gray
+        Add-ToLog -Message "   [FILTRES IP] IPv4 : $($winrmAudit.IPv4Filter)    IPv6 : $($winrmAudit.IPv6Filter)" -ForegroundColor Gray
         
         $auditResults.ServicesAndApplications.WinRM.status = "PASS"
         $auditResults.ServicesAndApplications.WinRM.comments += "WinRM is enabled. "
 
         if ($winrmAudit.ServiceAuth) {
-            Write-Host "   [AUTH SERVICE] Basic : $($winrmAudit.ServiceAuth.Basic)    Unencrypted : $($winrmAudit.ServiceAuth.Unencrypted)" -ForegroundColor Gray
+            Add-ToLog -Message "   [AUTH SERVICE] Basic : $($winrmAudit.ServiceAuth.Basic)    Unencrypted : $($winrmAudit.ServiceAuth.Unencrypted)" -ForegroundColor Gray
             $auditResults.ServicesAndApplications.WinRM.comments += "Service Auth Basic: $($winrmAudit.ServiceAuth.Basic), Unencrypted: $($winrmAudit.ServiceAuth.Unencrypted). "
         }
         if ($winrmAudit.ClientAuth) {
-            Write-Host "   [AUTH CLIENT]  Basic : $($winrmAudit.ClientAuth.Basic)" -ForegroundColor Gray
+            Add-ToLog -Message "   [AUTH CLIENT]  Basic : $($winrmAudit.ClientAuth.Basic)" -ForegroundColor Gray
             $auditResults.ServicesAndApplications.WinRM.comments += "Client Auth Basic: $($winrmAudit.ClientAuth.Basic). "
         }
 
         if ($winrmAudit.RmUsersNotAdmins) {
-            Write-Host "   [UTILISATEURS] Comptes dans Remote Management Users (non-admin) : $($winrmAudit.RmUsersNotAdmins -join ', ')" -ForegroundColor Yellow
+            Add-ToLog -Message "   [UTILISATEURS] Comptes dans Remote Management Users (non-admin) : $($winrmAudit.RmUsersNotAdmins -join ', ')" -ForegroundColor Yellow
             $auditResults.ServicesAndApplications.WinRM.comments += "Non-admin Remote Management Users: $($winrmAudit.RmUsersNotAdmins -join ', '). "
         }
 
         if ($winrmAudit.Recommendations) {
-            Write-Host "`n   Recommandations :" -ForegroundColor Yellow
+            Add-ToLog -Message "`n   Recommandations :" -ForegroundColor Yellow
             foreach ($rec in $winrmAudit.Recommendations) {
-                Write-Host "      - $rec" -ForegroundColor Yellow
+                Add-ToLog -Message "      - $rec" -ForegroundColor Yellow
                 $auditResults.ServicesAndApplications.WinRM.recommendations += "$rec | "
             }
         } else {
-            Write-Host "   [OK] Configuration WinRM conforme aux bonnes pratiques detectee." -ForegroundColor Green
+            Add-ToLog -Message "   [OK] Configuration WinRM conforme aux bonnes pratiques detectee." -ForegroundColor Green
             $auditResults.ServicesAndApplications.WinRM.comments += "WinRM configuration complies with best practices. "
         }
     }
@@ -879,7 +890,7 @@ $auditResults.ServicesAndApplications.SMB = @{
     recommendations = @()
     comments = ""
 }
-Write-Host "`n[+] Audit SMB :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit SMB :" -ForegroundColor Gray
 
 try {
     $smbAudit = Get-SMBAudit
@@ -890,50 +901,50 @@ try {
 
         # Affichage du statut SMBv1
         if ($s.SMBv1State -eq $true) {
-            Write-Host "   [SMBv1] [ALERTE] SMBv1 est active. Il est recommande de le desactiver." -ForegroundColor Red
+            Add-ToLog -Message "   [SMBv1] [ALERTE] SMBv1 est active. Il est recommande de le desactiver." -ForegroundColor Red
             $auditResults.ServicesAndApplications.SMB.comments += "SMBv1 is enabled. "
             $smbOk = $false
         } else {
-            Write-Host "   [SMBv1] [OK] SMBv1 est desactive." -ForegroundColor Green
+            Add-ToLog -Message "   [SMBv1] [OK] SMBv1 est desactive." -ForegroundColor Green
             $auditResults.ServicesAndApplications.SMB.comments += "SMBv1 is disabled. "
         }
 
         # Affichage du statut SMBv2/3
         if ($s.SMBv2State -eq $true) {
-            Write-Host "   [SMBv2/3] [OK] SMBv2/3 est active." -ForegroundColor Green
+            Add-ToLog -Message "   [SMBv2/3] [OK] SMBv2/3 est active." -ForegroundColor Green
             $auditResults.ServicesAndApplications.SMB.comments += "SMBv2/3 is enabled. "
         } else {
-            Write-Host "   [SMBv2/3] [ALERTE] SMBv2/3 est desactive." -ForegroundColor Red
+            Add-ToLog -Message "   [SMBv2/3] [ALERTE] SMBv2/3 est desactive." -ForegroundColor Red
             $auditResults.ServicesAndApplications.SMB.comments += "SMBv2/3 is disabled. "
             $smbOk = $false
         }
 
         # Affichage du statut de la signature SMB
         if ($s.RequireSecuritySignature -eq $true) {
-            Write-Host "   [SIGNING] [OK] La signature de securite SMB est requise." -ForegroundColor Green
+            Add-ToLog -Message "   [SIGNING] [OK] La signature de securite SMB est requise." -ForegroundColor Green
             $auditResults.ServicesAndApplications.SMB.comments += "SMB signing is required. "
         } else {
-            Write-Host "   [SIGNING] [ALERTE] La signature de securite SMB n'est pas requise." -ForegroundColor Red
+            Add-ToLog -Message "   [SIGNING] [ALERTE] La signature de securite SMB n'est pas requise." -ForegroundColor Red
             $auditResults.ServicesAndApplications.SMB.comments += "SMB signing is not required. "
             $smbOk = $false
         }
 
         if ($s.Comment) {
-            Write-Host "`n   Details : $($s.Comment)" -ForegroundColor Gray
+            Add-ToLog -Message "`n   Details : $($s.Comment)" -ForegroundColor Gray
             $auditResults.ServicesAndApplications.SMB.comments += "$($s.Comment) "
         }
 
         if ($s.Recommendation) {
-            Write-Host "`n   Recommandation : $($s.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "`n   Recommandation : $($s.Recommendation)" -ForegroundColor Yellow
             $auditResults.ServicesAndApplications.SMB.recommendations += "$($s.Recommendation) | "
         }
 
         # Affichage des actions proposees
         if ($smbAudit.Xml) {
-            Write-Host "`n   Actions proposees :" -ForegroundColor Gray
+            Add-ToLog -Message "`n   Actions proposees :" -ForegroundColor Gray
             foreach ($item in $smbAudit.Xml) {
-                Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
-                Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
+                Add-ToLog -Message "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
+                Add-ToLog -Message "         Commande : $($item.Command)" -ForegroundColor DarkGray
                 $auditResults.ServicesAndApplications.SMB.automatable = $true
                 $remediationActions += $item
             }
@@ -964,19 +975,19 @@ $auditResults.ServicesAndApplications.Updates = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit des mises a jour et version OS :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit des mises a jour et version OS :" -ForegroundColor Gray
 try {
     $osInfo = Get-OSVersionInfo
     if ($osInfo) {
-        Write-Host "`n[OS] $($osInfo.Caption) - Version $($osInfo.Version) (Full: $($osInfo.FullVersion))" -ForegroundColor Cyan
+        Add-ToLog -Message "`n[OS] $($osInfo.Caption) - Version $($osInfo.Version) (Full: $($osInfo.FullVersion))" -ForegroundColor Cyan
         $auditResults.ServicesAndApplications.Updates.comments += "OS: $($osInfo.Caption), Version: $($osInfo.Version). "
         
         if ($osInfo.InstallDate) {
             $installDate = [datetime]$osInfo.InstallDate
-            Write-Host "Build: $($osInfo.BuildNumber)   Installe le: $($installDate.ToString('yyyy-MM-dd HH:mm'))" -ForegroundColor Gray
+            Add-ToLog -Message "Build: $($osInfo.BuildNumber)   Installe le: $($installDate.ToString('yyyy-MM-dd HH:mm'))" -ForegroundColor Gray
             $auditResults.ServicesAndApplications.Updates.comments += "Build: $($osInfo.BuildNumber), Installed: $($installDate.ToString('yyyy-MM-dd HH:mm')). "
         } else {
-            Write-Host "Build: $($osInfo.BuildNumber)   InstallDate: Non disponible" -ForegroundColor Gray
+            Add-ToLog -Message "Build: $($osInfo.BuildNumber)   InstallDate: Non disponible" -ForegroundColor Gray
             $auditResults.ServicesAndApplications.Updates.comments += "Build: $($osInfo.BuildNumber). "
         }
         
@@ -985,16 +996,16 @@ try {
     }
 
     $updateSource = Get-UpdateSource
-    Write-Host "`n[Source de mises a jour] $updateSource" -ForegroundColor Gray
+    Add-ToLog -Message "`n[Source de mises a jour] $updateSource" -ForegroundColor Gray
     $auditResults.ServicesAndApplications.Updates.comments += "Update source: $updateSource. "
 
     $kbList = Get-InstalledKB
     if ($kbList) {
-        Write-Host "`n[+] Dernieres mises a jour installees (10 dernieres) :" -ForegroundColor Gray
+        Add-ToLog -Message "`n[+] Dernieres mises a jour installees (10 dernieres) :" -ForegroundColor Gray
         $kbList | Select-Object -First 10 | Format-Table HotFixID, Description, @{Name='InstalledOn';Expression={ ($_.InstalledOn -as [datetime]).ToString('yyyy-MM-dd') }}, InstalledBy -AutoSize
         $auditResults.ServicesAndApplications.Updates.comments += "$($kbList.Count) KB updates found. "
     } else {
-        Write-Host "Aucune mise a jour detectee via Get-HotFix" -ForegroundColor Yellow
+        Add-ToLog -Message "Aucune mise a jour detectee via Get-HotFix" -ForegroundColor Yellow
         $auditResults.ServicesAndApplications.Updates.comments += "No updates found via Get-HotFix. "
         $auditResults.ServicesAndApplications.Updates.status = "WARNING"
     }
@@ -1016,19 +1027,19 @@ $auditResults.ServicesAndApplications.InstalledApplications = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit des applications installees :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit des applications installees :" -ForegroundColor Gray
 try {
     $apps = Get-InstalledApplications
 
     if ($apps) {
-        Write-Host "   [INFO] Nombre d'applications detectees : $(($apps | Measure-Object).Count)" -ForegroundColor Gray
+        Add-ToLog -Message "   [INFO] Nombre d'applications detectees : $(($apps | Measure-Object).Count)" -ForegroundColor Gray
         $auditResults.ServicesAndApplications.InstalledApplications.comments += "$($apps.Count) applications detected. "
         $apps | Select-Object Name, Version, Publisher, InstallLocation |
             Sort-Object Name |
             Format-Table -AutoSize
         $auditResults.ServicesAndApplications.InstalledApplications.status = "PASS"
     } else {
-        Write-Host "   [INFO] Aucune application installee detectee." -ForegroundColor Yellow
+        Add-ToLog -Message "   [INFO] Aucune application installee detectee." -ForegroundColor Yellow
         $auditResults.ServicesAndApplications.InstalledApplications.comments += "No installed applications detected. "
         $auditResults.ServicesAndApplications.InstalledApplications.status = "PASS"
     }
@@ -1036,19 +1047,19 @@ try {
     # Verification des mises a jour applicatives via WinGet (si disponible)
     $appUpgrades = Get-AppUpgrade -ErrorAction SilentlyContinue
     if ($appUpgrades) {
-        Write-Host "`n   [Mises a jour disponibles via WinGet] :" -ForegroundColor Yellow
+        Add-ToLog -Message "`n   [Mises a jour disponibles via WinGet] :" -ForegroundColor Yellow
         $appUpgrades |
             Select-Object Name, InstalledVersion, @{Name='Available';Expression={$_.AvailableVersions -join ','}} |
             Format-Table -AutoSize
-        Write-Host "   Recommandation : utiliser `winget upgrade --all` pour mettre a jour les applications prises en charge." -ForegroundColor Yellow
+        Add-ToLog -Message "   Recommandation : utiliser `winget upgrade --all` pour mettre a jour les applications prises en charge." -ForegroundColor Yellow
         $auditResults.ServicesAndApplications.InstalledApplications.recommendations += "If winget installed, consider to use 'winget upgrade --name ...' to update supported applications. If not installed, please verify manually"
         $auditResults.ServicesAndApplications.InstalledApplications.comments += "$($appUpgrades.Count) application updates available via WinGet. "
         $auditResults.ServicesAndApplications.InstalledApplications.status = "WARNING"
     } elseif ($null -eq $appUpgrades) {
-        Write-Host "   [INFO] WinGet non disponible ou aucune donnee de mise a jour." -ForegroundColor Gray
+        Add-ToLog -Message "   [INFO] WinGet non disponible ou aucune donnee de mise a jour." -ForegroundColor Gray
         $auditResults.ServicesAndApplications.InstalledApplications.comments += "WinGet not available or no update data. "
     } else {
-        Write-Host "   [OK] Aucune mise a jour applicative detectee via WinGet." -ForegroundColor Green
+        Add-ToLog -Message "   [OK] Aucune mise a jour applicative detectee via WinGet." -ForegroundColor Green
         $auditResults.ServicesAndApplications.InstalledApplications.comments += "No application updates available via WinGet. "
         $auditResults.ServicesAndApplications.InstalledApplications.recommendations += "Applications are up to date. "
     }
@@ -1079,7 +1090,7 @@ $auditResults.NetworkSecurity.IPv6 = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration IPv6 :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration IPv6 :" -ForegroundColor Gray
 $ipv6Audit = Get-IPv6Status
 
 if ($ipv6Audit -and $ipv6Audit.Count -gt 0) {
@@ -1087,14 +1098,14 @@ if ($ipv6Audit -and $ipv6Audit.Count -gt 0) {
     $ipv6Recs = @()
     foreach ($adapter in $ipv6Audit) {
         if ($adapter.IPv6Enabled -eq $true) {
-            Write-Host "   [ENABLED] Adapter: $($adapter.Adapter) - IPv6 is enabled." -ForegroundColor Red
-            Write-Host "       Recommendation: $($adapter.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [ENABLED] Adapter: $($adapter.Adapter) - IPv6 is enabled." -ForegroundColor Red
+            Add-ToLog -Message "       Recommendation: $($adapter.Recommendation)" -ForegroundColor Yellow
             $auditResults.NetworkSecurity.IPv6.status = "FAIL"
             $ipv6Recs += $adapter.Recommendation
             $auditResults.NetworkSecurity.IPv6.comments += "IPv6 is enabled on adapter $($adapter.Adapter). "
         } else {
-            Write-Host "   [DISABLED] Adapter: $($adapter.Adapter) - IPv6 is disabled." -ForegroundColor Green
-            Write-Host "       Recommendation: $($adapter.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [DISABLED] Adapter: $($adapter.Adapter) - IPv6 is disabled." -ForegroundColor Green
+            Add-ToLog -Message "       Recommendation: $($adapter.Recommendation)" -ForegroundColor Yellow
             $ipv6Recs += $adapter.Recommendation
             $auditResults.NetworkSecurity.IPv6.comments += "IPv6 is disabled on adapter $($adapter.Adapter). "
         }
@@ -1115,27 +1126,27 @@ $auditResults.NetworkSecurity.LLMNR = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration LLMNR :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration LLMNR :" -ForegroundColor Gray
 $llmnrAudit = Get-LLMNRState
 
 if (-not $llmnrAudit.Value) {
-    Write-Host "   [DEFAULT] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Red
-    Write-Host "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Yellow
+    Add-ToLog -Message "   [DEFAULT] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Red
+    Add-ToLog -Message "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Yellow
     $auditResults.NetworkSecurity.LLMNR.status = "FAIL"
     $auditResults.NetworkSecurity.LLMNR.comments += "LLMNR is enabled (default). "
 } elseif ($llmnrAudit.Value -eq 1) {
-    Write-Host "   [ENABLED] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Red
-    Write-Host "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Yellow
+    Add-ToLog -Message "   [ENABLED] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Red
+    Add-ToLog -Message "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Yellow
     $auditResults.NetworkSecurity.LLMNR.status = "FAIL"
     $auditResults.NetworkSecurity.LLMNR.comments += "LLMNR is enabled. "
 } elseif ($llmnrAudit.Value -eq 0) {
-    Write-Host "   [DISABLED] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Green
-    Write-Host "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Green
+    Add-ToLog -Message "   [DISABLED] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Green
+    Add-ToLog -Message "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Green
     $auditResults.NetworkSecurity.LLMNR.status = "PASS"
     $auditResults.NetworkSecurity.LLMNR.comments += "LLMNR is disabled. "
 } else {
-    Write-Host "   [UNKNOWN] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Yellow
-    Write-Host "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Yellow
+    Add-ToLog -Message "   [UNKNOWN] - $($llmnrAudit.LLMNR_Status)" -ForegroundColor Yellow
+    Add-ToLog -Message "       Recommendation: $($llmnrAudit.Recommendation)" -ForegroundColor Yellow
     $auditResults.NetworkSecurity.LLMNR.status = "WARNING"
     $auditResults.NetworkSecurity.LLMNR.comments += "LLMNR status is unknown. "
 }
@@ -1152,38 +1163,38 @@ $auditResults.NetworkSecurity.NetBIOS = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration NetBIOS :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration NetBIOS :" -ForegroundColor Gray
 $netbiosAudit = Get-NetBiosInfo
 
 if ($netbiosAudit) {
     $hasIssue = $false
     $netbiosRecs = @()
     foreach ($adapter in $netbiosAudit) {
-        Write-Host "`n   Interface: $($adapter.Interface)" -ForegroundColor Cyan
-        Write-Host "   Statut NetBIOS: $($adapter.NetBIOS_Status)" -ForegroundColor Gray
-        Write-Host "   Code TcpipNetbiosOptions: $($adapter.TcpipNetbiosOptions)" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Interface: $($adapter.Interface)" -ForegroundColor Cyan
+        Add-ToLog -Message "   Statut NetBIOS: $($adapter.NetBIOS_Status)" -ForegroundColor Gray
+        Add-ToLog -Message "   Code TcpipNetbiosOptions: $($adapter.TcpipNetbiosOptions)" -ForegroundColor Gray
         
         # Affichage conditionnel selon le statut
         switch ($adapter.TcpipNetbiosOptions) {
             2 {
-                Write-Host "   [OK] $($adapter.Recommendation)" -ForegroundColor Green
+                Add-ToLog -Message "   [OK] $($adapter.Recommendation)" -ForegroundColor Green
                 $netbiosRecs += $adapter.Recommendation
                 $auditResults.NetworkSecurity.NetBIOS.comments += "NetBIOS is disabled on adapter $($adapter.Interface). "
             }
             1 {
-                Write-Host "   [ALERTE] $($adapter.Recommendation)" -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] $($adapter.Recommendation)" -ForegroundColor Red
                 $netbiosRecs += $adapter.Recommendation
                 $auditResults.NetworkSecurity.NetBIOS.comments += "NetBIOS is enabled via DHCP on adapter $($adapter.Interface). "
                 $hasIssue = $true
             }
             0 {
-                Write-Host "   [MOYEN] $($adapter.Recommendation)" -ForegroundColor Red
+                Add-ToLog -Message "   [MOYEN] $($adapter.Recommendation)" -ForegroundColor Red
                 $netbiosRecs += $adapter.Recommendation
                 $auditResults.NetworkSecurity.NetBIOS.comments += "NetBIOS is enabled on adapter $($adapter.Interface). "
                 $hasIssue = $true
             }
             default {
-                Write-Host "   [INFORMATION] $($adapter.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFORMATION] $($adapter.Recommendation)" -ForegroundColor Yellow
                 $netbiosRecs += $adapter.Recommendation
                 $auditResults.NetworkSecurity.NetBIOS.comments += "NetBIOS status unknown on adapter $($adapter.Interface). "
                 $hasIssue = $true
@@ -1206,27 +1217,27 @@ $auditResults.NetworkSecurity.Firewall = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit du pare-feu (Windows Firewall) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit du pare-feu (Windows Firewall) :" -ForegroundColor Gray
 $fwAudit = Get-FirewallAudit
 
 if ($fwAudit) {
 
     # Etat du service Firewall
     if ($fwAudit.FirewallServiceStatus -eq 'NotFound') {
-        Write-Host "   [INFORMATION] Le service Windows Firewall (mpssvc) n'a pas ete trouve." -ForegroundColor Red
-        Write-Host "       Recommandation : $($fwAudit.GlobalRecommendations -join '; ')" -ForegroundColor Yellow
+        Add-ToLog -Message "   [INFORMATION] Le service Windows Firewall (mpssvc) n'a pas ete trouve." -ForegroundColor Red
+        Add-ToLog -Message "       Recommandation : $($fwAudit.GlobalRecommendations -join '; ')" -ForegroundColor Yellow
         $auditResults.NetworkSecurity.Firewall.status = "FAIL"
         $auditResults.NetworkSecurity.Firewall.comments += "Windows Firewall service not found. "
     }
     elseif (-not $fwAudit.FirewallServiceRunning) {
-        Write-Host "   [ALERTE] Le service Windows Firewall existe mais n'est pas demarre : $($fwAudit.FirewallServiceStatus)" -ForegroundColor Red
-        Write-Host "       Recommandation : $($fwAudit.GlobalRecommendations -join '; ')" -ForegroundColor Yellow
+        Add-ToLog -Message "   [ALERTE] Le service Windows Firewall existe mais n'est pas demarre : $($fwAudit.FirewallServiceStatus)" -ForegroundColor Red
+        Add-ToLog -Message "       Recommandation : $($fwAudit.GlobalRecommendations -join '; ')" -ForegroundColor Yellow
         $auditResults.NetworkSecurity.Firewall.status = "FAIL"
         $auditResults.NetworkSecurity.Firewall.comments += "Windows Firewall service not running: $($fwAudit.FirewallServiceStatus). "
     }
     else {
-        Write-Host "   [OK] Le service Windows Firewall est en cours d'execution." -ForegroundColor Green
-        Write-Host "   [PROFIL ACTIF] : $($fwAudit.ActiveProfile)" -ForegroundColor Gray
+        Add-ToLog -Message "   [OK] Le service Windows Firewall est en cours d'execution." -ForegroundColor Green
+        Add-ToLog -Message "   [PROFIL ACTIF] : $($fwAudit.ActiveProfile)" -ForegroundColor Gray
         $auditResults.NetworkSecurity.Firewall.status = "PASS"
         $auditResults.NetworkSecurity.Firewall.comments += "Windows Firewall service is running on active profile: $($fwAudit.ActiveProfile). "
     }
@@ -1234,24 +1245,24 @@ if ($fwAudit) {
     # Details et recommandations RDP
     $fwRecs = @()
     if ($fwAudit.RdpRuleDetails) {
-        Write-Host "`n   Regles RDP detectees (nom / LocalAddress / RemoteAddress) :" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Regles RDP detectees (nom / LocalAddress / RemoteAddress) :" -ForegroundColor Gray
         foreach ($r in $fwAudit.RdpRuleDetails) {
-            Write-Host "      - $($r.Name)    Local: $($r.LocalAddress)    Remote: $($r.RemoteAddress)" -ForegroundColor Yellow
+            Add-ToLog -Message "      - $($r.Name)    Local: $($r.LocalAddress)    Remote: $($r.RemoteAddress)" -ForegroundColor Yellow
             $auditResults.NetworkSecurity.Firewall.comments += "RDP rule detected: $($r.Name). "
         }
 
         if ($fwAudit.RdpRecommendations) {
-            Write-Host "`n   Recommandations RDP :" -ForegroundColor Yellow
+            Add-ToLog -Message "`n   Recommandations RDP :" -ForegroundColor Yellow
             foreach ($rec in $fwAudit.RdpRecommendations) { 
-                Write-Host "      - $rec" -ForegroundColor Yellow
+                Add-ToLog -Message "      - $rec" -ForegroundColor Yellow
                 $fwRecs += $rec
             }
         }
     }
     else {
-        Write-Host "`n   [INFO] Aucune regle RDP activee detectee." -ForegroundColor Gray
+        Add-ToLog -Message "`n   [INFO] Aucune regle RDP activee detectee." -ForegroundColor Gray
         if ($fwAudit.RdpRecommendations -and ($fwAudit.RdpRecommendations | Measure-Object).Count -gt 0) {
-            Write-Host "   Recommandation : $($fwAudit.RdpRecommendations -join '; ')" -ForegroundColor Yellow
+            Add-ToLog -Message "   Recommandation : $($fwAudit.RdpRecommendations -join '; ')" -ForegroundColor Yellow
             foreach ($rec in $fwAudit.RdpRecommendations) {
                 $fwRecs += $rec
             }
@@ -1260,9 +1271,9 @@ if ($fwAudit) {
 
     # Recommandations globales
     if ($fwAudit.GlobalRecommendations -and ($fwAudit.GlobalRecommendations | Measure-Object).Count -gt 0) {
-        Write-Host "`n   Recommandations globales :" -ForegroundColor Yellow
+        Add-ToLog -Message "`n   Recommandations globales :" -ForegroundColor Yellow
         foreach ($g in $fwAudit.GlobalRecommendations) { 
-            Write-Host "      - $g" -ForegroundColor Yellow
+            Add-ToLog -Message "      - $g" -ForegroundColor Yellow
             $fwRecs += $g
         }
     }
@@ -1282,44 +1293,44 @@ $auditResults.NetworkSecurity.VPN = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit des connexions VPN :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit des connexions VPN :" -ForegroundColor Gray
 $vpnStatus = Get-VPNStatus
 
 if ($vpnStatus) {
-    Write-Host "   Description : $($vpnStatus.Description)" -ForegroundColor Gray
+    Add-ToLog -Message "   Description : $($vpnStatus.Description)" -ForegroundColor Gray
 
     if ($vpnStatus.HasVpnAdapters) {
-        Write-Host "`n   Interfaces VPN/TAP/TUN actives detectees :" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Interfaces VPN/TAP/TUN actives detectees :" -ForegroundColor Gray
         $auditResults.NetworkSecurity.VPN.status = "WARNING"
         foreach ($a in $vpnStatus.Adapters) {
-            Write-Host "      - $($a.Name) | $($a.InterfaceDescription) | $($a.Status)" -ForegroundColor Yellow
+            Add-ToLog -Message "      - $($a.Name) | $($a.InterfaceDescription) | $($a.Status)" -ForegroundColor Yellow
             $auditResults.NetworkSecurity.VPN.comments += "VPN adapter detected: $($a.Name) ($($a.Status)). "
         }
         $auditResults.NetworkSecurity.VPN.recommendations += "Review VPN adapter configurations for security. | "
     } else {
-        Write-Host "   [INFO] Aucune interface VPN/TAP/TUN active detectee." -ForegroundColor Gray
+        Add-ToLog -Message "   [INFO] Aucune interface VPN/TAP/TUN active detectee." -ForegroundColor Gray
         $auditResults.NetworkSecurity.VPN.status = "PASS"
         $auditResults.NetworkSecurity.VPN.comments += "No active VPN/TAP/TUN adapters detected. "
     }
 
     if ($vpnStatus.HasVpnProfiles) {
-        Write-Host "`n   Profils VPN configures : $($vpnStatus.VpnProfiles.Count)" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Profils VPN configures : $($vpnStatus.VpnProfiles.Count)" -ForegroundColor Gray
         $auditResults.NetworkSecurity.VPN.comments += "$($vpnStatus.VpnProfiles.Count) VPN profile(s) configured. "
         if ($vpnStatus.HasActiveVpnProfiles) {
-            Write-Host "   Profils VPN connectes : $($vpnStatus.ActiveVpnProfiles.Count)" -ForegroundColor Green
+            Add-ToLog -Message "   Profils VPN connectes : $($vpnStatus.ActiveVpnProfiles.Count)" -ForegroundColor Green
             $auditResults.NetworkSecurity.VPN.comments += "$($vpnStatus.ActiveVpnProfiles.Count) VPN profile(s) connected. "
             if ([string]::IsNullOrWhiteSpace($auditResults.NetworkSecurity.VPN.status)) {
                 $auditResults.NetworkSecurity.VPN.status = "PASS"
             }
         } else {
-            Write-Host "   Aucun profil VPN actuellement connecte." -ForegroundColor Yellow
+            Add-ToLog -Message "   Aucun profil VPN actuellement connecte." -ForegroundColor Yellow
             $auditResults.NetworkSecurity.VPN.comments += "No active VPN profiles connected. "
             if ([string]::IsNullOrWhiteSpace($auditResults.NetworkSecurity.VPN.status)) {
                 $auditResults.NetworkSecurity.VPN.status = "PASS"
             }
         }
     } else {
-        Write-Host "   [INFO] Aucun profil VPN configure via le client Windows." -ForegroundColor Gray
+        Add-ToLog -Message "   [INFO] Aucun profil VPN configure via le client Windows." -ForegroundColor Gray
         $auditResults.NetworkSecurity.VPN.status = if ([string]::IsNullOrWhiteSpace($auditResults.NetworkSecurity.VPN.status)) { "PASS" } else { $auditResults.NetworkSecurity.VPN.status }
         $auditResults.NetworkSecurity.VPN.comments += "No VPN profiles configured via Windows VPN client. "
     }
@@ -1345,12 +1356,12 @@ $auditResults.OSSecurity.OptionalFeatures = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit des fonctionnalites optionnelles (Windows Optional Features) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit des fonctionnalites optionnelles (Windows Optional Features) :" -ForegroundColor Gray
 try {
     $optFeatures = Get-OptionalFeaturesAudit
 
     if ($optFeatures) {
-        Write-Host "   [INFO] Nombre de fonctionnalites optionnelles activees : $(($optFeatures | Measure-Object).Count)" -ForegroundColor Gray
+        Add-ToLog -Message "   [INFO] Nombre de fonctionnalites optionnelles activees : $(($optFeatures | Measure-Object).Count)" -ForegroundColor Gray
 
         # Affichage synthetique
         $optFeatures |
@@ -1363,25 +1374,25 @@ try {
         # Affichage detaille des elements a risque
         $risky = $optFeatures | Where-Object { $_.RiskNote -ne '' }
         if ($risky) {
-            Write-Host "`n   [ATTENTION] Fonctions potentiellement dangereuses / exposees :" -ForegroundColor Yellow
+            Add-ToLog -Message "`n   [ATTENTION] Fonctions potentiellement dangereuses / exposees :" -ForegroundColor Yellow
             $auditResults.OSSecurity.OptionalFeatures.status = "FAIL"
             $featRecs = @()
             foreach ($f in $risky) {
-                Write-Host "      - $($f.FeatureName) : $($f.RiskNote)" -ForegroundColor Yellow
-                Write-Host "         Recommandation : $($f.Recommendation)" -ForegroundColor Yellow
-                Write-Host "         Action suggeree (exemple) : Disable-WindowsOptionalFeature -Online -FeatureName `"$($f.FeatureName)`" -NoRestart" -ForegroundColor DarkGray
+                Add-ToLog -Message "      - $($f.FeatureName) : $($f.RiskNote)" -ForegroundColor Yellow
+                Add-ToLog -Message "         Recommandation : $($f.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "         Action suggeree (exemple) : Disable-WindowsOptionalFeature -Online -FeatureName `"$($f.FeatureName)`" -NoRestart" -ForegroundColor DarkGray
                 $featRecs += $f.Recommendation
                 $auditResults.OSSecurity.OptionalFeatures.comments += "$($f.FeatureName): $($f.RiskNote). "
                 $auditResults.OSSecurity.OptionalFeatures.automatable = $true
             }
             $auditResults.OSSecurity.OptionalFeatures.recommendations = ($featRecs | Select-Object -Unique) -join " | "
         } else {
-            Write-Host "   [OK] Aucune fonctionnalite optionnelle notablement risquee detectee." -ForegroundColor Green
+            Add-ToLog -Message "   [OK] Aucune fonctionnalite optionnelle notablement risquee detectee." -ForegroundColor Green
             $auditResults.OSSecurity.OptionalFeatures.status = "PASS"
             $auditResults.OSSecurity.OptionalFeatures.comments += "No risky optional features detected. "
         }
     } else {
-        Write-Host "   [INFO] Aucune fonctionnalite optionnelle activee detectee." -ForegroundColor Yellow
+        Add-ToLog -Message "   [INFO] Aucune fonctionnalite optionnelle activee detectee." -ForegroundColor Yellow
         $auditResults.OSSecurity.OptionalFeatures.status = "PASS"
         $auditResults.OSSecurity.OptionalFeatures.comments += "No optional features enabled. "
     }
@@ -1404,7 +1415,7 @@ $auditResults.OSSecurity.AppLocker = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration AppLocker :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration AppLocker :" -ForegroundColor Gray
 try {
     $appLockerState = Get-AppLockerState
 
@@ -1412,26 +1423,26 @@ try {
         if ($appLockerState.AppLockerPresent) {
             # AppLocker est present
             if ($appLockerState.AnyRuleEnabled) {
-                Write-Host "   [OK] AppLocker est present et au moins une collection de regles est en mode Enforced." -ForegroundColor Green
-                Write-Host "       Statut : $($appLockerState.Comment)" -ForegroundColor Green
+                Add-ToLog -Message "   [OK] AppLocker est present et au moins une collection de regles est en mode Enforced." -ForegroundColor Green
+                Add-ToLog -Message "       Statut : $($appLockerState.Comment)" -ForegroundColor Green
                 $auditResults.OSSecurity.AppLocker.status = "PASS"
                 $auditResults.OSSecurity.AppLocker.comments += "AppLocker is present and at least one rule collection is in Enforced mode. $($appLockerState.Comment). "
             } else {
-                Write-Host "   [INFO] AppLocker est present mais aucune collection de regles n'est en mode Enforced." -ForegroundColor Yellow
-                Write-Host "       Statut : $($appLockerState.Comment)" -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] AppLocker est present mais aucune collection de regles n'est en mode Enforced." -ForegroundColor Yellow
+                Add-ToLog -Message "       Statut : $($appLockerState.Comment)" -ForegroundColor Yellow
                 $auditResults.OSSecurity.AppLocker.status = "WARNING"
                 $auditResults.OSSecurity.AppLocker.comments += "AppLocker is present but no rule collection is in Enforced mode. $($appLockerState.Comment). "
             }
         } else {
             # Aucune politique AppLocker effective
-            Write-Host "   [ALERTE] Aucune politique AppLocker effective detectee sur ce systeme." -ForegroundColor Red
-            Write-Host "       Statut : $($appLockerState.Comment)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [ALERTE] Aucune politique AppLocker effective detectee sur ce systeme." -ForegroundColor Red
+            Add-ToLog -Message "       Statut : $($appLockerState.Comment)" -ForegroundColor Yellow
             $auditResults.OSSecurity.AppLocker.status = "FAIL"
             $auditResults.OSSecurity.AppLocker.comments += "No effective AppLocker policy detected. $($appLockerState.Comment). "
         }
 
         # Affichage de la recommandation
-        Write-Host "       Recommandation : $($appLockerState.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "       Recommandation : $($appLockerState.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.AppLocker.recommendations += $appLockerState.Recommendation
     } else {
         Write-Error "Impossible d'auditer AppLocker (Get-AppLockerState n'a pas retourne de resultat)"
@@ -1455,29 +1466,29 @@ $auditResults.OSSecurity.SRP = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration SRP (Software Restriction Policies) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration SRP (Software Restriction Policies) :" -ForegroundColor Gray
 try {
     $srpAudit = Get-SRPState
 
     if ($srpAudit) {
         $srpDetected = $false
         foreach ($srp in $srpAudit) {
-            Write-Host "`n   Scope: $($srp.Scope)" -ForegroundColor Cyan
+            Add-ToLog -Message "`n   Scope: $($srp.Scope)" -ForegroundColor Cyan
             
             if ($srp.SRPPresent) {
-                Write-Host "   [DeTECTe] SRP est configure pour ce scope." -ForegroundColor Yellow
+                Add-ToLog -Message "   [DeTECTe] SRP est configure pour ce scope." -ForegroundColor Yellow
                 $auditResults.OSSecurity.SRP.status = "PASS"
                 $srpDetected = $true
                 $auditResults.OSSecurity.SRP.comments += "SRP is configured for scope: $($srp.Scope). "
             } else {
-                Write-Host "   [ABSENT] Aucune SRP detectee pour ce scope." -ForegroundColor Green
+                Add-ToLog -Message "   [ABSENT] Aucune SRP detectee pour ce scope." -ForegroundColor Green
                 if (-not $srpDetected) { $auditResults.OSSecurity.SRP.status = "FAIL" }
                 $auditResults.OSSecurity.SRP.comments += "No SRP for scope $($srp.Scope). "
             }
             
-            Write-Host "   Chemin du registre: $($srp.RegistryPath)" -ForegroundColor Gray
-            Write-Host "   Statut: $($srp.Comment)" -ForegroundColor Gray
-            Write-Host "   Recommandation: $($srp.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   Chemin du registre: $($srp.RegistryPath)" -ForegroundColor Gray
+            Add-ToLog -Message "   Statut: $($srp.Comment)" -ForegroundColor Gray
+            Add-ToLog -Message "   Recommandation: $($srp.Recommendation)" -ForegroundColor Yellow
             $auditResults.OSSecurity.SRP.recommendations += $srp.Recommendation
         }
         if (-not $srpDetected) { $auditResults.OSSecurity.SRP.status = "FAIL" }
@@ -1505,18 +1516,18 @@ $auditResults.OSSecurity.ServerAntivirusStatus = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de l'etat des services antivirus :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de l'etat des services antivirus :" -ForegroundColor Gray
 $antivirusStatus = Get-ServerAntivirusStatus
 
 if ($antivirusStatus) {
     $hasIssue = $false
     $avRecs = @()
     foreach ($av in $antivirusStatus) {
-        Write-Host "`nService : $($av.Name)" -ForegroundColor Cyan
+        Add-ToLog -Message "`nService : $($av.Name)" -ForegroundColor Cyan
         
         if ($av.Present -eq $false) {
-            Write-Host "   [ALERTE] Aucune solution antivirus detectee sur ce serveur." -ForegroundColor Red
-            Write-Host "   Recommandation : $($av.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [ALERTE] Aucune solution antivirus detectee sur ce serveur." -ForegroundColor Red
+            Add-ToLog -Message "   Recommandation : $($av.Recommendation)" -ForegroundColor Yellow
             $auditResults.OSSecurity.ServerAntivirusStatus.status = "FAIL"
             $auditResults.OSSecurity.ServerAntivirusStatus.comments += "No antivirus solution detected. "
             $auditResults.OSSecurity.ServerAntivirusStatus.recommendations += $av.Recommendation
@@ -1524,10 +1535,10 @@ if ($antivirusStatus) {
         } else {
             # Statut du service
             if ($av.ServiceRunning) {
-                Write-Host "   [OK] Le service antivirus est en cours d'execution." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] Le service antivirus est en cours d'execution." -ForegroundColor Green
                 $auditResults.OSSecurity.ServerAntivirusStatus.comments += "Antivirus service is running. "
             } else {
-                Write-Host "   [ALERTE] Le service antivirus n'est pas en cours d'execution." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Le service antivirus n'est pas en cours d'execution." -ForegroundColor Red
                 $auditResults.OSSecurity.ServerAntivirusStatus.comments += "Antivirus service is not running. "
                 $hasIssue = $true
             }
@@ -1535,10 +1546,10 @@ if ($antivirusStatus) {
             # Monitoring en temps reel (pour Defender uniquement)
             if ($null -ne $av.RealtimeMonitoring) {
                 if ($av.RealtimeMonitoring) {
-                    Write-Host "   [OK] La protection en temps reel est activee." -ForegroundColor Green
+                    Add-ToLog -Message "   [OK] La protection en temps reel est activee." -ForegroundColor Green
                     $auditResults.OSSecurity.ServerAntivirusStatus.comments += "Real-time monitoring is enabled. "
                 } else {
-                    Write-Host "   [ALERTE] La protection en temps reel est desactivee." -ForegroundColor Red
+                    Add-ToLog -Message "   [ALERTE] La protection en temps reel est desactivee." -ForegroundColor Red
                     $auditResults.OSSecurity.ServerAntivirusStatus.comments += "Real-time monitoring is disabled. "
                     $hasIssue = $true
                 }
@@ -1546,22 +1557,22 @@ if ($antivirusStatus) {
 
             # Status global
             if ($av.OverallProtected) {
-                Write-Host "   [OK] Protection globale : Active" -ForegroundColor Green
+                Add-ToLog -Message "   [OK] Protection globale : Active" -ForegroundColor Green
             } else {
-                Write-Host "   [ALERTE] Protection globale : Inactive ou degradee" -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Protection globale : Inactive ou degradee" -ForegroundColor Red
                 $auditResults.OSSecurity.ServerAntivirusStatus.comments += "Global protection is inactive or degraded. "
                 $hasIssue = $true
             }
 
             # Contexte serveur
             if ($av.IsDomainController) {
-                Write-Host "   [INFO] Cette machine est un controleur de domaine." -ForegroundColor Magenta
+                Add-ToLog -Message "   [INFO] Cette machine est un controleur de domaine." -ForegroundColor Magenta
                 $auditResults.OSSecurity.ServerAntivirusStatus.comments += "This machine is a Domain Controller. "
             }
 
             # Description et recommandation
-            Write-Host "   Description : $($av.Description)" -ForegroundColor Gray
-            Write-Host "   Recommandation : $($av.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   Description : $($av.Description)" -ForegroundColor Gray
+            Add-ToLog -Message "   Recommandation : $($av.Recommendation)" -ForegroundColor Yellow
             $avRecs += $av.Recommendation
         }
     }
@@ -1583,24 +1594,24 @@ $auditResults.OSSecurity.LMHash = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la configuration LM Hash :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la configuration LM Hash :" -ForegroundColor Gray
 try {
     $lmHashStatus = Get-LMHashStatus
 
     if ($lmHashStatus -and $lmHashStatus.Value) {
         $lm = $lmHashStatus.Value
 
-        Write-Host "   Path: $($lm.Path)" -ForegroundColor Gray
-        Write-Host "   NoLMHash Value: $($lm.NoLMHash)" -ForegroundColor Gray
+        Add-ToLog -Message "   Path: $($lm.Path)" -ForegroundColor Gray
+        Add-ToLog -Message "   NoLMHash Value: $($lm.NoLMHash)" -ForegroundColor Gray
 
         if ($lm.LMStored -eq $true) {
-            Write-Host "   [ALERTE] Les hachs LM peuvent etre stockes sur ce systeme." -ForegroundColor Red
-            Write-Host "   Recommandation : $($lm.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [ALERTE] Les hachs LM peuvent etre stockes sur ce systeme." -ForegroundColor Red
+            Add-ToLog -Message "   Recommandation : $($lm.Recommendation)" -ForegroundColor Yellow
             $auditResults.OSSecurity.LMHash.status = "FAIL"
             $auditResults.OSSecurity.LMHash.comments += "LM hashes may be stored on this system (NoLMHash != 1). "
         } else {
-            Write-Host "   [OK] Les hachs LM ne sont pas stockes (NoLMHash = 1)." -ForegroundColor Green
-            Write-Host "   Recommandation : $($lm.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [OK] Les hachs LM ne sont pas stockes (NoLMHash = 1)." -ForegroundColor Green
+            Add-ToLog -Message "   Recommandation : $($lm.Recommendation)" -ForegroundColor Yellow
             $auditResults.OSSecurity.LMHash.status = "PASS"
             $auditResults.OSSecurity.LMHash.comments += "LM hashes are not stored (NoLMHash = 1). "
         }
@@ -1608,9 +1619,9 @@ try {
 
         # Affichage des actions proposees
         if ($lmHashStatus.Xml) {
-            Write-Host "`n   Action proposee :" -ForegroundColor Gray
-            Write-Host "      - $($lmHashStatus.Xml.Category) : $($lmHashStatus.Xml.Description)" -ForegroundColor Yellow
-            Write-Host "         Commande : $($lmHashStatus.Xml.Command)" -ForegroundColor DarkGray
+            Add-ToLog -Message "`n   Action proposee :" -ForegroundColor Gray
+            Add-ToLog -Message "      - $($lmHashStatus.Xml.Category) : $($lmHashStatus.Xml.Description)" -ForegroundColor Yellow
+            Add-ToLog -Message "         Commande : $($lmHashStatus.Xml.Command)" -ForegroundColor DarkGray
             $auditResults.OSSecurity.LMHash.automatable = $true
             $remediationActions += $lmHashStatus.Xml
         }
@@ -1635,54 +1646,54 @@ $auditResults.OSSecurity.LSASSProtection = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit de la protection LSASS :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit de la protection LSASS :" -ForegroundColor Gray
 try {
     $lsassAudit = Get-LsassProtectionStatus
 
     if ($lsassAudit -and $lsassAudit.Value) {
         $p = $lsassAudit.Value
 
-        Write-Host "   LSA Path : $($p.LsaPath)" -ForegroundColor Gray
-        Write-Host "   RunAsPPL : $($p.RunAsPPL)" -ForegroundColor Gray
+        Add-ToLog -Message "   LSA Path : $($p.LsaPath)" -ForegroundColor Gray
+        Add-ToLog -Message "   RunAsPPL : $($p.RunAsPPL)" -ForegroundColor Gray
 
         $lsassOk = $false
         switch ($p.RunAsPPL) {
             2 {
-                Write-Host "   [OK] LSA protection activee (RunAsPPL = 2, Secure Boot requis)." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] LSA protection activee (RunAsPPL = 2, Secure Boot requis)." -ForegroundColor Green
                 $lsassOk = $true
                 $auditResults.OSSecurity.LSASSProtection.comments += "LSA protection is enabled (RunAsPPL = 2, Secure Boot required). "
             }
             1 {
-                Write-Host "   [OK] LSA protection activee (RunAsPPL = 1)." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] LSA protection activee (RunAsPPL = 1)." -ForegroundColor Green
                 $lsassOk = $true
                 $auditResults.OSSecurity.LSASSProtection.comments += "LSA protection is enabled (RunAsPPL = 1). "
             }
             default {
-                Write-Host "   [ALERTE] LSA protection non activee ou valeur inconnue." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] LSA protection non activee ou valeur inconnue." -ForegroundColor Red
                 $auditResults.OSSecurity.LSASSProtection.comments += "LSA protection is not enabled or unknown value. "
             }
         }
 
-        Write-Host "   WDigest Path : $($p.WDigestPath)" -ForegroundColor Gray
-        Write-Host "   UseLogonCredential : $($p.UseLogonCredential)" -ForegroundColor Gray
+        Add-ToLog -Message "   WDigest Path : $($p.WDigestPath)" -ForegroundColor Gray
+        Add-ToLog -Message "   UseLogonCredential : $($p.UseLogonCredential)" -ForegroundColor Gray
 
         if ($p.UseLogonCredential -eq 1) {
-            Write-Host "   [ALERTE] WDigest active — mots de passe potentiellement stockes en clair dans LSASS." -ForegroundColor Red
+            Add-ToLog -Message "   [ALERTE] WDigest active — mots de passe potentiellement stockes en clair dans LSASS." -ForegroundColor Red
             $auditResults.OSSecurity.LSASSProtection.comments += "WDigest is enabled - passwords may be stored in LSASS. "
             $lsassOk = $false
         } else {
-            Write-Host "   [OK] WDigest desactive ou valeur explicite presente." -ForegroundColor Green
+            Add-ToLog -Message "   [OK] WDigest desactive ou valeur explicite presente." -ForegroundColor Green
             $auditResults.OSSecurity.LSASSProtection.comments += "WDigest is disabled. "
         }
 
-        Write-Host "   Recommandation : $($p.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "   Recommandation : $($p.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.LSASSProtection.recommendations += $p.Recommendation
 
         if ($lsassAudit.Xml) {
-            Write-Host "`n   Actions proposees :" -ForegroundColor Gray
+            Add-ToLog -Message "`n   Actions proposees :" -ForegroundColor Gray
             foreach ($item in $lsassAudit.Xml) {
-                Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
-                Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
+                Add-ToLog -Message "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
+                Add-ToLog -Message "         Commande : $($item.Command)" -ForegroundColor DarkGray
                 $auditResults.OSSecurity.LSASSProtection.automatable = $true
                 $remediationActions += $item
             }
@@ -1711,40 +1722,40 @@ $auditResults.OSSecurity.CredentialGuard = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Credential Guard :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Credential Guard :" -ForegroundColor Gray
 try {
     $cg = Get-CredentialGuardStatus
 
     if ($cg) {
-        Write-Host "   LsaPath        : $($cg.LsaPath)" -ForegroundColor Gray
-        Write-Host "   LsaCfgFlags    : $($cg.LsaCfgFlags)" -ForegroundColor Gray
-        Write-Host "   Status         : $($cg.CredentialGuard)" -ForegroundColor Gray
+        Add-ToLog -Message "   LsaPath        : $($cg.LsaPath)" -ForegroundColor Gray
+        Add-ToLog -Message "   LsaCfgFlags    : $($cg.LsaCfgFlags)" -ForegroundColor Gray
+        Add-ToLog -Message "   Status         : $($cg.CredentialGuard)" -ForegroundColor Gray
 
         $cgEnabled = $false
         if ($cg.LsaCfgFlags -eq 1 -or $cg.LsaCfgFlags -eq 2) {
-            Write-Host "   [OK] Credential Guard active." -ForegroundColor Green
+            Add-ToLog -Message "   [OK] Credential Guard active." -ForegroundColor Green
             $cgEnabled = $true
             $auditResults.OSSecurity.CredentialGuard.comments += "Credential Guard is enabled (LsaCfgFlags = $($cg.LsaCfgFlags)). "
         } else {
-            Write-Host "   [ALERTE] Credential Guard desactive ou non configure." -ForegroundColor Red
+            Add-ToLog -Message "   [ALERTE] Credential Guard desactive ou non configure." -ForegroundColor Red
             $auditResults.OSSecurity.CredentialGuard.comments += "Credential Guard is disabled or not configured (LsaCfgFlags = $($cg.LsaCfgFlags)). "
         }
 
-        Write-Host "   TPM present    : $($cg.HasTPM)" -ForegroundColor Gray
-        Write-Host "   SecureBoot     : $($cg.SecureBoot)" -ForegroundColor Gray
-        Write-Host "   Virtualisation : $($cg.Virtualization)" -ForegroundColor Gray
+        Add-ToLog -Message "   TPM present    : $($cg.HasTPM)" -ForegroundColor Gray
+        Add-ToLog -Message "   SecureBoot     : $($cg.SecureBoot)" -ForegroundColor Gray
+        Add-ToLog -Message "   Virtualisation : $($cg.Virtualization)" -ForegroundColor Gray
 
         if (-not $cg.HasTPM -or -not $cg.SecureBoot -or -not $cg.Virtualization) {
-            Write-Host "`n   [PREREQUIS MANQUANTS]" -ForegroundColor Yellow
-            if (-not $cg.HasTPM)    { Write-Host "      - TPM manquant ou version non supportee." -ForegroundColor Yellow; $auditResults.OSSecurity.CredentialGuard.comments += "TPM not available. " }
-            if (-not $cg.SecureBoot){ Write-Host "      - Secure Boot non active." -ForegroundColor Yellow; $auditResults.OSSecurity.CredentialGuard.comments += "Secure Boot not enabled. " }
-            if (-not $cg.Virtualization) { Write-Host "      - Virtualisation materielle non presente." -ForegroundColor Yellow; $auditResults.OSSecurity.CredentialGuard.comments += "Virtualization not available. " }
+            Add-ToLog -Message "`n   [PREREQUIS MANQUANTS]" -ForegroundColor Yellow
+            if (-not $cg.HasTPM)    { Add-ToLog -Message "      - TPM manquant ou version non supportee." -ForegroundColor Yellow; $auditResults.OSSecurity.CredentialGuard.comments += "TPM not available. " }
+            if (-not $cg.SecureBoot){ Add-ToLog -Message "      - Secure Boot non active." -ForegroundColor Yellow; $auditResults.OSSecurity.CredentialGuard.comments += "Secure Boot not enabled. " }
+            if (-not $cg.Virtualization) { Add-ToLog -Message "      - Virtualisation materielle non presente." -ForegroundColor Yellow; $auditResults.OSSecurity.CredentialGuard.comments += "Virtualization not available. " }
             $auditResults.OSSecurity.CredentialGuard.status = "WARNING"
         } else {
             $auditResults.OSSecurity.CredentialGuard.status = if ($cgEnabled) { "PASS" } else { "FAIL" }
         }
         
-        Write-Host "`n   Recommandations : $($cg.Recommendations)" -ForegroundColor Yellow
+        Add-ToLog -Message "`n   Recommandations : $($cg.Recommendations)" -ForegroundColor Yellow
         $auditResults.OSSecurity.CredentialGuard.recommendations += "$cg.Recommendations"
     }
     else {
@@ -1769,41 +1780,41 @@ $auditResults.OSSecurity.DeviceGuard_VBS = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Device Guard / VBS :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Device Guard / VBS :" -ForegroundColor Gray
 try {
     $dg = Get-DeviceGuardStatus
 
     if ($dg) {
-        Write-Host "   VBS actif         : $($dg.VBS_Active)" -ForegroundColor Gray
-        Write-Host "   WDAC actif        : $($dg.WDAC_Active)" -ForegroundColor Gray
-        Write-Host "   CI Enforcement    : $($dg.CodeIntegrityPolicyEnforcementStatus)" -ForegroundColor Gray
-        Write-Host "   SecurityServicesConfigured : $($dg.SecurityServicesConfigured)" -ForegroundColor Gray
-        Write-Host "   SecurityServicesRunning    : $($dg.SecurityServicesRunning)" -ForegroundColor Gray
-        Write-Host "   Commentaire       : $($dg.Comment)" -ForegroundColor Gray
+        Add-ToLog -Message "   VBS actif         : $($dg.VBS_Active)" -ForegroundColor Gray
+        Add-ToLog -Message "   WDAC actif        : $($dg.WDAC_Active)" -ForegroundColor Gray
+        Add-ToLog -Message "   CI Enforcement    : $($dg.CodeIntegrityPolicyEnforcementStatus)" -ForegroundColor Gray
+        Add-ToLog -Message "   SecurityServicesConfigured : $($dg.SecurityServicesConfigured)" -ForegroundColor Gray
+        Add-ToLog -Message "   SecurityServicesRunning    : $($dg.SecurityServicesRunning)" -ForegroundColor Gray
+        Add-ToLog -Message "   Commentaire       : $($dg.Comment)" -ForegroundColor Gray
 
         if ($dg.VBS_Active -or $dg.WDAC_Active) {
-            Write-Host "   [OK] Virtualization-Based Security (VBS) et/ou WDAC detecte(s)." -ForegroundColor Green
+            Add-ToLog -Message "   [OK] Virtualization-Based Security (VBS) et/ou WDAC detecte(s)." -ForegroundColor Green
 
             $auditResults.OSSecurity.DeviceGuard_VBS.status = "PASS"
             $auditResults.OSSecurity.DeviceGuard_VBS.comments += "VBS and/or WDAC is active. "
 
             if ($dg.WDAC_Active -and $dg.CodeIntegrityPolicyEnforcementStatus -match 'Audit') {
-                Write-Host "   [INFO] WDAC en mode Audit — examiner les journaux et prevoir passage en Enforced si stable." -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] WDAC en mode Audit — examiner les journaux et prevoir passage en Enforced si stable." -ForegroundColor Yellow
                 $auditResults.OSSecurity.DeviceGuard_VBS.comments += "WDAC is in Audit mode. "
                 $auditResults.OSSecurity.DeviceGuard_VBS.status = "WARNING"
             }
             if ($dg.WDAC_Active -and $dg.CodeIntegrityPolicyEnforcementStatus -match 'Enforced') {
-                Write-Host "   [OK] WDAC / Code Integrity en mode Enforced." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] WDAC / Code Integrity en mode Enforced." -ForegroundColor Green
                 $auditResults.OSSecurity.DeviceGuard_VBS.comments += "WDAC is in Enforced mode. "
             }
         }
         else {
-            Write-Host "   [ALERTE] Ni VBS ni WDAC actives sur ce systeme." -ForegroundColor Red
+            Add-ToLog -Message "   [ALERTE] Ni VBS ni WDAC actives sur ce systeme." -ForegroundColor Red
             $auditResults.OSSecurity.DeviceGuard_VBS.status = "FAIL"
             $auditResults.OSSecurity.DeviceGuard_VBS.comments += "Neither VBS nor WDAC is active. "
         }
         
-        Write-Host "   Recommandation : $($dg.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "   Recommandation : $($dg.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.DeviceGuard_VBS.recommendations += $dg.Recommendation
     }
     else {
@@ -1829,7 +1840,7 @@ $auditResults.OSSecurity.ExploitProtection = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Exploit Protection (Process Mitigations) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Exploit Protection (Process Mitigations) :" -ForegroundColor Gray
 try {
     $epAudit = Get-ExploitProtectionStatus
 
@@ -1837,33 +1848,33 @@ try {
         $ep = $epAudit.Value
         $issues = @()
 
-        Write-Host "   DEP (Data Execution Prevention)            : $($ep.DEP_Enable)" -ForegroundColor Gray
-        if (-not $ep.DEP_Enable) { $issues += 'DEP' ; Write-Host "      [ALERTE] DEP non active." -ForegroundColor Red } else { Write-Host "      [OK] DEP active." -ForegroundColor Green }
+        Add-ToLog -Message "   DEP (Data Execution Prevention)            : $($ep.DEP_Enable)" -ForegroundColor Gray
+        if (-not $ep.DEP_Enable) { $issues += 'DEP' ; Add-ToLog -Message "      [ALERTE] DEP non active." -ForegroundColor Red } else { Add-ToLog -Message "      [OK] DEP active." -ForegroundColor Green }
 
-        Write-Host "   CFG (Control Flow Guard)                   : $($ep.CFG_Enable)" -ForegroundColor Gray
-        if (-not $ep.CFG_Enable) { $issues += 'CFG' ; Write-Host "      [ALERTE] CFG non active." -ForegroundColor Red } else { Write-Host "      [OK] CFG active." -ForegroundColor Green }
+        Add-ToLog -Message "   CFG (Control Flow Guard)                   : $($ep.CFG_Enable)" -ForegroundColor Gray
+        if (-not $ep.CFG_Enable) { $issues += 'CFG' ; Add-ToLog -Message "      [ALERTE] CFG non active." -ForegroundColor Red } else { Add-ToLog -Message "      [OK] CFG active." -ForegroundColor Green }
 
-        Write-Host "   SEHOP (SEH Overwrite Protection)          : $($ep.SEHOP_Enable)" -ForegroundColor Gray
-        if (-not $ep.SEHOP_Enable) { $issues += 'SEHOP' ; Write-Host "      [ALERTE] SEHOP non active." -ForegroundColor Red } else { Write-Host "      [OK] SEHOP active." -ForegroundColor Green }
+        Add-ToLog -Message "   SEHOP (SEH Overwrite Protection)          : $($ep.SEHOP_Enable)" -ForegroundColor Gray
+        if (-not $ep.SEHOP_Enable) { $issues += 'SEHOP' ; Add-ToLog -Message "      [ALERTE] SEHOP non active." -ForegroundColor Red } else { Add-ToLog -Message "      [OK] SEHOP active." -ForegroundColor Green }
 
-        Write-Host "   ASLR Bottom-Up                              : $($ep.ASLR_BottomUP)" -ForegroundColor Gray
-        if (-not $ep.ASLR_BottomUP) { $issues += 'ASLR_BottomUP' ; Write-Host "      [ALERTE] ASLR Bottom-Up non active." -ForegroundColor Red } else { Write-Host "      [OK] ASLR Bottom-Up active." -ForegroundColor Green }
+        Add-ToLog -Message "   ASLR Bottom-Up                              : $($ep.ASLR_BottomUP)" -ForegroundColor Gray
+        if (-not $ep.ASLR_BottomUP) { $issues += 'ASLR_BottomUP' ; Add-ToLog -Message "      [ALERTE] ASLR Bottom-Up non active." -ForegroundColor Red } else { Add-ToLog -Message "      [OK] ASLR Bottom-Up active." -ForegroundColor Green }
 
-        Write-Host "   ASLR High-Entropy                           : $($ep.ASLR_HighEntropy)" -ForegroundColor Gray
-        if (-not $ep.ASLR_HighEntropy) { $issues += 'ASLR_HighEntropy' ; Write-Host "      [ALERTE] ASLR High-Entropy non active." -ForegroundColor Red } else { Write-Host "      [OK] ASLR High-Entropy active." -ForegroundColor Green }
+        Add-ToLog -Message "   ASLR High-Entropy                           : $($ep.ASLR_HighEntropy)" -ForegroundColor Gray
+        if (-not $ep.ASLR_HighEntropy) { $issues += 'ASLR_HighEntropy' ; Add-ToLog -Message "      [ALERTE] ASLR High-Entropy non active." -ForegroundColor Red } else { Add-ToLog -Message "      [OK] ASLR High-Entropy active." -ForegroundColor Green }
 
-        Write-Host "   ASLR ForceRelocateImages                    : $($ep.ASLR_ForceRelocateImages)" -ForegroundColor Gray
-        if (-not $ep.ASLR_ForceRelocateImages) { $issues += 'ASLR_ForceRelocateImages' ; Write-Host "      [ALERTE] ForceRelocateImages non active." -ForegroundColor Red } else { Write-Host "      [OK] ForceRelocateImages active." -ForegroundColor Green }
+        Add-ToLog -Message "   ASLR ForceRelocateImages                    : $($ep.ASLR_ForceRelocateImages)" -ForegroundColor Gray
+        if (-not $ep.ASLR_ForceRelocateImages) { $issues += 'ASLR_ForceRelocateImages' ; Add-ToLog -Message "      [ALERTE] ForceRelocateImages non active." -ForegroundColor Red } else { Add-ToLog -Message "      [OK] ForceRelocateImages active." -ForegroundColor Green }
 
-        Write-Host "`n   Synthese :" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Synthese :" -ForegroundColor Gray
         if (($issues | Measure-Object).Count -eq 0) {
-            Write-Host "      [OK] Parametres globaux d'Exploit Protection solides." -ForegroundColor Green
-            Write-Host "      Recommandation : $($ep.Recommendation)" -ForegroundColor Gray
+            Add-ToLog -Message "      [OK] Parametres globaux d'Exploit Protection solides." -ForegroundColor Green
+            Add-ToLog -Message "      Recommandation : $($ep.Recommendation)" -ForegroundColor Gray
             $auditResults.OSSecurity.ExploitProtection.status = "PASS"
             $auditResults.OSSecurity.ExploitProtection.comments += "Exploit Protection settings are strong. "
         } else {
-            Write-Host "      [ALERTE] Parametres manquants ou desactives : $($issues -join ', ')" -ForegroundColor Red
-            Write-Host "      Recommandation : $($ep.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "      [ALERTE] Parametres manquants ou desactives : $($issues -join ', ')" -ForegroundColor Red
+            Add-ToLog -Message "      Recommandation : $($ep.Recommendation)" -ForegroundColor Yellow
             $auditResults.OSSecurity.ExploitProtection.status = "FAIL"
             $auditResults.OSSecurity.ExploitProtection.comments += "Missing or disabled settings: $($issues -join ', '). "
         }
@@ -1871,10 +1882,10 @@ try {
         $auditResults.OSSecurity.ExploitProtection.recommendations += $ep.Recommendation
 
         if ($epAudit.Xml) {
-            Write-Host "`n   Actions proposees :" -ForegroundColor Gray
+            Add-ToLog -Message "`n   Actions proposees :" -ForegroundColor Gray
             foreach ($item in $epAudit.Xml) {
-                Write-Host "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
-                Write-Host "         Commande : $($item.Command)" -ForegroundColor DarkGray
+                Add-ToLog -Message "      - $($item.Category) : $($item.Description)" -ForegroundColor Yellow
+                Add-ToLog -Message "         Commande : $($item.Command)" -ForegroundColor DarkGray
                 $auditResults.OSSecurity.ExploitProtection.automatable = $true
                 $remediationActions += $item
             }
@@ -1902,7 +1913,7 @@ $auditResults.OSSecurity.ASR = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Attack Surface Reduction (ASR) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Attack Surface Reduction (ASR) :" -ForegroundColor Gray
 try {
     $asrAudit = Get-ASRStatus
 
@@ -1922,11 +1933,11 @@ try {
                 default  { $color = 'Gray'; $label = "[UNKNOWN]" }
             }
 
-            Write-Host "`n   RuleId : $($rule.RuleId)  $label" -ForegroundColor Cyan
-            Write-Host "      Mode : $status" -ForegroundColor $color
-            Write-Host "      Commentaire : $($rule.Comment)" -ForegroundColor Gray
+            Add-ToLog -Message "`n   RuleId : $($rule.RuleId)  $label" -ForegroundColor Cyan
+            Add-ToLog -Message "      Mode : $status" -ForegroundColor $color
+            Add-ToLog -Message "      Commentaire : $($rule.Comment)" -ForegroundColor Gray
             if ($rule.Recommendation) { 
-                Write-Host "      Recommandation : $($rule.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "      Recommandation : $($rule.Recommendation)" -ForegroundColor Yellow
                 $auditResults.OSSecurity.ASR.recommendations += $rule.Recommendation
             }
             $auditResults.OSSecurity.ASR.comments += "Rule $($rule.RuleId) is $status. "
@@ -1935,8 +1946,8 @@ try {
     }
     else {
         # Cas ou Get-ASRStatus renvoie un objet unique indiquant l'absence de regles
-        Write-Host "   $($asrAudit.Comment)" -ForegroundColor Red
-        Write-Host "   Recommandation : $($asrAudit.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "   $($asrAudit.Comment)" -ForegroundColor Red
+        Add-ToLog -Message "   Recommandation : $($asrAudit.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.ASR.status = "FAIL"
         $auditResults.OSSecurity.ASR.comments += "$($asrAudit.Comment). "
         $auditResults.OSSecurity.ASR.recommendations += $asrAudit.Recommendation
@@ -1957,42 +1968,42 @@ $auditResults.OSSecurity.NetworkProtection = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Network Protection (Microsoft Defender) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Network Protection (Microsoft Defender) :" -ForegroundColor Gray
 try {
     $np = Get-NetworkProtectionStatus
 
     if ($np) {
-        Write-Host "   Mode detecte : $($np.Mode)" -ForegroundColor Gray
+        Add-ToLog -Message "   Mode detecte : $($np.Mode)" -ForegroundColor Gray
         switch ($np.Mode) {
             'Block' {
-                Write-Host "   [OK] Network Protection en mode Block." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] Network Protection en mode Block." -ForegroundColor Green
                 $auditResults.OSSecurity.NetworkProtection.status = "PASS"
                 $auditResults.OSSecurity.NetworkProtection.comments += "Network Protection is in Block mode. "
             }
             'Audit' {
-                Write-Host "   [INFO] Network Protection en mode Audit." -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] Network Protection en mode Audit." -ForegroundColor Yellow
                 $auditResults.OSSecurity.NetworkProtection.status = "WARNING"
                 $auditResults.OSSecurity.NetworkProtection.comments += "Network Protection is in Audit mode. "
             }
             'Off' {
-                Write-Host "   [ALERTE] Network Protection desactive." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Network Protection desactive." -ForegroundColor Red
                 $auditResults.OSSecurity.NetworkProtection.status = "FAIL"
                 $auditResults.OSSecurity.NetworkProtection.comments += "Network Protection is disabled. "
             }
             'NotConfigured' {
-                Write-Host "   [ALERTE] Network Protection non configure." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Network Protection non configure." -ForegroundColor Red
                 $auditResults.OSSecurity.NetworkProtection.status = "FAIL"
                 $auditResults.OSSecurity.NetworkProtection.comments += "Network Protection is not configured. "
             }
             default {
-                Write-Host "   [INCONNU] Valeur brute : $($np.RawValue)" -ForegroundColor Yellow
+                Add-ToLog -Message "   [INCONNU] Valeur brute : $($np.RawValue)" -ForegroundColor Yellow
                 $auditResults.OSSecurity.NetworkProtection.status = "WARNING"
                 $auditResults.OSSecurity.NetworkProtection.comments += "Network Protection has unknown status: $($np.RawValue). "
             }
         }
 
-        Write-Host "   EnableNetworkProtection : $($np.EnableNetworkProtection)" -ForegroundColor Gray
-        Write-Host "`n   Recommandation : $($np.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "   EnableNetworkProtection : $($np.EnableNetworkProtection)" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Recommandation : $($np.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.NetworkProtection.recommendations += $np.Recommendation
     }
     else {
@@ -2017,52 +2028,52 @@ $auditResults.OSSecurity.ControlledFolderAccess = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Controlled Folder Access (Defender) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Controlled Folder Access (Defender) :" -ForegroundColor Gray
 try {
     $cfa = Get-ControlledFolderAccessStatus
 
     if ($cfa) {
-        Write-Host "   Mode detecte : $($cfa.Mode)" -ForegroundColor Gray
+        Add-ToLog -Message "   Mode detecte : $($cfa.Mode)" -ForegroundColor Gray
 
         switch ($cfa.Mode) {
             'Block' {
-                Write-Host "   [OK] Controlled Folder Access en mode Block." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] Controlled Folder Access en mode Block." -ForegroundColor Green
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "PASS"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access is in Block mode. "
             }
             'Audit' {
-                Write-Host "   [INFO] Controlled Folder Access en mode Audit." -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] Controlled Folder Access en mode Audit." -ForegroundColor Yellow
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "WARNING"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access is in Audit mode. "
             }
             'Block disk modification only' {
-                Write-Host "   [INFO] CFA en mode 'Block disk modification only'." -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] CFA en mode 'Block disk modification only'." -ForegroundColor Yellow
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "WARNING"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access is in Block disk modification only mode. "
             }
             'Audit disk modification only' {
-                Write-Host "   [INFO] CFA en mode 'Audit disk modification only'." -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] CFA en mode 'Audit disk modification only'." -ForegroundColor Yellow
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "WARNING"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access is in Audit disk modification only mode. "
             }
             'Off' {
-                Write-Host "   [ALERTE] Controlled Folder Access desactive." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Controlled Folder Access desactive." -ForegroundColor Red
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "FAIL"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access is disabled. "
             }
             'NotConfigured' {
-                Write-Host "   [ALERTE] Controlled Folder Access non configure." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Controlled Folder Access non configure." -ForegroundColor Red
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "FAIL"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access is not configured. "
             }
             default {
-                Write-Host "   [INCONNU] Valeur brute : $($cfa.EnableControlledFolderAccess)" -ForegroundColor Yellow
+                Add-ToLog -Message "   [INCONNU] Valeur brute : $($cfa.EnableControlledFolderAccess)" -ForegroundColor Yellow
                 $auditResults.OSSecurity.ControlledFolderAccess.status = "WARNING"
                 $auditResults.OSSecurity.ControlledFolderAccess.comments += "Controlled Folder Access has unknown status: $($cfa.EnableControlledFolderAccess). "
             }
         }
 
-        Write-Host "`n   Recommandation : $($cfa.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "`n   Recommandation : $($cfa.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.ControlledFolderAccess.recommendations += $cfa.Recommendation
     }
     else {
@@ -2087,41 +2098,41 @@ $auditResults.OSSecurity.SmartAppControl = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit Smart App Control :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit Smart App Control :" -ForegroundColor Gray
 try {
     $sac = Get-SmartAppControlStatus
 
     if ($sac) {
-        Write-Host "   Smart App Control : $($sac.SmartApp_State)" -ForegroundColor Gray
+        Add-ToLog -Message "   Smart App Control : $($sac.SmartApp_State)" -ForegroundColor Gray
 
         switch ($sac.SmartApp_State) {
             'On' {
-                Write-Host "   [OK] Smart App Control active." -ForegroundColor Green
+                Add-ToLog -Message "   [OK] Smart App Control active." -ForegroundColor Green
                 $auditResults.OSSecurity.SmartAppControl.status = "PASS"
                 $auditResults.OSSecurity.SmartAppControl.comments += "Smart App Control is enabled. "
             }
             'Evaluation' {
-                Write-Host "   [INFO] Smart App Control en mode Evaluation." -ForegroundColor Yellow
+                Add-ToLog -Message "   [INFO] Smart App Control en mode Evaluation." -ForegroundColor Yellow
                 $auditResults.OSSecurity.SmartAppControl.status = "WARNING"
                 $auditResults.OSSecurity.SmartAppControl.comments += "Smart App Control is in Evaluation mode. "
             }
             'Off' {
-                Write-Host "   [ALERTE] Smart App Control desactive." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Smart App Control desactive." -ForegroundColor Red
                 $auditResults.OSSecurity.SmartAppControl.status = "FAIL"
                 $auditResults.OSSecurity.SmartAppControl.comments += "Smart App Control is disabled. "
             }
             'NotConfigured' {
-                Write-Host "   [ALERTE] Smart App Control non configure." -ForegroundColor Red
+                Add-ToLog -Message "   [ALERTE] Smart App Control non configure." -ForegroundColor Red
                 $auditResults.OSSecurity.SmartAppControl.status = "FAIL"
                 $auditResults.OSSecurity.SmartAppControl.comments += "Smart App Control is not configured. "
             }
             default {
-                Write-Host "   [INCONNU] Valeur detectee : $($sac.SmartApp_State)" -ForegroundColor Yellow
+                Add-ToLog -Message "   [INCONNU] Valeur detectee : $($sac.SmartApp_State)" -ForegroundColor Yellow
                 $auditResults.OSSecurity.SmartAppControl.status = "WARNING"
                 $auditResults.OSSecurity.SmartAppControl.comments += "Smart App Control has unknown state: $($sac.SmartApp_State). "
             }
         }
-        Write-Host "`n   Recommandation : Tester en mode Evaluation puis activer (On) sur systemes compatibles." -ForegroundColor Yellow
+        Add-ToLog -Message "`n   Recommandation : Tester en mode Evaluation puis activer (On) sur systemes compatibles." -ForegroundColor Yellow
         $auditResults.OSSecurity.SmartAppControl.recommendations += "Test in Evaluation mode then enable (On) on compatible systems."
     }
     else {
@@ -2146,24 +2157,24 @@ $auditResults.OSSecurity.PowershellLanguageMode = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit du mode langage PowerShell :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit du mode langage PowerShell :" -ForegroundColor Gray
 try {
     $psMode = Get-PowerShellLanguageMode
 
     if ($psMode) {
-        Write-Host "   LanguageMode : $($psMode.LanguageMode)" -ForegroundColor Gray
+        Add-ToLog -Message "   LanguageMode : $($psMode.LanguageMode)" -ForegroundColor Gray
 
         if ($psMode.IsConstrained) {
-            Write-Host "   [OK] PowerShell en ConstrainedLanguage." -ForegroundColor Green
+            Add-ToLog -Message "   [OK] PowerShell en ConstrainedLanguage." -ForegroundColor Green
             $auditResults.OSSecurity.PowershellLanguageMode.status = "PASS"
             $auditResults.OSSecurity.PowershellLanguageMode.comments += "PowerShell is in ConstrainedLanguage mode. "
         }
         else {
-            Write-Host "   [ALERTE] PowerShell en FullLanguage (ou moins restreint)." -ForegroundColor Red
+            Add-ToLog -Message "   [ALERTE] PowerShell en FullLanguage (ou moins restreint)." -ForegroundColor Red
             $auditResults.OSSecurity.PowershellLanguageMode.status = "FAIL"
             $auditResults.OSSecurity.PowershellLanguageMode.comments += "PowerShell is in FullLanguage or less restricted mode: $($psMode.LanguageMode). "
         }
-        Write-Host "   Recommandation : $($psMode.Recommendation)" -ForegroundColor Yellow
+        Add-ToLog -Message "   Recommandation : $($psMode.Recommendation)" -ForegroundColor Yellow
         $auditResults.OSSecurity.PowershellLanguageMode.recommendations += $psMode.Recommendation
     }
     else {
@@ -2195,7 +2206,7 @@ $auditResults.DeviceSecurity.AutoRun = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit AutoRun (NoDriveTypeAutorun) :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit AutoRun (NoDriveTypeAutorun) :" -ForegroundColor Gray
 try {
     $ar = Get-AutorunStatus
 
@@ -2203,29 +2214,29 @@ try {
         $hasIssue = $false
         $arRecs = @()
         foreach ($entry in $ar.Value) {
-            Write-Host "`n   Scope : $($entry.Scope)" -ForegroundColor Cyan
-            Write-Host "      Valeur brute : $($entry.Value)" -ForegroundColor Gray
-            Write-Host "      Commentaire  : $($entry.Comment)" -ForegroundColor Gray
+            Add-ToLog -Message "`n   Scope : $($entry.Scope)" -ForegroundColor Cyan
+            Add-ToLog -Message "      Valeur brute : $($entry.Value)" -ForegroundColor Gray
+            Add-ToLog -Message "      Commentaire  : $($entry.Comment)" -ForegroundColor Gray
 
             if ($entry.AutoRunEnabled -eq $true) {
-                Write-Host "      [ALERTE] Autorun potentiellement active." -ForegroundColor Red
-                Write-Host "      Recommandation : $($entry.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "      [ALERTE] Autorun potentiellement active." -ForegroundColor Red
+                Add-ToLog -Message "      Recommandation : $($entry.Recommendation)" -ForegroundColor Yellow
                 $auditResults.DeviceSecurity.AutoRun.comments += "AutoRun is potentially enabled for scope $($entry.Scope). "
                 $arRecs += $entry.Recommendation
                 $hasIssue = $true
             }
             else {
-                Write-Host "      [OK] Autorun desactive pour ce scope." -ForegroundColor Green
-                Write-Host "      Recommandation : $($entry.Recommendation)" -ForegroundColor Gray
+                Add-ToLog -Message "      [OK] Autorun desactive pour ce scope." -ForegroundColor Green
+                Add-ToLog -Message "      Recommandation : $($entry.Recommendation)" -ForegroundColor Gray
                 $auditResults.DeviceSecurity.AutoRun.comments += "AutoRun is disabled for scope $($entry.Scope). "
                 $arRecs += $entry.Recommendation
             }
         }
 
         if ($ar.Xml) {
-            Write-Host "`n   Actions proposees :" -ForegroundColor Gray
-            Write-Host "      - $($ar.Xml.Category) : $($ar.Xml.Description)" -ForegroundColor Yellow
-            Write-Host "         Commande : $($ar.Xml.Command)" -ForegroundColor DarkGray
+            Add-ToLog -Message "`n   Actions proposees :" -ForegroundColor Gray
+            Add-ToLog -Message "      - $($ar.Xml.Category) : $($ar.Xml.Description)" -ForegroundColor Yellow
+            Add-ToLog -Message "         Commande : $($ar.Xml.Command)" -ForegroundColor DarkGray
             $auditResults.DeviceSecurity.AutoRun.automatable = $true
             $remediationActions += $ar.Xml
         }
@@ -2255,10 +2266,10 @@ $auditResults.DeviceSecurity.BitLocker = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit BitLocker :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit BitLocker :" -ForegroundColor Gray
 try {
 
-    if ($context.HardwareType -ne 'VirtualMachine') {
+    if ($context.HardwareType -ne 'Virtual Machine') {
         
         $bitlocker = Get-BitLockerAudit
 
@@ -2266,26 +2277,26 @@ try {
             $allEncrypted = $true
             $blRecs = @()
             foreach ($vol in $bitlocker) {
-                Write-Host "`n   Volume : $($vol.MountPoint) ($($vol.VolumeType))" -ForegroundColor Cyan
-                Write-Host "      ProtectionStatus   : $($vol.ProtectionStatus)  |  Chiffrement : $($vol.EncryptionPercent)% " -ForegroundColor Gray
+                Add-ToLog -Message "`n   Volume : $($vol.MountPoint) ($($vol.VolumeType))" -ForegroundColor Cyan
+                Add-ToLog -Message "      ProtectionStatus   : $($vol.ProtectionStatus)  |  Chiffrement : $($vol.EncryptionPercent)% " -ForegroundColor Gray
                 if ($vol.ProtectionStatus -eq 'On' -and $vol.EncryptionPercent -ge 100) {
-                    Write-Host "      [OK] Volume chiffre et protege." -ForegroundColor Green
+                    Add-ToLog -Message "      [OK] Volume chiffre et protege." -ForegroundColor Green
                     $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is encrypted and protected. "
                 }
                 elseif ($vol.ProtectionStatus -eq 'Suspended') {
-                    Write-Host "      [INFO] Protection suspendue." -ForegroundColor Yellow
+                    Add-ToLog -Message "      [INFO] Protection suspendue." -ForegroundColor Yellow
                     $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) has suspended protection. "
                     $allEncrypted = $false
                 }
                 else {
-                    Write-Host "      [ALERTE] Volume non protege ou chiffrement incomplet." -ForegroundColor Red
+                    Add-ToLog -Message "      [ALERTE] Volume non protege ou chiffrement incomplet." -ForegroundColor Red
                     $auditResults.DeviceSecurity.BitLocker.comments += "Volume $($vol.MountPoint) is not protected or encryption is incomplete. "
                     $allEncrypted = $false
                 }
 
-                Write-Host "      TPM : $($vol.HasTPM)    PIN : $($vol.HasPIN)    RecoveryKey : $($vol.HasRecoveryPassword)" -ForegroundColor Gray
-                Write-Host "      Commentaire : $($vol.Comment)" -ForegroundColor Gray
-                Write-Host "      Recommandation : $($vol.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "      TPM : $($vol.HasTPM)    PIN : $($vol.HasPIN)    RecoveryKey : $($vol.HasRecoveryPassword)" -ForegroundColor Gray
+                Add-ToLog -Message "      Commentaire : $($vol.Comment)" -ForegroundColor Gray
+                Add-ToLog -Message "      Recommandation : $($vol.Recommendation)" -ForegroundColor Yellow
                 $blRecs += $vol.Recommendation
             }
             $auditResults.DeviceSecurity.BitLocker.status = if ($allEncrypted) { "PASS" } else { "FAIL" }
@@ -2296,7 +2307,7 @@ try {
             $auditResults.DeviceSecurity.BitLocker.status = "WARNING"
         }
     } else {
-        Write-Host "   [INFO] Systeme virtuel detecte — saut de l'audit BitLocker." -ForegroundColor Yellow
+        Add-ToLog -Message "   [INFO] Systeme virtuel detecte — saut de l'audit BitLocker." -ForegroundColor Yellow
         $auditResults.DeviceSecurity.BitLocker.status = "N/A"
         $auditResults.DeviceSecurity.BitLocker.comments += "Virtual machine detected — BitLocker audit skipped. "
     }
@@ -2319,7 +2330,7 @@ $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit indicateurs de chiffrement tiers :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit indicateurs de chiffrement tiers :" -ForegroundColor Gray
 try {
     $tpe = Get-ThirdPartyEncryptionIndicators
 
@@ -2331,44 +2342,44 @@ try {
             # Attendu : proprietes possibles Name, Present, Version, Details, Recommendation
             $name = $item.Name      -or 'ThirdPartyEncryption'
             $present = $item.Present -or $false
-            Write-Host "`n   Solution : $name" -ForegroundColor Cyan
-            Write-Host "      Present : $present" -ForegroundColor Gray
+            Add-ToLog -Message "`n   Solution : $name" -ForegroundColor Cyan
+            Add-ToLog -Message "      Present : $present" -ForegroundColor Gray
 
             if ($present) {
-                Write-Host "      [INFO] Chiffrement tiers detecte : $name" -ForegroundColor Green
+                Add-ToLog -Message "      [INFO] Chiffrement tiers detecte : $name" -ForegroundColor Green
                 $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.comments += "Third-party encryption detected: $name. "
                 if ($item.Version) { 
-                    Write-Host "      Version : $($item.Version)" -ForegroundColor Gray
+                    Add-ToLog -Message "      Version : $($item.Version)" -ForegroundColor Gray
                     $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.comments += "Version: $($item.Version). "
                 }
                 if ($item.Details) { 
-                    Write-Host "      Details : $($item.Details)" -ForegroundColor Gray
+                    Add-ToLog -Message "      Details : $($item.Details)" -ForegroundColor Gray
                     $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.comments += "Details: $($item.Details). "
                 }
                 if ($item.Recommendation) { 
-                    Write-Host "      Recommandation : $($item.Recommendation)" -ForegroundColor Yellow
+                    Add-ToLog -Message "      Recommandation : $($item.Recommendation)" -ForegroundColor Yellow
                     $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.recommendations += $item.Recommendation
                 }
                 $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.status = "PASS"
             } else {
-                Write-Host "      [OK] Aucun chiffrement tiers detecte pour cet item." -ForegroundColor Green
+                Add-ToLog -Message "      [OK] Aucun chiffrement tiers detecte pour cet item." -ForegroundColor Green
             }
         }
     }
     else {
         # Cas objet unique attendu avec proprietes HasThirdParty/Detected/Details/Recommendation
         $has = $tpe.HasThirdParty  -or $tpe.Detected -or $false
-        Write-Host "   Indicateur chiffrement tiers detecte : $has" -ForegroundColor Gray
+        Add-ToLog -Message "   Indicateur chiffrement tiers detecte : $has" -ForegroundColor Gray
         if ($has) {
-            Write-Host "   [INFO] Un chiffrement tiers semble present. Details : $($tpe.Details)" -ForegroundColor Green
+            Add-ToLog -Message "   [INFO] Un chiffrement tiers semble present. Details : $($tpe.Details)" -ForegroundColor Green
             $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.status = "PASS"
             $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.comments += "Third-party encryption detected. Details: $($tpe.Details). "
             if ($tpe.Recommendation) { 
-                Write-Host "   Recommandation : $($tpe.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "   Recommandation : $($tpe.Recommendation)" -ForegroundColor Yellow
                 $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.recommendations += $tpe.Recommendation
             }
         } else {
-            Write-Host "   [OK] Aucun chiffrement tiers detecte." -ForegroundColor Magenta
+            Add-ToLog -Message "   [OK] Aucun chiffrement tiers detecte." -ForegroundColor Magenta
             $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.status = "PASS"
             $auditResults.DeviceSecurity.ThirdPartyEncryptionIndicators.comments += "No third-party encryption detected. "
         }
@@ -2400,26 +2411,26 @@ $auditResults.UpdateManagement.LastReboot_Uptime = @{
     comments = ""
 }
 
-Write-Host "`n[+] Audit du dernier redemarrage :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit du dernier redemarrage :" -ForegroundColor Gray
 try {
     $lr = Get-LastReboot
 
     if ($lr) {
-        Write-Host "   Role de la machine : $($lr.ComputerRole)" -ForegroundColor Gray
-        Write-Host "   Dernier demarrage   : $($lr.LastBootTime)" -ForegroundColor Gray
-        Write-Host "   Uptime              : $($lr.Uptime) (jours: $($lr.UptimeDays))" -ForegroundColor Gray
-        Write-Host "   Seuil recommande    : $($lr.ThresholdDays) jours" -ForegroundColor Gray
+        Add-ToLog -Message "   Role de la machine : $($lr.ComputerRole)" -ForegroundColor Gray
+        Add-ToLog -Message "   Dernier demarrage   : $($lr.LastBootTime)" -ForegroundColor Gray
+        Add-ToLog -Message "   Uptime              : $($lr.Uptime) (jours: $($lr.UptimeDays))" -ForegroundColor Gray
+        Add-ToLog -Message "   Seuil recommande    : $($lr.ThresholdDays) jours" -ForegroundColor Gray
 
         $auditResults.UpdateManagement.LastReboot_Uptime.comments += "Last boot time: $($lr.LastBootTime). Uptime: $($lr.UptimeDays) days. "
 
         if ($lr.UptimeDays -gt $lr.ThresholdDays) {
-            Write-Host "   [ALERTE] Uptime superieur au seuil ($($lr.ThresholdDays) jours)." -ForegroundColor Red
-            Write-Host "   Recommandation : $($lr.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "   [ALERTE] Uptime superieur au seuil ($($lr.ThresholdDays) jours)." -ForegroundColor Red
+            Add-ToLog -Message "   Recommandation : $($lr.Recommendation)" -ForegroundColor Yellow
             $auditResults.UpdateManagement.LastReboot_Uptime.status = "FAIL"
         }
         else {
-            Write-Host "   [OK] Uptime dans la plage attendue." -ForegroundColor Green
-            Write-Host "   Recommandation : $($lr.Recommendation)" -ForegroundColor Gray
+            Add-ToLog -Message "   [OK] Uptime dans la plage attendue." -ForegroundColor Green
+            Add-ToLog -Message "   Recommandation : $($lr.Recommendation)" -ForegroundColor Gray
             $auditResults.UpdateManagement.LastReboot_Uptime.status = "PASS"
         }
         $auditResults.UpdateManagement.LastReboot_Uptime.recommendations += $lr.Recommendation
@@ -2446,7 +2457,7 @@ Export-AuditResultsToJson -AuditData $auditResults -OutputPath $ScriptPath -scri
 $auditResults.Logging = @{}
 ########## Logging / Event Collection Audit ##########
 
-Write-Host "`n[+] Audit des journaux et de la collecte d'evenements :" -ForegroundColor Gray
+Add-ToLog -Message "`n[+] Audit des journaux et de la collecte d'evenements :" -ForegroundColor Gray
 try {
     $auditResults.Logging.LogStatus = @{
         status = ""
@@ -2461,34 +2472,34 @@ try {
         $logIssue = $false
         $logRecs = @()
         foreach ($l in $logs) {
-            Write-Host "`n   Log : $($l.LogName)" -ForegroundColor Cyan
+            Add-ToLog -Message "`n   Log : $($l.LogName)" -ForegroundColor Cyan
             if (-not $l.IsEnabled) {
-                Write-Host "      [ALERTE] Desactive ou indisponible." -ForegroundColor Red
-                Write-Host "      Recommendation : $($l.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "      [ALERTE] Desactive ou indisponible." -ForegroundColor Red
+                Add-ToLog -Message "      Recommendation : $($l.Recommendation)" -ForegroundColor Yellow
                 $auditResults.Logging.LogStatus.comments += "Log $($l.LogName) is disabled. "
                 $logRecs += $l.Recommendation
                 $logIssue = $true
                 continue
             }
 
-            Write-Host "      Enregistres : $($l.RecordCount)  |  MaxSize : $($l.MaximumSizeMB) MB  |  Reco : $($l.RecoSizeMB) MB" -ForegroundColor Gray
+            Add-ToLog -Message "      Enregistres : $($l.RecordCount)  |  MaxSize : $($l.MaximumSizeMB) MB  |  Reco : $($l.RecoSizeMB) MB" -ForegroundColor Gray
 
             if ($l.IsSizeOK -eq $true) {
-                Write-Host "      [OK] Taille du journal conforme." -ForegroundColor Green
-                Write-Host "      Recommendation : $($l.Recommendation)" -ForegroundColor Gray
+                Add-ToLog -Message "      [OK] Taille du journal conforme." -ForegroundColor Green
+                Add-ToLog -Message "      Recommendation : $($l.Recommendation)" -ForegroundColor Gray
                 $auditResults.Logging.LogStatus.comments += "Log $($l.LogName) size is compliant. "
                 $logRecs += $l.Recommendation
             }
             elseif ($l.IsSizeOK -eq $false) {
-                Write-Host "      [ALERTE] Taille du journal insuffisante." -ForegroundColor Red
-                Write-Host "      Recommendation : $($l.Recommendation)" -ForegroundColor Yellow
+                Add-ToLog -Message "      [ALERTE] Taille du journal insuffisante." -ForegroundColor Red
+                Add-ToLog -Message "      Recommendation : $($l.Recommendation)" -ForegroundColor Yellow
                 $auditResults.Logging.LogStatus.comments += "Log $($l.LogName) size is insufficient. "
                 $logRecs += $l.Recommendation
                 $logIssue = $true
             }
             else {
-                Write-Host "      [INFO] Aucune recommandation de taille definie." -ForegroundColor Yellow
-                Write-Host "      Recommendation : $($l.Recommendation)" -ForegroundColor Gray
+                Add-ToLog -Message "      [INFO] Aucune recommandation de taille definie." -ForegroundColor Yellow
+                Add-ToLog -Message "      Recommendation : $($l.Recommendation)" -ForegroundColor Gray
                 $auditResults.Logging.LogStatus.comments += "Log $($l.LogName) has no size recommendation. "
                 $logRecs += $l.Recommendation
             }
@@ -2513,10 +2524,10 @@ try {
         $efIssue = $false
         $efRecs = @()
         foreach ($e in $ef) {
-            Write-Host "`n   Source : $($e.Name)" -ForegroundColor Cyan
-            Write-Host "      Active : $($e.IsEnabled)" -ForegroundColor Gray
-            Write-Host "      Commentaire : $($e.Comment)" -ForegroundColor Gray
-            Write-Host "      Recommendation : $($e.Recommendation)" -ForegroundColor Yellow
+            Add-ToLog -Message "`n   Source : $($e.Name)" -ForegroundColor Cyan
+            Add-ToLog -Message "      Active : $($e.IsEnabled)" -ForegroundColor Gray
+            Add-ToLog -Message "      Commentaire : $($e.Comment)" -ForegroundColor Gray
+            Add-ToLog -Message "      Recommendation : $($e.Recommendation)" -ForegroundColor Yellow
             
             if ($e.IsEnabled) {
                 $auditResults.Logging.EventForwardingStatus.comments += "Event forwarding is enabled for $($e.Name). "
@@ -2543,19 +2554,19 @@ try {
     # 3) Recherche d'agents de logs / SIEM
     $agents = Get-LogAgentStatus
     if ($agents) {
-        Write-Host "`n   Agents de collecte detectes :" -ForegroundColor Gray
+        Add-ToLog -Message "`n   Agents de collecte detectes :" -ForegroundColor Gray
         $agentFound = $false
         $laRecs = @()
         foreach ($a in $agents) {
             if ($a.IsLogAgent) {
-                Write-Host "      - $($a.DisplayName) (version: $($a.DisplayVersion))" -ForegroundColor Green
-                Write-Host "         Recommendation : $($a.Recommendation)" -ForegroundColor Gray
+                Add-ToLog -Message "      - $($a.DisplayName) (version: $($a.DisplayVersion))" -ForegroundColor Green
+                Add-ToLog -Message "         Recommendation : $($a.Recommendation)" -ForegroundColor Gray
                 $auditResults.Logging.LogAgentStatus.comments += "Log agent detected: $($a.DisplayName) (version: $($a.DisplayVersion)). "
                 $laRecs += $a.Recommendation
                 $agentFound = $true
             } else {
-                Write-Host "      - Aucun agent connu detecte sur l'entree (bruit possible)." -ForegroundColor Yellow
-                Write-Host "         Commentaire : $($a.Comment)" -ForegroundColor Gray
+                Add-ToLog -Message "      - Aucun agent connu detecte sur l'entree (bruit possible)." -ForegroundColor Yellow
+                Add-ToLog -Message "         Commentaire : $($a.Comment)" -ForegroundColor Gray
                 $auditResults.Logging.LogAgentStatus.comments += "Unknown entry detected: $($a.Comment). "
             }
         }
@@ -2564,8 +2575,8 @@ try {
             $auditResults.Logging.LogAgentStatus.recommendations = ($laRecs | Select-Object -Unique) -join " | "
         }
     } else {
-        Write-Host "`n   [ALERTE] Aucun agent de collecte/SIEM detecte." -ForegroundColor Red
-        Write-Host "      Recommendation : Installer/configurer un agent pour centraliser les logs." -ForegroundColor Yellow
+        Add-ToLog -Message "`n   [ALERTE] Aucun agent de collecte/SIEM detecte." -ForegroundColor Red
+        Add-ToLog -Message "      Recommendation : Installer/configurer un agent pour centraliser les logs." -ForegroundColor Yellow
         $auditResults.Logging.LogAgentStatus.status = "FAIL"
         $auditResults.Logging.LogAgentStatus.comments += "No log collection/SIEM agent detected. "
         $auditResults.Logging.LogAgentStatus.recommendations += "Install and configure a log collection agent to centralize logs. | "
@@ -2587,7 +2598,7 @@ if ($remediationActions -and $remediationActions.Count -gt 0) {
     try {
         $xmlPath = Join-Path -Path $ScriptPath -ChildPath "xml\remediations_$scriptStartDate.xml"
         $remediationActions | Export-Clixml -Path $xmlPath -Force
-        Write-Host "[✓] Actions de remediation exportees : $xmlPath" -ForegroundColor Green
+        Add-ToLog -Message "[✓] Actions de remediation exportees : $xmlPath" -ForegroundColor Green
     }
     catch {
         Write-Warning "Erreur lors de l'export des actions XML : $($_.Exception.Message)"
@@ -2595,4 +2606,4 @@ if ($remediationActions -and $remediationActions.Count -gt 0) {
 }
 
 # --- Fin ---
-Write-Host "`nAudit termine." -ForegroundColor Cyan
+Add-ToLog -Message "`nAudit termine." -ForegroundColor Cyan

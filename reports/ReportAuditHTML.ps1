@@ -91,12 +91,14 @@ if ($AuditResults.PSObject.Properties.Name -contains "HostContext") {
         $computerName = if ($hostContext.PSObject.Properties.Name -contains "Hostname") { $hostContext.Hostname } else { "" }
         $ip = if ($hostContext.PSObject.Properties.Name -contains "IPAddresses") { $hostContext.IPAddresses} else { "" }
         $domainName = if ($hostContext.PSObject.Properties.Name -contains "DomainName") { $hostContext.DomainName } else { "" }
+        $osversion = if ($hostContext.PSObject.Properties.Name -contains "OSVersion") { $hostContext.OSVersion } else { "" }
     }
 }
 
 $computerName = if ([string]::IsNullOrWhiteSpace($computerName)) { "Unknown" } else { $computerName.Trim() }
 $ip = if ([string]::IsNullOrWhiteSpace($ip)) { "Unknown" } else { $ip.Trim() }
 $domainName = if ([string]::IsNullOrWhiteSpace($domainName)) { "Unknown" } else { $domainName.Trim() }
+$osversion = if ([string]::IsNullOrWhiteSpace($osversion)) { "Unknown" } else { $osversion.Trim() }
 
 # Calculer les statistiques de remediations
 $xmlPath = "$(Get-Location)\xml"
@@ -167,6 +169,10 @@ $htmlContent = @"
                     <div class="info-item">
                         <div class="info-label" data-en="IP" data-fr="Adresse IP">Adresse IP</div>
                         <div class="info-value">$(ConvertTo-HtmlSafe $ip)</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label" data-en="OS Version" data-fr="Version du Système d'Exploitation">Version du Système d'Exploitation</div>
+                        <div class="info-value">$(ConvertTo-HtmlSafe $osversion)</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label" data-en="Report Date" data-fr="Date du Rapport">Date du Rapport</div>
