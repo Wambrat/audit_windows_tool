@@ -24,6 +24,9 @@ function Get-AppUpgrade {
     [CmdletBinding()]
     param()
 
+    if ($context.OSVersion -match "Windows 7|Windows 8|Windows 8.1|Windows Server 2008|Windows Server 2012|Windows Server 2016|Windows Server 2019") {
+        return $null
+    }
     # Ensure WinGet client is available (basic check)
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if (-not $winget) {

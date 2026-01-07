@@ -30,6 +30,7 @@ function Get-HostContext {
             return [PSCustomObject]@{
                 Hostname       = $compInfo.Name
                 OSRole         = $osRole
+                OSVersion      = $osInfo.Caption + " " + $osInfo.Version
                 HardwareType   = $hardwareType
                 Manufacturer   = $compInfo.Manufacturer
                 Model          = $compInfo.Model

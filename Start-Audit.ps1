@@ -687,8 +687,8 @@ if ($smbSharesAudit) {
     $smbSharesAudit | ForEach-Object {
         $share = $_
         $sharesAccess = Get-SmbShareAccess -Name $share.Name
-        $user = 'Tout le monde 'if $_.AccountName -eq 'Tout le monde' else 'Everyone'
-        $sharesAccess | Where-Object { ($_.AccountName -eq $user -or ) -and $_.AccessControlType -eq 'Allow' } | ForEach-Object {
+        $user = if ($_.AccountName -eq 'Tout le monde') {'Tout le monde'} else {'Everyone'}
+        $sharesAccess | Where-Object { $_.AccountName -eq $user -and $_.AccessControlType -eq 'Allow' } | ForEach-Object {
             Write-Host "`nAttention : Le partage SMB '"$($share.Name)"' est accessible par 'Tout le monde'. Chemin du partage : "$($share.Path) -ForegroundColor Red
             Write-Host "Verification des droits NTFS du groupe 'Tout le monde' sur le repertoire partage..." -ForegroundColor Yellow
             $NTFSAudit = Get-NTFSAudit -Path $share.Path -User $user
@@ -1041,7 +1041,7 @@ try {
             Select-Object Name, InstalledVersion, @{Name='Available';Expression={$_.AvailableVersions -join ','}} |
             Format-Table -AutoSize
         Write-Host "   Recommandation : utiliser `winget upgrade --all` pour mettre a jour les applications prises en charge." -ForegroundColor Yellow
-        $auditResults.ServicesAndApplications.InstalledApplications.recommendations += "Use 'winget upgrade --all' to update supported applications. "
+        $auditResults.ServicesAndApplications.InstalledApplications.recommendations += "If winget installed, consider to use 'winget upgrade --name ...' to update supported applications. If not installed, please verify manually"
         $auditResults.ServicesAndApplications.InstalledApplications.comments += "$($appUpgrades.Count) application updates available via WinGet. "
         $auditResults.ServicesAndApplications.InstalledApplications.status = "WARNING"
     } elseif ($null -eq $appUpgrades) {
