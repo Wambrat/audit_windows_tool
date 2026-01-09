@@ -1,0 +1,388 @@
+{
+  "HostContext": {
+    "ComputerName": "TEST-MACHINE-01",
+    "OSVersion": "Windows 10 Pro 22H2",
+    "OSRole": "Workstation",
+    "Domainjoined": true,
+    "HardwareType": "Physical Machine",
+    "Architecture": "x64",
+    "ProcessorCount": 4,
+    "TotalMemory": "16 GB"
+  },
+  "AccountSecurity": {
+    "LocalAdminAccount": {
+      "status": "FAIL",
+      "automatable": false,
+      "recommendations": [
+        "Disable the default Administrator account or rename it to prevent brute force attacks.",
+        "Use a custom administrative account with a strong password.",
+        "Monitor failed login attempts on administrator accounts."
+      ],
+      "comments": "Administrator default account is enabled and accessible.",
+      "AccountName": "Administrator",
+      "AccountSID": "S-1-5-21-3623811015-3361044348-30300820-500",
+      "Enabled": true
+    },
+    "LocalGuestAccount": {
+      "status": "PASS",
+      "automatable": true,
+      "recommendations": [],
+      "comments": "Guest account is disabled as required.",
+      "AccountName": "Guest",
+      "AccountSID": "S-1-5-21-3623811015-3361044348-30300820-501",
+      "Enabled": false
+    },
+    "LAPS": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Consider implementing LAPS (Local Administrator Password Solution) for better credential management.",
+        "Use modern LAPS instead of legacy version.",
+        "Enable automatic password rotation for local administrators."
+      ],
+      "comments": "LAPS configuration uses obsolete methods.",
+      "DetectedMethod": "Legacy LAPS",
+      "IsModernLapsEnabled": false,
+      "IsLegacyLapsEnabled": true
+    },
+    "ADPasswordPolicy": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "AD Password policy requirements are met.",
+      "MinPasswordLength": 14,
+      "PasswordComplexity": true,
+      "AccountLockoutThreshold": 5
+    },
+    "LocalPasswordPolicy": {
+      "status": "FAIL",
+      "automatable": false,
+      "recommendations": [
+        "Increase minimum password length to at least 12 characters.",
+        "Enable password complexity requirements.",
+        "Set maximum password age to 90 days."
+      ],
+      "comments": "Password length requirement is not met. Password complexity is disabled.",
+      "MinPasswordLength": 8,
+      "PasswordComplexity": false,
+      "MaxPasswordAge": 42
+    },
+    "UAC": {
+      "status": "PASS",
+      "automatable": true,
+      "recommendations": [],
+      "comments": "UAC is enabled and properly configured.",
+      "UACEnabled": true,
+      "FilterAdministratorToken": true,
+      "LocalAccountTokenFilterPolicy": true
+    },
+    "JEA": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Configure JEA endpoints for privileged access management.",
+        "Implement role-based access control through JEA sessions."
+      ],
+      "comments": "WinRM is running but no JEA endpoints are configured.",
+      "WinRmState": "Running",
+      "HasJEASessionConfig": false,
+      "EndpointCount": 0
+    }
+  },
+  "NetworkSecurity": {
+    "IPv6": {
+      "status": "FAIL",
+      "automatable": true,
+      "recommendations": [
+        "Disable IPv6 on all network adapters if not needed.",
+        "Implement IPv6 security policies if IPv6 is required."
+      ],
+      "comments": "IPv6 is enabled on 2 network adapters.",
+      "AdapterCount": 2,
+      "EnabledAdapters": "Ethernet, WiFi",
+      "DisabledAdapters": "Bluetooth"
+    },
+    "LLMNR": {
+      "status": "PASS",
+      "automatable": true,
+      "recommendations": "",
+      "comments": "LLMNR is properly disabled.",
+      "LLMNREnabled": false,
+      "RegistryValue": 0
+    },
+    "NetBIOS": {
+      "status": "FAIL",
+      "automatable": true,
+      "recommendations": [
+        "Disable NetBIOS on all network adapters to prevent name resolution attacks."
+      ],
+      "comments": "NetBIOS is enabled on 1 adapter.",
+      "EnabledAdapters": "Ethernet",
+      "TcpipNetbiosOptions": 0
+    },
+    "Firewall": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": "",
+      "comments": "Windows Defender Firewall is enabled on all profiles.",
+      "DomainProfileEnabled": true,
+      "PrivateProfileEnabled": true,
+      "PublicProfileEnabled": true,
+      "InboundPolicy": "Block",
+      "OutboundPolicy": "Allow"
+    },
+    "VPN": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Consider configuring VPN for remote access security."
+      ],
+      "comments": "No VPN profiles are configured.",
+      "VPNCount": 0,
+      "RemoteAccessEnabled": false
+    }
+  },
+  "OSSecurity": {
+    "OptionalFeatures": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "No risky optional features are enabled."
+    },
+    "AppLocker": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Consider implementing AppLocker policies to restrict application execution.",
+        "Create rules for system-critical applications.",
+        "Test policies in audit mode before enforcement."
+      ],
+      "comments": "AppLocker is not configured.",
+      "IsEnabled": false,
+      "RuleCount": 0
+    },
+    "SRP": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Software Restriction Policies are properly configured."
+    },
+    "ServerAntivirusStatus": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Windows Defender is enabled and up to date.",
+      "AntimalwareService": "Running",
+      "DefinitionUpdateStatus": "Up to date",
+      "RealTimeProtectionEnabled": true
+    },
+    "LMHash": {
+      "status": "PASS",
+      "automatable": true,
+      "recommendations": [],
+      "comments": "LM Hash storage is disabled.",
+      "LMHashDisabled": true,
+      "NoLMHash": 1
+    },
+    "LSASSProtection": {
+      "status": "FAIL",
+      "automatable": true,
+      "recommendations": [
+        "Enable LSASS protection (RunAsPPL) to prevent credential dumping attacks.",
+        "Verify hardware supports virtualization-based security.",
+        "Test application compatibility with LSASS protection enabled."
+      ],
+      "comments": "LSASS protection is not enabled.",
+      "RunAsPPLStatus": "Not enabled",
+      "RegistryValue": 0
+    },
+    "CredentialGuard": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Enable Credential Guard via GPO or virtualization-based security if hardware supports it.",
+        "Ensure UEFI firmware is updated.",
+        "Enable Secure Boot on the system."
+      ],
+      "comments": "Credential Guard is available but not enabled.",
+      "IsAvailable": true,
+      "IsEnabled": false,
+      "VirtualizationBasedSecurityEnabled": false
+    },
+    "DeviceGuard_VBS": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Virtualization-Based Security is enabled.",
+      "VBSEnabled": true,
+      "VBSStatus": "Running"
+    },
+    "ExploitProtection": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Process mitigation policies are enabled.",
+      "DEPEnabled": true,
+      "CFGEnabled": true
+    },
+    "ASR": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Review and enable Attack Surface Reduction rules based on your environment.",
+        "Test blocked applications before enabling in enforcement mode.",
+        "Monitor ASR event logs for false positives."
+      ],
+      "comments": "Some ASR rules are not enabled.",
+      "EnabledRules": 8,
+      "TotalRules": 11,
+      "DisabledRules": ["Block Office COM DDE", "Block persistence through WMI"]
+    },
+    "NetworkProtection": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Network Protection is enabled.",
+      "NetworkProtectionState": "Enabled",
+      "BlockingMode": true
+    },
+    "ControlledFolderAccess": {
+      "status": "FAIL",
+      "automatable": false,
+      "recommendations": [
+        "Enable Controlled Folder Access to protect important folders from ransomware.",
+        "Configure protected folders for sensitive data locations.",
+        "Whitelist trusted applications that need write access."
+      ],
+      "comments": "Controlled Folder Access is disabled.",
+      "CFAStatus": "Disabled",
+      "ProtectedFoldersCount": 0
+    },
+    "SmartAppControl": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Smart App Control is in enforcement mode.",
+      "SACStatus": "Enforced"
+    },
+    "PowershellLanguageMode": {
+      "status": "PASS",
+      "automatable": true,
+      "recommendations": [],
+      "comments": "PowerShell is running in ConstrainedLanguage mode.",
+      "LanguageMode": "ConstrainedLanguage",
+      "ExecutionPolicy": "RemoteSigned"
+    }
+  },
+  "ServicesAndApplications": {
+    "RDP": {
+      "status": "FAIL",
+      "automatable": true,
+      "recommendations": [
+        "Disable RDP if not needed.",
+        "If required, restrict access via Network Level Authentication and firewall rules.",
+        "Use VPN for remote access instead of exposing RDP."
+      ],
+      "comments": "RDP is enabled on this machine.",
+      "RDPEnabled": true,
+      "NetworkLevelAuthRequired": false,
+      "MinEncryptionLevel": "Client Compatible"
+    },
+    "WinRM": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "WinRM is properly configured with security settings.",
+      "WinRmEnabled": true,
+      "HttpsEnabled": true,
+      "BasicAuthDisabled": true
+    },
+    "SMB": {
+      "status": "FAIL",
+      "automatable": true,
+      "recommendations": [
+        "Disable SMBv1 immediately.",
+        "Ensure SMB signing is enabled on all shares.",
+        "Configure SMB encryption for sensitive shares."
+      ],
+      "comments": "SMBv1 is enabled. SMB signing is not enforced.",
+      "SMBv1State": true,
+      "SMBv2State": true,
+      "SMBv3State": true,
+      "SigningRequired": false
+    },
+    "Updates": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Install pending Windows updates immediately."
+      ],
+      "comments": "OS: Windows 10 Pro, Version: 22H2. 3 updates pending.",
+      "OS": "Windows 10 Pro",
+      "Version": "22H2",
+      "PendingUpdates": 3,
+      "LastUpdateDate": "2026-01-04"
+    },
+    "InstalledApplications": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "45 applications detected. All appear to be legitimate.",
+      "ApplicationCount": 45,
+      "OutdatedApplications": 2,
+      "UnknownApplications": 0
+    }
+  },
+  "DeviceSecurity": {
+    "AutoRun": {
+      "status": "PASS",
+      "automatable": true,
+      "recommendations": [],
+      "comments": "AutoRun is properly disabled."
+    },
+    "BitLocker": {
+      "status": "FAIL",
+      "automatable": false,
+      "recommendations": [
+        "Enable BitLocker Drive Encryption on all drives to protect data at rest.",
+        "Enable TPM 2.0 in BIOS for hardware-backed encryption.",
+        "Backup recovery keys to Active Directory for centralized management."
+      ],
+      "comments": "BitLocker is not enabled on C: drive.",
+      "C_DriveEncrypted": false,
+      "D_DriveEncrypted": false,
+      "EncryptionMethod": "None"
+    },
+    "ThirdPartyEncryptionIndicators": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "No indicators of third-party full-disk encryption were detected."
+    }
+  },
+  "UpdateManagement": {
+    "LastReboot_Uptime": {
+      "status": "WARNING",
+      "automatable": false,
+      "recommendations": [
+        "Reboot the system as soon as possible to apply pending security updates.",
+        "Schedule maintenance window to minimize business disruption."
+      ],
+      "comments": "System uptime is 45 days. Updates are pending.",
+      "LastBootTime": "2025-11-20T10:30:00",
+      "UptimeDays": 45,
+      "PendingRestartRequired": true
+    }
+  },
+  "Logging": {
+    "LogStatus": {
+      "status": "PASS",
+      "automatable": false,
+      "recommendations": [],
+      "comments": "Event logging is properly configured.",
+      "SecurityLogSize": "20480 KB",
+      "SecurityLogRetention": "7 days",
+      "AuditingEnabled": true
+    }
+  }
+}

@@ -1,0 +1,498 @@
+2026-01-07 01:16:01 - Demarrage de l'audit sur PC_PERSO_RYAN_C...
+2026-01-07 01:16:01 - 
+[+] Contexte Identifie :
+2026-01-07 01:16:02 - 
+[+] Comptes locaux identifies :
+2026-01-07 01:16:02 - Le compte Administrateur par defaut est desactive reduisant la surface d'attaque.
+2026-01-07 01:16:02 - Le compte Invite est bien desactive.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeImpersonatePrivilege :
+2026-01-07 01:16:02 - Privilege configure : SeImpersonatePrivilege
+2026-01-07 01:16:02 - Assigne a : SERVICE LOCAL, SERVICE RÉSEAU, Administrateurs, SERVICE, PrintSpoolerService
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeImpersonatePrivilege ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Eviter SeImpersonate.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeInteractiveLogonRight :
+2026-01-07 01:16:02 - Privilege configure : SeInteractiveLogonRight
+2026-01-07 01:16:02 - Assigne a : __vmware__, Invité, Administrateurs, Utilisateurs, Opérateurs de sauvegarde
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeInteractiveLogonRight ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Restreindre 'Log on locally' aux seuls comptes qui en ont vraiment besoin.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeServiceLogonRight :
+2026-01-07 01:16:02 - Privilege configure : SeServiceLogonRight
+2026-01-07 01:16:02 - Assigne a : ALL SERVICES, , SERVICES RESTREINTS\TOUS LES SERVICES RESTREINTS
+2026-01-07 01:16:02 - Administrateurs presents : False
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeServiceLogonRight ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Restreindre 'Log on as a service' aux seuls comptes qui en ont vraiment besoin.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeBatchLogonRight :
+2026-01-07 01:16:02 - Privilege configure : SeBatchLogonRight
+2026-01-07 01:16:02 - Assigne a : Administrateurs, Opérateurs de sauvegarde, Utilisateurs du journal de performances
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeBatchLogonRight ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Restreindre 'Log on as a batch job' aux seuls comptes qui en ont vraiment besoin.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeRemoteInteractiveLogonRight :
+2026-01-07 01:16:02 - Privilege configure : SeRemoteInteractiveLogonRight
+2026-01-07 01:16:02 - Assigne a : Administrateurs, Utilisateurs du Bureau à distance
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeRemoteInteractiveLogonRight ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Interdire 'Allow log on through RDP' aux comptes utilisateurs classiques sur les serveurs ; passer par jump servers / bastions + comptes admin dedies.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeDebugPrivilege :
+2026-01-07 01:16:02 - Privilege configure : SeDebugPrivilege
+2026-01-07 01:16:02 - Assigne a : Administrateurs
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : SeDebugPrivilege est restreint au groupe Administrateurs integres ; revoir periodiquement les ajouts indesirables. Limiter SeDebugPrivilege (Debug programs) => Parce que sinon on peut dump tout meme sans admin.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeTcbPrivilege :
+2026-01-07 01:16:02 - Privilege non configure.
+2026-01-07 01:16:02 - Recommandation :  SeTcbPrivilege n'est pas configure explicitement; appliquez une politique qui restreint ce droit a un ensemble minimal de comptes administrateurs. Limiter SeTcbPrivilege (Act as part of the operating system).
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeBackupPrivilege :
+2026-01-07 01:16:02 - Privilege configure : SeBackupPrivilege
+2026-01-07 01:16:02 - Assigne a : Administrateurs, Opérateurs de sauvegarde
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeBackupPrivilege ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Limiter SeBackupPrivilege / SeRestorePrivilege (Backup/restore files and directories).
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeRestorePrivilege :
+2026-01-07 01:16:02 - Privilege configure : SeRestorePrivilege
+2026-01-07 01:16:02 - Assigne a : Administrateurs, Opérateurs de sauvegarde
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeRestorePrivilege ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Limiter SeBackupPrivilege / SeRestorePrivilege (Backup/restore files and directories).
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeAssignPrimaryTokenPrivilege :
+2026-01-07 01:16:02 - Privilege configure : SeAssignPrimaryTokenPrivilege
+2026-01-07 01:16:02 - Assigne a : SERVICE LOCAL, SERVICE RÉSEAU
+2026-01-07 01:16:02 - Administrateurs presents : False
+2026-01-07 01:16:02 - Recommandation : D'autres SID ont SeAssignPrimaryTokenPrivilege ; restreignez ce droit a aussi peu de comptes administrateurs hautement fiables que possible. Limiter SeAssignPrimaryTokenPrivilege / SeCreateTokenPrivilege.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeCreateTokenPrivilege :
+2026-01-07 01:16:02 - Privilege non configure.
+2026-01-07 01:16:02 - Recommandation :  SeCreateTokenPrivilege n'est pas configure explicitement; appliquez une politique qui restreint ce droit a un ensemble minimal de comptes administrateurs. Limiter SeAssignPrimaryTokenPrivilege / SeCreateTokenPrivilege.
+2026-01-07 01:16:02 - 
+[+] Audit du privilege SeLoadDriverPrivilege :
+2026-01-07 01:16:02 - Privilege configure : SeLoadDriverPrivilege
+2026-01-07 01:16:02 - Assigne a : Administrateurs
+2026-01-07 01:16:02 - Administrateurs presents : True
+2026-01-07 01:16:02 - Recommandation : SeLoadDriverPrivilege est restreint au groupe Administrateurs integres ; revoir periodiquement les ajouts indesirables. Limiter SeLoadDriverPrivilege (Load and unload device drivers).
+2026-01-07 01:16:02 - 
+[+] Audit de la configuration LAPS :
+2026-01-07 01:16:02 - La machine n'est pas jointe a un domaine. LAPS n'est pas auditable
+2026-01-07 01:16:02 - 
+[+] Audit des politiques de mots de passe :
+2026-01-07 01:16:02 -    [LONGUEUR]   [ALERTE] /!\ NON CONFORME : La longueur (0) est inferieur au minimum ANSSI (12).
+2026-01-07 01:16:02 -    [COMPLEXITE] [ALERTE] /!\ RISQUE : La complexite des mots de passe n'est pas forcee.
+2026-01-07 01:16:02 -    [BLOCAGE]    [MOYEN] Seuil eleve (10). Un attaquant a beaucoup d'essais avant blocage. Considerer reduire a 3.
+2026-01-07 01:16:02 - 
+[+] Audit du niveau d'authentification :
+2026-01-07 01:16:02 -    [ALERTE] Windows Hello (Consumer/Local) n'est pas active.
+2026-01-07 01:16:03 - 
+[+] Audit de la configuration de l'UAC :
+2026-01-07 01:16:03 -    [ALERTE] L'UAC est desactive.
+2026-01-07 01:16:03 -    [ALERTE] Le filtrage du token administrateur est desactive.
+2026-01-07 01:16:03 -    [OK] La politique de filtrage des tokens pour les comptes locaux est desactivee.
+2026-01-07 01:16:03 - 
+[+] Audit de la configuration JEA :
+2026-01-07 01:16:03 -    [ALERTE] WinRM est installe mais arrete. JEA ne peut pas etre utilise tant que WinRM n'est pas demarre.
+2026-01-07 01:16:03 - 
+[+] Audit des groupes locaux :
+2026-01-07 01:16:03 - System.Management.Automation.PSCustomObject
+2026-01-07 01:16:03 - 
+Groupe : Administrateurs
+2026-01-07 01:16:03 -    Membres : PC_PERSO_RYAN_C\Administrateur, PC_PERSO_RYAN_C\perso
+2026-01-07 01:16:03 -    [ATTENTION] Ce groupe contient plusieurs membres (2). Verifiez qu'il n'y a pas d'utilisateurs non autorises.
+2026-01-07 01:16:03 - 
+[+] Audit des partages SMB :
+2026-01-07 01:16:04 - 
+[+] Audit des services RDP :
+2026-01-07 01:16:04 -    [DISABLED] RDP est desactive au niveau OS.
+2026-01-07 01:16:04 -    [ADMIN RESTREINT] DisableRestrictedAdmin : Cle introuvable / Desactivee par defaut
+2026-01-07 01:16:04 -    [CHIFFREMENT] MinEncryptionLevel : 2 / Compatible avec les clients
+2026-01-07 01:16:04 -    [COUCHE DE SECURITE] SecurityLayer : 2 / SSL/TLS uniquement
+2026-01-07 01:16:04 -    [NLA] UserAuthentication : 1 / NLA requis
+2026-01-07 01:16:04 -    [RPC] fEncryptRPCTraffic : Disabled
+2026-01-07 01:16:04 - 
+   Recommandation : Le protocole RDP est desactive au niveau du systeme d'exploitation (fDenyTSConnections != 0) ; laissez-le desactive s'il n'est pas strictement necessaire.
+2026-01-07 01:16:04 - 
+[+] Audit WinRM :
+2026-01-07 01:16:04 -    [INACTIF] WinRM n'est pas installe ou le service est arrete.
+2026-01-07 01:16:04 -    Recommandation :
+2026-01-07 01:16:04 -       - Le service WinRM est arrete ou non installe. Si la gestion a distance est requise, activez et configurez-le de maniere securisee (ecouteur HTTPS, filtres IP restreints, authentification renforcee).
+2026-01-07 01:16:04 - 
+[+] Audit SMB :
+2026-01-07 01:16:04 -    [SMBv1] [OK] SMBv1 est desactive.
+2026-01-07 01:16:04 -    [SMBv2/3] [OK] SMBv2/3 est active.
+2026-01-07 01:16:04 -    [SIGNING] [ALERTE] La signature de securite SMB n'est pas requise.
+2026-01-07 01:16:04 - 
+   Details : Le protocole SMBv1 est desactive sur ce serveur. | La signature SMB n'est pas requise pour les connexions au serveur.
+2026-01-07 01:16:04 - 
+   Recommandation : Configure RequireSecuritySignature = $true on servers and align client settings to reduce NTLM relay and tampering risks.
+2026-01-07 01:16:04 - 
+   Actions proposees :
+2026-01-07 01:16:04 -       - SMB Signing : Configurez RequireSecuritySignature = True sur les serveurs et alignez les parametres du client pour reduire les risques de relais NTLM et de falsification.
+2026-01-07 01:16:04 -          Commande : Set-SmbServerConfiguration -RequireSecuritySignature True -Force
+2026-01-07 01:16:04 - 
+[+] Audit des mises a jour et version OS :
+2026-01-07 01:16:04 - 
+[OS] Microsoft Windows 11 Professionnel - Version 10.0.26200 (Full: 10.0.26200.7462)
+2026-01-07 01:16:04 - Build: 26200   Installe le: 2025-03-04 15:18
+2026-01-07 01:16:04 - 
+[Source de mises a jour] Aucune cle de strategie trouvee : utilisation du comportement par defaut de Windows Update
+2026-01-07 01:16:05 - 
+[+] Dernieres mises a jour installees (10 dernieres) :
+2026-01-07 01:16:05 - 
+[+] Audit des applications installees :
+2026-01-07 01:16:06 -    [INFO] Nombre d'applications detectees : 300
+2026-01-07 01:16:17 - 
+   [Mises a jour disponibles via WinGet] :
+2026-01-07 01:16:17 -    Recommandation : utiliser winget upgrade --all pour mettre a jour les applications prises en charge.
+2026-01-07 01:16:17 - 
+[+] Audit de la configuration IPv6 :
+2026-01-07 01:16:19 -    [DISABLED] Adapter: VMware Network Adapter VMnet1 - IPv6 is disabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6.
+2026-01-07 01:16:19 -    [ENABLED] Adapter: ProtonVPN - IPv6 is enabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est active sur cet adaptateur ; verifiez qu'IPv6 est correctement route, filtre et surveille, ou desactivez-le s'il n'est pas utilise dans votre environnement.
+2026-01-07 01:16:19 -    [DISABLED] Adapter: Ethernet 5 - IPv6 is disabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6.
+2026-01-07 01:16:19 -    [DISABLED] Adapter: VMware Network Adapter VMnet8 - IPv6 is disabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6.
+2026-01-07 01:16:19 -    [DISABLED] Adapter: Ethernet 4 - IPv6 is disabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6.
+2026-01-07 01:16:19 -    [DISABLED] Adapter: Ethernet 6 - IPv6 is disabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6.
+2026-01-07 01:16:19 -    [ENABLED] Adapter: Tailscale - IPv6 is enabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est active sur cet adaptateur ; verifiez qu'IPv6 est correctement route, filtre et surveille, ou desactivez-le s'il n'est pas utilise dans votre environnement.
+2026-01-07 01:16:19 -    [DISABLED] Adapter: Wi-Fi - IPv6 is disabled.
+2026-01-07 01:16:19 -        Recommendation: IPv6 est desactive sur cet adaptateur ; cela est generalement sans danger si votre environnement ne depend pas d'IPv6.
+2026-01-07 01:16:19 - 
+[+] Audit de la configuration LLMNR :
+2026-01-07 01:16:19 -    [DEFAULT] - Active par defaut (aucune politique explicite, la resolution de noms multicast est probablement autorisee)
+2026-01-07 01:16:19 -        Recommendation: Aucune politique LLMNR explicite trouvee; configurez EnableMulticast = 0 (Desactiver la resolution de noms multicast) pour desactiver LLMNR.
+2026-01-07 01:16:19 - 
+[+] Audit de la configuration NetBIOS :
+2026-01-07 01:16:19 - 
+   Interface: VMware Virtual Ethernet Adapter for VMnet1
+2026-01-07 01:16:19 -    Statut NetBIOS: Default (typically enabled unless disabled by DHCP/server policy)
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 0
+2026-01-07 01:16:19 -    [MOYEN] NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible.
+2026-01-07 01:16:19 - 
+   Interface: VMware Virtual Ethernet Adapter for VMnet8
+2026-01-07 01:16:19 -    Statut NetBIOS: Default (typically enabled unless disabled by DHCP/server policy)
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 0
+2026-01-07 01:16:19 -    [MOYEN] NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible.
+2026-01-07 01:16:19 - 
+   Interface: Intel(R) Wi-Fi 6 AX201 160MHz
+2026-01-07 01:16:19 -    Statut NetBIOS: Default (typically enabled unless disabled by DHCP/server policy)
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 0
+2026-01-07 01:16:19 -    [MOYEN] NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible.
+2026-01-07 01:16:19 - 
+   Interface: Tailscale Tunnel
+2026-01-07 01:16:19 -    Statut NetBIOS: Disabled
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 2
+2026-01-07 01:16:19 -    [OK] NetBIOS sur TCP/IP est desactive sur cet interface ; ceci est recommande sur les reseaux modernes utilisant uniquement DNS.
+2026-01-07 01:16:19 - 
+   Interface: WireGuard Tunnel
+2026-01-07 01:16:19 -    Statut NetBIOS: Default (typically enabled unless disabled by DHCP/server policy)
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 0
+2026-01-07 01:16:19 -    [MOYEN] NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible.
+2026-01-07 01:16:19 - 
+   Interface: WireGuard Tunnel
+2026-01-07 01:16:19 -    Statut NetBIOS: Default (typically enabled unless disabled by DHCP/server policy)
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 0
+2026-01-07 01:16:19 -    [MOYEN] NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible.
+2026-01-07 01:16:19 - 
+   Interface: VirtualBox Host-Only Ethernet Adapter
+2026-01-07 01:16:19 -    Statut NetBIOS: Default (typically enabled unless disabled by DHCP/server policy)
+2026-01-07 01:16:19 -    Code TcpipNetbiosOptions: 0
+2026-01-07 01:16:19 -    [MOYEN] NetBIOS sur TCP/IP suit la configuration par defaut/DHCP; explicitement definir TcpipNetbiosOptions = 2 pour desactiver NetBIOS sur TCP/IP si possible.
+2026-01-07 01:16:19 - 
+[+] Audit du pare-feu (Windows Firewall) :
+2026-01-07 01:16:23 -    [OK] Le service Windows Firewall est en cours d'execution.
+2026-01-07 01:16:23 -    [PROFIL ACTIF] : Private, Public
+2026-01-07 01:16:23 - 
+   [INFO] Aucune regle RDP activee detectee.
+2026-01-07 01:16:23 -    Recommandation : Aucune regle de pare-feu RDP active detecteeÂ ; verifiez si RDP est requis et comment l acces est controle (VPN, serveurs de saut, etc.).
+2026-01-07 01:16:23 - 
+   Recommandations globales :
+2026-01-07 01:16:23 -       - Le service de pare-feu Windows semble etre actif; examinez regulierement les regles d entrance pour eviter l exposition inutile (RDP, SMB, WinRM, etc.).
+2026-01-07 01:16:23 - 
+[+] Audit des connexions VPN :
+2026-01-07 01:16:24 -    Description : 2 Interface(s) VPN/TAP/TUN detectee(s) (Statut = Actif) | 0 profil(s) VPN configure(s) via le client VPN Windows
+2026-01-07 01:16:24 - 
+   Interfaces VPN/TAP/TUN actives detectees :
+2026-01-07 01:16:24 -       - ProtonVPN | WireGuard Tunnel | Up
+2026-01-07 01:16:24 -       - Tailscale | Tailscale Tunnel | Up
+2026-01-07 01:16:24 -    [INFO] Aucun profil VPN configure via le client Windows.
+2026-01-07 01:16:24 - 
+[+] Audit des fonctionnalites optionnelles (Windows Optional Features) :
+2026-01-07 01:16:34 -    [INFO] Nombre de fonctionnalites optionnelles activees : 16
+2026-01-07 01:16:35 -    [OK] Aucune fonctionnalite optionnelle notablement risquee detectee.
+2026-01-07 01:16:35 - 
+[+] Audit de la configuration AppLocker :
+2026-01-07 01:16:35 -    [INFO] AppLocker est present mais aucune collection de regles n'est en mode Enforced.
+2026-01-07 01:16:35 -        Statut : AppLocker est present mais aucune collection de regles n'est en mode applique.
+2026-01-07 01:16:35 -        Recommandation : Activez d'abord AppLocker en mode Audit, puis basculez progressivement les ensembles de regles requis en mode Applique pour bloquer les applications non autorisees.
+2026-01-07 01:16:35 - 
+[+] Audit de la configuration SRP (Software Restriction Policies) :
+2026-01-07 01:16:35 - 
+   Scope: Machine
+2026-01-07 01:16:35 -    [ABSENT] Aucune SRP detectee pour ce scope.
+2026-01-07 01:16:35 -    Chemin du registre: HKLM:\SOFTWARE\Policies\Microsoft\Windows\Safer\CodeIdentifiers
+2026-01-07 01:16:35 -    Statut: La clef racine SRP existe mais aucune regle de chemin n'a ete trouvee.
+2026-01-07 01:16:35 -    Recommandation: Si SRP n'est pas utilise activement, envisagez de nettoyer les cles legacy et de mettre en oeuvre AppLocker ou WDAC a la place.
+2026-01-07 01:16:35 - 
+   Scope: User
+2026-01-07 01:16:35 -    [ABSENT] Aucune SRP detectee pour ce scope.
+2026-01-07 01:16:35 -    Chemin du registre: HKCU:\SOFTWARE\Policies\Microsoft\Windows\Safer\CodeIdentifiers
+2026-01-07 01:16:35 -    Statut: Pas de politique de restriction logicielle (SRP) detectee pour cette portee.
+2026-01-07 01:16:35 -    Recommandation: Preferez AppLocker ou Windows Defender Application Control (WDAC) plutot que SRP legacy pour le controle des applications.
+2026-01-07 01:16:35 - 
+[+] Audit de l'etat des services antivirus :
+2026-01-07 01:16:36 - 
+Service : Microsoft Defender Antivirus
+2026-01-07 01:16:36 -    [OK] Le service antivirus est en cours d'execution.
+2026-01-07 01:16:36 -    [OK] La protection en temps reel est activee.
+2026-01-07 01:16:36 -    [OK] Protection globale : Active
+2026-01-07 01:16:36 -    Description : Built-in Microsoft antivirus service.
+2026-01-07 01:16:36 -    Recommandation : La surveillance en temps reel de Defender est activeeÂ ; assurez-vous que la protection basee sur le cloud et les exclusions sont configurees selon votre base de securite.
+2026-01-07 01:16:36 - 
+Service : ESET Forwarder
+2026-01-07 01:16:36 -    [OK] Le service antivirus est en cours d'execution.
+2026-01-07 01:16:36 -    [OK] Protection globale : Active
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+Service : ESET Service
+2026-01-07 01:16:36 -    [OK] Le service antivirus est en cours d'execution.
+2026-01-07 01:16:36 -    [OK] Protection globale : Active
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+Service : ESET Firewall Helper
+2026-01-07 01:16:36 -    [OK] Le service antivirus est en cours d'execution.
+2026-01-07 01:16:36 -    [OK] Protection globale : Active
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+Service : Microsoft Defender Service de base
+2026-01-07 01:16:36 -    [OK] Le service antivirus est en cours d'execution.
+2026-01-07 01:16:36 -    [OK] Protection globale : Active
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+Service : Pare-feu Windows Defender
+2026-01-07 01:16:36 -    [OK] Le service antivirus est en cours d'execution.
+2026-01-07 01:16:36 -    [OK] Protection globale : Active
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+Service : Windows Defender Advanced Threat Protection Service
+2026-01-07 01:16:36 -    [ALERTE] Le service antivirus n'est pas en cours d'execution.
+2026-01-07 01:16:36 -    [ALERTE] Protection globale : Inactive ou degradee
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+Service : Service d’inspection réseau de l’antivirus Microsoft Defender
+2026-01-07 01:16:36 -    [ALERTE] Le service antivirus n'est pas en cours d'execution.
+2026-01-07 01:16:36 -    [ALERTE] Protection globale : Inactive ou degradee
+2026-01-07 01:16:36 -    Description : Third-party antivirus / EDR related service detected.
+2026-01-07 01:16:36 -    Recommandation : Confirmez que cet agent AV/EDR est correctement configure et qu'un seul moteur de protection en temps reel principal est actif pour eviter les conflits.
+2026-01-07 01:16:36 - 
+[+] Audit de la configuration LM Hash :
+2026-01-07 01:16:36 -    Path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+2026-01-07 01:16:36 -    NoLMHash Value: 1
+2026-01-07 01:16:36 -    [OK] Les hachs LM ne sont pas stockes (NoLMHash = 1).
+2026-01-07 01:16:36 -    Recommandation : Gardez NoLMHash = 1 et assurez-vous que la longueur et la complexite du mot de passe sont alignees sur votre base de securite.
+2026-01-07 01:16:36 - 
+[+] Audit de la protection LSASS :
+2026-01-07 01:16:36 -    LSA Path : HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+2026-01-07 01:16:36 -    RunAsPPL : 2
+2026-01-07 01:16:36 -    [OK] LSA protection activee (RunAsPPL = 2, Secure Boot requis).
+2026-01-07 01:16:36 -    WDigest Path : HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest
+2026-01-07 01:16:36 -    UseLogonCredential : N/A
+2026-01-07 01:16:36 -    [OK] WDigest desactive ou valeur explicite presente.
+2026-01-07 01:16:36 -    Recommandation : Gardez la protection LSA activee avec Secure Boot pour renforcer LSASS contre le vidage des informations d identification. | Creez la valeur DWORD UseLogonCredential de WDigest et definiissez-la a 0 pour desactiver explicitement le stockage des mots de passe en texte clair.
+2026-01-07 01:16:36 - 
+   Actions proposees :
+2026-01-07 01:16:36 -       - LsassProtection : Desactiver WDigest en definissant UseLogonCredential = 0 pour eviter le stockage des mots de passe en texte clair dans LSASS.
+2026-01-07 01:16:36 -          Commande : Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest' -Name 'UseLogonCredential' -Value 0
+2026-01-07 01:16:36 - 
+[+] Audit Credential Guard :
+2026-01-07 01:16:37 -    LsaPath        : HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+2026-01-07 01:16:37 -    LsaCfgFlags    : 0
+2026-01-07 01:16:37 -    Status         : Desactive
+2026-01-07 01:16:37 -    [ALERTE] Credential Guard desactive ou non configure.
+2026-01-07 01:16:37 -    TPM present    : True
+2026-01-07 01:16:37 -    SecureBoot     : True
+2026-01-07 01:16:37 -    Virtualisation : True
+2026-01-07 01:16:37 - 
+   Recommandations : Activez Credential Guard (LsaCfgFlags defini sur 1 ou 2) une fois que toutes les conditions prealables sont remplies et testees dans un groupe pilote.
+2026-01-07 01:16:37 - 
+[+] Audit Device Guard / VBS :
+2026-01-07 01:16:37 -    VBS actif         : True
+2026-01-07 01:16:37 -    WDAC actif        : False
+2026-01-07 01:16:37 -    CI Enforcement    : Applique
+2026-01-07 01:16:37 -    SecurityServicesConfigured : 2
+2026-01-07 01:16:37 -    SecurityServicesRunning    : 2
+2026-01-07 01:16:37 -    Commentaire       : VBS status: 2; UMCI (WDAC) status: 0; CI: Applique.
+2026-01-07 01:16:37 -    [OK] Virtualization-Based Security (VBS) et/ou WDAC detecte(s).
+2026-01-07 01:16:37 -    Recommandation : VBS est active. evaluez et deployez les politiques d'integrite du code WDAC (au moins en mode Audit) pour controler quels binaires et scripts peuvent s'executer.
+2026-01-07 01:16:37 - 
+[+] Audit Exploit Protection (Process Mitigations) :
+2026-01-07 01:16:38 -    DEP (Data Execution Prevention)            : NOTSET
+2026-01-07 01:16:38 -       [ALERTE] DEP non active.
+2026-01-07 01:16:38 -    CFG (Control Flow Guard)                   : NOTSET
+2026-01-07 01:16:38 -       [ALERTE] CFG non active.
+2026-01-07 01:16:38 -    SEHOP (SEH Overwrite Protection)          : NOTSET
+2026-01-07 01:16:38 -       [ALERTE] SEHOP non active.
+2026-01-07 01:16:38 -    ASLR Bottom-Up                              : NOTSET
+2026-01-07 01:16:38 -       [ALERTE] ASLR Bottom-Up non active.
+2026-01-07 01:16:38 -    ASLR High-Entropy                           : NOTSET
+2026-01-07 01:16:38 -       [ALERTE] ASLR High-Entropy non active.
+2026-01-07 01:16:38 -    ASLR ForceRelocateImages                    : NOTSET
+2026-01-07 01:16:38 -       [ALERTE] ForceRelocateImages non active.
+2026-01-07 01:16:38 - 
+   Synthese :
+2026-01-07 01:16:38 -       [ALERTE] Parametres manquants ou desactives : DEP, CFG, SEHOP, ASLR_BottomUP, ASLR_HighEntropy, ASLR_ForceRelocateImages
+2026-01-07 01:16:38 -       Recommandation : Activez la prevention de l'execution des donnees (DEP) Ã  l'echelle du systeme pour une meilleure protection de la memoire. Activez Control Flow Guard (CFG) pour attenuer les attaques de detournement de flux de contrÃ´le. Activez la protection contre l'ecrasement du gestionnaire d'exceptions structurees (SEHOP) pour empÃªcher les ecrasements SEH. Activez l'ASLR ascendant pour randomiser les allocations de memoire. Activez l'ASLR Ã  haute entropie pour une randomisation plus forte de l'espace d'adressage sur les systemes 64 bits. Activez la relocalisation obligatoire des images (ForceRelocateImages) afin que les binaires doivent Ãªtre compatibles ASLR.
+2026-01-07 01:16:38 - 
+   Actions proposees :
+2026-01-07 01:16:38 -       - DEP_Enable : Activez la prevention de l'execution des donnees (DEP) Ã  l'echelle du systeme pour une meilleure protection de la memoire.
+2026-01-07 01:16:38 -          Commande : Set-ProcessMitigation -System -Enable DEP
+2026-01-07 01:16:38 -       - CFG_Enable : Activez Control Flow Guard (CFG) pour attenuer les attaques de detournement de flux de contrÃ´le.
+2026-01-07 01:16:38 -          Commande : Set-ProcessMitigation -System -Enable CFG
+2026-01-07 01:16:38 -       - SEHOP_Enable : Activez la protection contre l'ecrasement du gestionnaire d'exceptions structurees (SEHOP) pour empÃªcher les ecrasements SEH.
+2026-01-07 01:16:38 -          Commande : Set-ProcessMitigation -System -Enable SEHOP
+2026-01-07 01:16:38 -       - ASLR_BottomUP : Activez l'ASLR ascendant pour randomiser les allocations de memoire.
+2026-01-07 01:16:38 -          Commande : Set-ProcessMitigation -System -Enable BottomUp
+2026-01-07 01:16:38 -       - ASLR_HighEntropy : Activez l'ASLR Ã  haute entropie pour une randomisation plus forte de l'espace d'adressage sur les systemes 64 bits.
+2026-01-07 01:16:38 -          Commande : Set-ProcessMitigation -System -Enable HighEntropy
+2026-01-07 01:16:38 -       - ASLR_ForceRelocateImages : Activez la relocalisation obligatoire des images (ForceRelocateImages) afin que les binaires doivent Ãªtre compatibles ASLR.
+2026-01-07 01:16:38 -          Commande : Set-ProcessMitigation -System -Enable ForceRelocateImages
+2026-01-07 01:16:38 - 
+[+] Audit Attack Surface Reduction (ASR) :
+2026-01-07 01:16:38 -    Aucune regle ASR n'est actuellement configuree (ASR desactivee).
+2026-01-07 01:16:38 -    Recommandation : Activez les regles de reduction de la surface d'attaque de Microsoft Defender, telles que : 
+                - Bloquer les macros malveillantes dans Office.
+                - Empecher l'execution de scripts suspects (PowerShell, JavaScript, etc.).
+                - Blocage des processus non autorises provenant d'emplacements sensibles (par exemple, %AppData% ou %Temp%).
+                - Protection contre les pieces jointes malveillantes dans les emails.
+2026-01-07 01:16:38 - 
+[+] Audit Network Protection (Microsoft Defender) :
+2026-01-07 01:16:38 -    Mode detecte : Off
+2026-01-07 01:16:38 -    [ALERTE] Network Protection desactive.
+2026-01-07 01:16:38 -    EnableNetworkProtection : False
+2026-01-07 01:16:38 - 
+   Recommandation : La Protection reseau est desactiveeÂ ; activez-la d'abord en mode Audit, puis en mode Blocage pour empecher l'acces aux domaines et IPs malveillants.
+2026-01-07 01:16:38 - 
+[+] Audit Controlled Folder Access (Defender) :
+2026-01-07 01:16:38 -    Mode detecte : Desactive
+2026-01-07 01:16:38 -    [INCONNU] Valeur brute : 0
+2026-01-07 01:16:38 - 
+   Recommandation : Envisagez d'abord d'activer l'acces contrÃ´le aux dossiers en mode Audit pour evaluer l'impact, puis passez Ã  'Bloquer' pour les points de terminaison critiques.
+2026-01-07 01:16:38 - 
+[+] Audit Smart App Control :
+2026-01-07 01:16:38 -    Smart App Control : Off
+2026-01-07 01:16:38 -    [ALERTE] Smart App Control desactive.
+2026-01-07 01:16:38 - 
+   Recommandation : Tester en mode Evaluation puis activer (On) sur systemes compatibles.
+2026-01-07 01:16:38 - 
+[+] Audit du mode langage PowerShell :
+2026-01-07 01:16:38 -    LanguageMode : FullLanguage
+2026-01-07 01:16:38 -    [ALERTE] PowerShell en FullLanguage (ou moins restreint).
+2026-01-07 01:16:38 -    Recommandation : PowerShell s'execute en mode FullLanguage (ou moins restreint)Â ; envisagez d'appliquer ConstrainedLanguage aux utilisateurs standard via AppLocker/WDAC pour une meilleure resistance aux abus.
+2026-01-07 01:16:38 - 
+[+] Audit AutoRun (NoDriveTypeAutorun) :
+2026-01-07 01:16:38 - 
+   Scope : Machine
+2026-01-07 01:16:38 -       Valeur brute : La valeur NoDriveTypeAutorun est introuvable
+2026-01-07 01:16:38 -       Commentaire  : Pas de valeur NoDriveTypeAutorun explicite configuree; le comportement par defaut d'AutoRun peut etre partiellement active.
+2026-01-07 01:16:38 -       [ALERTE] Autorun potentiellement active.
+2026-01-07 01:16:38 -       Recommandation : Configurez explicitement NoDriveTypeAutorun (0xFF) pour vous assurer qu'AutoRun est desactive pour tous les types de lecteurs.'
+2026-01-07 01:16:38 - 
+   Scope : User
+2026-01-07 01:16:38 -       Valeur brute : La valeur NoDriveTypeAutorun est introuvable
+2026-01-07 01:16:38 -       Commentaire  : Pas de valeur NoDriveTypeAutorun explicite configuree; le comportement par defaut d'AutoRun peut etre partiellement active.
+2026-01-07 01:16:38 -       [ALERTE] Autorun potentiellement active.
+2026-01-07 01:16:38 -       Recommandation : Configurez explicitement NoDriveTypeAutorun (0xFF) pour vous assurer qu'AutoRun est desactive pour tous les types de lecteurs.'
+2026-01-07 01:16:38 - 
+   Actions proposees :
+2026-01-07 01:16:38 -       - AutoRun : Desactivez AutoRun dans le registre pour LocalMachine et CurrentUser
+2026-01-07 01:16:38 -          Commande : Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF | Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoDriveTypeAutorun -Value 0xFF
+2026-01-07 01:16:38 - 
+[+] Audit BitLocker :
+2026-01-07 01:16:39 - 
+   Volume : C: (OperatingSystem)
+2026-01-07 01:16:39 -       ProtectionStatus   : Unknown (On)  |  Chiffrement : 100% 
+2026-01-07 01:16:40 -       [ALERTE] Volume non protege ou chiffrement incomplet.
+2026-01-07 01:16:40 -       TPM : True    PIN : False    RecoveryKey : True
+2026-01-07 01:16:40 -       Commentaire : La Protection BitLocker est 'Unknown (On)' avec 100% de chiffrement.
+2026-01-07 01:16:40 -       Recommandation : Envisagez d'activer TPM+PIN pour le volume du systeme d'exploitation afin de fournir une authentification prealable au demarrage plus forte sur les points de terminaison sensibles.
+2026-01-07 01:16:40 - 
+[+] Audit indicateurs de chiffrement tiers :
+2026-01-07 01:16:40 - 
+   Solution : True
+2026-01-07 01:16:40 -       Present : False
+2026-01-07 01:16:40 -       [OK] Aucun chiffrement tiers detecte pour cet item.
+2026-01-07 01:16:40 - 
+   Solution : True
+2026-01-07 01:16:40 -       Present : False
+2026-01-07 01:16:40 -       [OK] Aucun chiffrement tiers detecte pour cet item.
+2026-01-07 01:16:40 - 
+   Solution : True
+2026-01-07 01:16:40 -       Present : False
+2026-01-07 01:16:40 -       [OK] Aucun chiffrement tiers detecte pour cet item.
+2026-01-07 01:16:40 - 
+   Solution : True
+2026-01-07 01:16:40 -       Present : False
+2026-01-07 01:16:40 -       [OK] Aucun chiffrement tiers detecte pour cet item.
+2026-01-07 01:16:40 - 
+[+] Audit du dernier redemarrage :
+2026-01-07 01:16:40 -    Role de la machine : Workstation
+2026-01-07 01:16:40 -    Dernier demarrage   : 01/05/2026 12:16:07
+2026-01-07 01:16:40 -    Uptime              : 1 days 13 hours 0 minutes (jours: 1)
+2026-01-07 01:16:40 -    Seuil recommande    : 30 jours
+2026-01-07 01:16:40 -    [OK] Uptime dans la plage attendue.
+2026-01-07 01:16:40 -    Recommandation : Le temps d'activite de la station de travail est dans la plage attendue ; assurez-vous de redemarrages reguliers apres les cycles de correctifs.
+2026-01-07 01:16:40 - 
+[+] Audit des journaux et de la collecte d'evenements :
+2026-01-07 01:16:41 - 
+   Log : Security
+2026-01-07 01:16:41 -       Enregistres : 30106  |  MaxSize : 20 MB  |  Reco : 400 MB
+2026-01-07 01:16:41 -       [ALERTE] Taille du journal insuffisante.
+2026-01-07 01:16:41 -       Recommendation : La taille maximale actuelle (20 Mo) est inferieure au seuil recommande (400 Mo) pour ce journal ; augmentez la taille du journal pour eviter les ecrasements precoces.
+2026-01-07 01:16:41 - 
+   Log : System
+2026-01-07 01:16:41 -       Enregistres : 35669  |  MaxSize : 20 MB  |  Reco : 50 MB
+2026-01-07 01:16:41 -       [ALERTE] Taille du journal insuffisante.
+2026-01-07 01:16:41 -       Recommendation : La taille maximale actuelle (20 Mo) est inferieure au seuil recommande (50 Mo) pour ce journal ; augmentez la taille du journal pour eviter les ecrasements precoces.
+2026-01-07 01:16:41 - 
+   Log : Application
+2026-01-07 01:16:41 -       Enregistres : 36831  |  MaxSize : 20 MB  |  Reco : 50 MB
+2026-01-07 01:16:41 -       [ALERTE] Taille du journal insuffisante.
+2026-01-07 01:16:41 -       Recommendation : La taille maximale actuelle (20 Mo) est inferieure au seuil recommande (50 Mo) pour ce journal ; augmentez la taille du journal pour eviter les ecrasements precoces.
+2026-01-07 01:16:41 - 
+   Log : Windows PowerShell
+2026-01-07 01:16:41 -       Enregistres : 9136  |  MaxSize : 15 MB  |  Reco : 50 MB
+2026-01-07 01:16:41 -       [ALERTE] Taille du journal insuffisante.
+2026-01-07 01:16:41 -       Recommendation : La taille maximale actuelle (15 Mo) est inferieure au seuil recommande (50 Mo) pour ce journal ; augmentez la taille du journal pour eviter les ecrasements precoces.
+2026-01-07 01:16:41 - 
+   Log : Microsoft-Windows-PowerShell/Operational
+2026-01-07 01:16:41 -       Enregistres : 485  |  MaxSize : 15 MB  |  Reco : 200 MB
+2026-01-07 01:16:41 -       [ALERTE] Taille du journal insuffisante.
+2026-01-07 01:16:41 -       Recommendation : La taille maximale actuelle (15 Mo) est inferieure au seuil recommande (200 Mo) pour ce journal ; augmentez la taille du journal pour eviter les ecrasements precoces.
+2026-01-07 01:16:41 - 
+   Source : Windows Event Forwarding
+2026-01-07 01:16:41 -       Active : False
+2026-01-07 01:16:41 -       Commentaire : Pas d'evenements trouves dans le journal Microsoft-Windows-Forwarding/Operational.
+2026-01-07 01:16:41 -       Recommendation : Configurez les abonnements Windows Event Forwarding (WEF) pour envoyer les journaux de securite critiques a un collecteur/SIEM central.
+2026-01-07 01:16:41 - 
+   Source : Sysmon
+2026-01-07 01:16:41 -       Active : False
+2026-01-07 01:16:41 -       Commentaire : Le service Sysmon n'est pas installe sur cet hote.
+2026-01-07 01:16:41 -       Recommendation : Considerez le deploiement de Sysmon avec une configuration durcie sur les serveurs et postes de travail critiques pour une journalisation de securite avancee.
+2026-01-07 01:16:41 - 
+   Agents de collecte detectes :
+2026-01-07 01:16:41 -       - Aucun agent connu detecte sur l'entree (bruit possible).
+2026-01-07 01:16:41 -          Commentaire : Aucun agent SIEM ou collecteur de journaux connu detecte en fonction des modeles configures.
+2026-01-07 01:16:41 - [?] Actions de remediation exportees : C:\Users\perso\OneDrive\Documents\esgi\sécurité windows\audit_windows_tool\xml\remediations_20260107_011601.xml
+2026-01-07 01:16:41 - 
+Audit termine.
