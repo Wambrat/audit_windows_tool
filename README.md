@@ -62,7 +62,7 @@ audit_windows_tool/
 
 ## 🛠️ Utilisation Simplifiée
 
-L'outil utilise une interface graphique centralisée pour guider l'utilisateur à travers les étapes d'audit et de correction.
+L'outil utilise une interface graphique centralisée pour guider l'utilisateur à travers les étapes **d'audit** et de **correction**.
 
 ### 1. Lancer l'outil
 
@@ -101,4 +101,5 @@ Cet outil effectue des modifications profondes sur la configuration de sécurit�
 
 1.  **Sauvegarde** : Faites toujours une sauvegarde ou un point de restauration avant d'appliquer des remédiations.
 2.  **Test** : Ne lancez jamais de remédiation massive sur un environnement de production sans avoir testé au préalable sur une machine de pré-production.
+
 3.  **Responsabilité** : L'utilisation de cet outil est sous votre entière responsabilité. Les auteurs ne peuvent être tenus responsables d'éventuels dysfonctionnements suite au durcissement du système.
